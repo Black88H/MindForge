@@ -202,7 +202,7 @@
                     <Grid Margin="0,0,0,16">
                         <TextBlock Text="ACHIEVEMENTS" Style="{StaticResource SectionLabel}" VerticalAlignment="Center"/>
                         <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource Text3Brush}">
-                            <Run Text="{Binding Achievements.Count}"/>
+                            <Run Text="{Binding Achievements.Count, Mode=OneWay}"/>
                             <Run Text=" gesamt"/>
                         </TextBlock>
                     </Grid>

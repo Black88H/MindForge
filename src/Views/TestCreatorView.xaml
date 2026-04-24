@@ -73,7 +73,7 @@
                                   SelectedItem="{Binding SelectedDifficulty}"
                                   Style="{StaticResource MfComboBox}" Margin="0,0,0,12"/>
                         <TextBlock FontSize="12" Foreground="{StaticResource Text2Brush}">
-                            <Run Text="{Binding SelectedCount}"/>
+                            <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
                             <Run Text=" Fragen ausgewählt"/>
                         </TextBlock>
                     </StackPanel>
@@ -193,9 +193,9 @@
                         Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
                     <TextBlock FontSize="15" FontWeight="Medium">
                         <Run Text="▶  Test starten  ("/>
-                        <Run Text="{Binding SelectedCount}"/>
+                        <Run Text="{Binding SelectedCount, Mode=OneWay}"/>
                         <Run Text=" Fragen · "/>
-                        <Run Text="{Binding DurationText}"/>
+                        <Run Text="{Binding DurationText, Mode=OneWay}"/>
                         <Run Text=")"/>
                     </TextBlock>
                 </Button>
