@@ -1,1 +1,6 @@
 .github/workflows/
+bin/
+obj/
+*.user
+.vs/
+*.suo
