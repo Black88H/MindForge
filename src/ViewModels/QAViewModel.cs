@@ -10,7 +10,9 @@ public partial class QAViewModel : ObservableObject
 {
     private readonly IAISelector? _aiSelector;
 
-    public QAViewModel(IAISelector? aiSelector = null)
+    public QAViewModel() : this(null) { }
+
+    public QAViewModel(IAISelector? aiSelector)
     {
         _aiSelector = aiSelector;
     }

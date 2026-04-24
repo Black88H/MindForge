@@ -12,7 +12,9 @@ public partial class ContentGeneratorViewModel : ObservableObject
     private readonly IAISelector? _aiSelector;
     private string _rawFileContent = string.Empty;
 
-    public ContentGeneratorViewModel(IAISelector? aiSelector = null)
+    public ContentGeneratorViewModel() : this(null) { }
+
+    public ContentGeneratorViewModel(IAISelector? aiSelector)
     {
         _aiSelector = aiSelector;
     }
