@@ -88,7 +88,7 @@
                             <Run Text="{Binding ProcessingProgress, StringFormat=P0}"/>
                         </TextBlock>
                     </Grid>
-                    <ProgressBar Value="{Binding ProcessingProgress}" Maximum="1"
+                    <ProgressBar Minimum="0" Maximum="1" Value="{Binding ProcessingProgress, Mode=OneWay}"
                                  Style="{StaticResource SuccessProgressBar}" Height="6"/>
                 </StackPanel>
             </Border>
