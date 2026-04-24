@@ -15,6 +15,7 @@ public class MindForgeDbContext : DbContext
     public DbSet<TestResult>  TestResults  => Set<TestResult>();
     public DbSet<UserProgress> UserProgress => Set<UserProgress>();
     public DbSet<Achievement> Achievements => Set<Achievement>();
+    public DbSet<TokenUsage>  TokenUsage   => Set<TokenUsage>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {

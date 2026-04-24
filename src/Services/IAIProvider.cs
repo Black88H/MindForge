@@ -1,11 +1,12 @@
+using MindForge.Services.AI.Models;
+
 namespace MindForge.Services;
 
 public interface IAIProvider
 {
-    string ProviderName { get; }
-    bool IsConfigured { get; }
-    Task<string> ExplainQuestionAsync(string question, string correctAnswer);
-    Task<string> GenerateQuestionsFromTextAsync(string text, int count);
-    Task<string> SummarizeAsync(string text);
-    Task<string> ChatAsync(string prompt);
+    string Name { get; }
+    bool IsAvailable { get; }
+    Task<AIResponse> GenerateExplanationAsync(string question, string context = "");
+    Task<AIResponse> GenerateContentAsync(string text, string contentType);
+    Task<bool> CheckConnectionAsync();
 }

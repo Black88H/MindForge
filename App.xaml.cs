@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MindForge.Services;
+using MindForge.Services.AI.Interfaces;
+using MindForge.Services.AI.Providers;
+using MindForge.Services.AI.Selection;
 using MindForge.Utils;
 using MindForge.ViewModels;
 
@@ -19,9 +22,11 @@ public partial class App : Application
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
+                // Database
                 services.AddDbContext<MindForgeDbContext>(options =>
                     options.UseSqlite($"Data Source={MindForgeDbContext.GetDbPath()}"));
 
+                // Repositories
                 services.AddScoped<UserProgressRepository>();
                 services.AddScoped<SubjectRepository>();
                 services.AddScoped<QuestionRepository>();
@@ -29,6 +34,22 @@ public partial class App : Application
                 services.AddScoped<AnalyticsRepository>();
                 services.AddScoped<AchievementRepository>();
 
+                // AI — Detection & Selection
+                services.AddSingleton<InternetDetector>();
+                services.AddSingleton<HardwareDetector>();
+                services.AddSingleton<TaskAnalyzer>();
+                services.AddScoped<ITokenTracker, TokenTrackerService>();
+
+                // AI — Providers
+                services.AddSingleton<ClaudeAIProvider>();
+                services.AddSingleton<OpenAIProvider>();
+                services.AddSingleton<GeminiProvider>();
+                services.AddSingleton<OllamaProvider>();
+
+                // AI — Selector (scoped: depends on scoped ITokenTracker)
+                services.AddScoped<IAISelector, AISelector>();
+
+                // ViewModels
                 services.AddTransient<MainViewModel>();
                 services.AddTransient<DashboardViewModel>();
                 services.AddTransient<QAViewModel>();
@@ -68,7 +89,7 @@ public partial class App : Application
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
 
-        Logger.Info("MindForge gestartet");
+        Logger.Info("MindForge v0.3.0 gestartet");
     }
 
     protected override async void OnExit(ExitEventArgs e)

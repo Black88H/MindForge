@@ -20,6 +20,8 @@ public class AppSettings
     public string OllamaEndpoint { get; set; } = "http://localhost:11434";
     public string DefaultProvider { get; set; } = "Claude";
     public int TokenLimit { get; set; } = 4000;
+    public bool AutoSelectProvider { get; set; } = true;
+    public decimal TokenBudgetUSD { get; set; } = 5.0m;
 
     // Speicher & Datenbank
     public string DatabaseType { get; set; } = "SQLite";

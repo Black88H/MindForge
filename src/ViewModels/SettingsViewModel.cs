@@ -25,6 +25,8 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
     [ObservableProperty] private string _defaultProvider = "Claude";
     [ObservableProperty] private int _tokenLimit = 4000;
+    [ObservableProperty] private bool _autoSelectProvider = true;
+    [ObservableProperty] private decimal _tokenBudgetUsd = 5.0m;
 
     // Speicher
     [ObservableProperty] private string _databaseType = "SQLite";
@@ -135,6 +137,7 @@ public partial class SettingsViewModel : ObservableObject
         DailyReminderTime = DailyReminderTime, StreakNotificationsEnabled = StreakNotificationsEnabled,
         AnalyticsSharing = AnalyticsSharing, AutoLogout = AutoLogout,
         AutoLogoutMinutes = AutoLogoutMinutes, DataEncryption = DataEncryption,
+        AutoSelectProvider = AutoSelectProvider, TokenBudgetUSD = TokenBudgetUsd,
     };
 }
 

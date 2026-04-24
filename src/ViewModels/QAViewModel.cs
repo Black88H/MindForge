@@ -1,10 +1,20 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MindForge.Services.AI.Interfaces;
+using MindForge.Services.AI.Models;
+using MindForge.Services.AI.Utilities;
 
 namespace MindForge.ViewModels;
 
 public partial class QAViewModel : ObservableObject
 {
+    private readonly IAISelector? _aiSelector;
+
+    public QAViewModel(IAISelector? aiSelector = null)
+    {
+        _aiSelector = aiSelector;
+    }
+
     [ObservableProperty] private string _subjectName = "Analysis II";
     [ObservableProperty] private string _subjectColor = "#5B8CFF";
     [ObservableProperty] private string _questionTag = "Reihen";
@@ -27,6 +37,11 @@ public partial class QAViewModel : ObservableObject
     [ObservableProperty] private int _questionProgress = 7;
     [ObservableProperty] private int _questionTotal = 20;
     [ObservableProperty] private bool _isLoadingExplanation = false;
+
+    // AI Status
+    [ObservableProperty] private string _aiProviderName = string.Empty;
+    [ObservableProperty] private int _lastTokenCount = 0;
+    [ObservableProperty] private string _lastCostText = string.Empty;
 
     public double SessionProgress => QuestionTotal > 0 ? (double)QuestionProgress / QuestionTotal : 0;
     public string SessionProgressText => $"{QuestionProgress} / {QuestionTotal}";
@@ -56,7 +71,28 @@ public partial class QAViewModel : ObservableObject
     private async Task ShowAIExplanationAsync()
     {
         IsLoadingExplanation = true;
-        await Task.Delay(800);
+
+        if (_aiSelector != null)
+        {
+            var response = await _aiSelector.ExecuteAsync(TaskType.QAExplanation, QuestionText);
+            if (response.IsSuccess)
+            {
+                Explanation      = response.Content;
+                AiProviderName   = response.ProviderName;
+                LastTokenCount   = response.TokensUsed;
+                LastCostText     = CostCalculator.FormatCost(response.CostUSD);
+            }
+            else
+            {
+                Explanation = $"KI-Fehler: {response.Error}";
+                AiProviderName = response.ProviderName;
+            }
+        }
+        else
+        {
+            await Task.Delay(800);
+        }
+
         IsLoadingExplanation = false;
         ShowExplanation = true;
     }
@@ -68,6 +104,9 @@ public partial class QAViewModel : ObservableObject
         IsAnswered = false;
         SelectedOption = null;
         ShowExplanation = false;
+        AiProviderName = string.Empty;
+        LastTokenCount = 0;
+        LastCostText = string.Empty;
         foreach (var o in Options) { o.IsSelected = false; o.IsCorrect = false; o.IsWrong = false; }
     }
 
