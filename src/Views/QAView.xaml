@@ -1,0 +1,168 @@
+<UserControl x:Class="MindForge.Views.QAView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:MindForge.ViewModels"
+             Background="{StaticResource BgBrush}">
+
+    <UserControl.DataContext>
+        <vm:QAViewModel/>
+    </UserControl.DataContext>
+
+    <Grid MaxWidth="860" Margin="40,32,40,40" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Header Tags -->
+            <RowDefinition Height="Auto"/>
+            <!-- Session Progress -->
+            <RowDefinition Height="Auto"/>
+            <!-- Question -->
+            <RowDefinition Height="Auto"/>
+            <!-- Options -->
+            <RowDefinition Height="Auto"/>
+            <!-- Buttons -->
+            <RowDefinition Height="Auto"/>
+            <!-- Explanation -->
+        </Grid.RowDefinitions>
+
+        <!-- ══ TAGS ROW ══ -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <Border Style="{StaticResource BadgeAccent}" Margin="0,0,8,0">
+                <TextBlock Text="{Binding SubjectName}"
+                           Foreground="{StaticResource AccentBrush}" FontSize="12" FontWeight="Medium"/>
+            </Border>
+            <Border Style="{StaticResource BadgeNeutral}" Margin="0,0,8,0">
+                <TextBlock Text="{Binding QuestionTag}"
+                           Foreground="{StaticResource Text2Brush}" FontSize="12"/>
+            </Border>
+            <Border Style="{StaticResource BadgeNeutral}">
+                <TextBlock Text="{Binding DifficultyTag}"
+                           Foreground="{StaticResource Text2Brush}" FontSize="12"/>
+            </Border>
+            <TextBlock Text="{Binding QuestionNumber}" HorizontalAlignment="Right" Margin="20,0,0,0"
+                       VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource Text3Brush}"
+                       FontFamily="Consolas"/>
+        </StackPanel>
+
+        <!-- ══ SESSION PROGRESS ══ -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,24" Padding="14,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ProgressBar Grid.Column="0" Value="{Binding SessionProgress}" Maximum="1"
+                             Style="{StaticResource MfProgressBar}" Height="6" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding SessionProgressText}" Margin="12,0,0,0"
+                           FontSize="11" Foreground="{StaticResource Text3Brush}" FontFamily="Consolas"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- ══ QUESTION ══ -->
+        <TextBlock Grid.Row="2" Text="{Binding QuestionText}"
+                   FontFamily="Georgia" FontSize="26" LineHeight="36"
+                   Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"
+                   Margin="0,0,0,28"/>
+
+        <!-- ══ ANSWER OPTIONS ══ -->
+        <UniformGrid Grid.Row="3" Rows="2" Columns="2" Margin="0,0,0,20">
+            <ItemsControl ItemsSource="{Binding Options}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="2" Columns="2"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Margin="0,0,8,8" Padding="14,12"
+                                Command="{Binding DataContext.SelectOptionCommand,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"
+                                HorizontalContentAlignment="Left">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource AnswerOptionButton}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsCorrect}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource SuccessSoftBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsWrong}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource DangerSoftBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="{StaticResource Bg3Brush}" CornerRadius="4"
+                                        Padding="6,2" Margin="0,0,12,0">
+                                    <TextBlock Text="{Binding Label}" FontSize="11.5"
+                                               Foreground="{StaticResource Text2Brush}"
+                                               FontFamily="Consolas" FontWeight="Medium"/>
+                                </Border>
+                                <TextBlock Text="{Binding Text}" FontFamily="Consolas" FontSize="13.5"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </UniformGrid>
+
+        <!-- ══ ACTION BUTTONS ══ -->
+        <Grid Grid.Row="4" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Style="{StaticResource PrimaryButton}" Height="38" Padding="16,0"
+                    Command="{Binding ShowAIExplanationCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="✨ " FontSize="14"/>
+                    <TextBlock Text="KI-Erklärung"/>
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="2" Style="{StaticResource SecondaryButton}" Height="38" Padding="16,0"
+                    Command="{Binding SubmitAnswerCommand}">
+                <TextBlock Text="Beantworten"/>
+            </Button>
+
+            <Button Grid.Column="4" Style="{StaticResource GhostButton}"
+                    Command="{Binding ShuffleQuestionCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="⇄ " FontSize="13"/>
+                    <TextBlock Text="Andere Frage"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- ══ AI EXPLANATION ══ -->
+        <Border Grid.Row="5" Style="{StaticResource Card}" Background="{StaticResource AccentSoftBrush}"
+                BorderBrush="{StaticResource AccentBrush}"
+                Visibility="{Binding ShowExplanation, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="✨ " FontSize="14" Foreground="{StaticResource AccentBrush}"/>
+                    <TextBlock Text="KI-Erklärung" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{StaticResource AccentBrush}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding Explanation}" FontSize="13" Foreground="{StaticResource TextBrush}"
+                           TextWrapping="Wrap" LineHeight="20"/>
+                <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"
+                        Margin="0,14,0,0" Command="{Binding NextQuestionCommand}">
+                    <TextBlock Text="Nächste Frage →"/>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

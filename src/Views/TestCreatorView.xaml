@@ -1,0 +1,210 @@
+<UserControl x:Class="MindForge.Views.TestCreatorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:MindForge.ViewModels"
+             Background="{StaticResource BgBrush}">
+
+    <UserControl.DataContext>
+        <vm:TestCreatorViewModel/>
+    </UserControl.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid MaxWidth="1000" Margin="40,32,40,40" HorizontalAlignment="Left">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock FontFamily="Georgia" FontSize="26" Foreground="{StaticResource TextBrush}">
+                    Test erstellen
+                </TextBlock>
+                <TextBlock Text="Prüfungssimulation · Quick Check · Schwachstellen-Training"
+                           FontSize="13" Foreground="{StaticResource Text3Brush}" Margin="0,6,0,0"/>
+            </StackPanel>
+
+            <!-- Settings Row -->
+            <Grid Grid.Row="1" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Test Type -->
+                <Border Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="TEST-TYP" Style="{StaticResource SectionLabel}"/>
+                        <RadioButton Content="Quiz" IsChecked="True"
+                                     Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,0,6"/>
+                        <RadioButton Content="Prüfungssimulation"
+                                     Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,0,6"/>
+                        <RadioButton Content="Schwachstellentraining"
+                                     Foreground="{StaticResource Text2Brush}" FontSize="13"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Duration -->
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="DAUER" Style="{StaticResource SectionLabel}"/>
+                        <TextBlock Text="{Binding DurationText}" FontFamily="Georgia" FontSize="22"
+                                   Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
+                        <Slider Value="{Binding DurationMinutes, Mode=TwoWay}"
+                                Minimum="5" Maximum="180" Style="{StaticResource MfSlider}"/>
+                        <Grid Margin="0,4,0,0">
+                            <TextBlock Text="5 Min" FontSize="10.5" Foreground="{StaticResource Text3Brush}"/>
+                            <TextBlock Text="180 Min" HorizontalAlignment="Right" FontSize="10.5"
+                                       Foreground="{StaticResource Text3Brush}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Difficulty -->
+                <Border Grid.Column="4" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="SCHWIERIGKEIT" Style="{StaticResource SectionLabel}"/>
+                        <ComboBox ItemsSource="{Binding Difficulties}"
+                                  SelectedItem="{Binding SelectedDifficulty}"
+                                  Style="{StaticResource MfComboBox}" Margin="0,0,0,12"/>
+                        <TextBlock FontSize="12" Foreground="{StaticResource Text2Brush}">
+                            <Run Text="{Binding SelectedCount}"/>
+                            <Run Text=" Fragen ausgewählt"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Question Selection + Preview -->
+            <Grid Grid.Row="2" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Question List -->
+                <Border Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="FRAGEN AUSWÄHLEN" Style="{StaticResource SectionLabel}"/>
+                        <ScrollViewer MaxHeight="400" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding AvailableQuestions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,4" Padding="10,8"
+                                                Background="{StaticResource Bg2Brush}"
+                                                CornerRadius="6" Cursor="Hand">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}"
+                                                          VerticalAlignment="Center" Margin="0,0,10,0"
+                                                          Command="{Binding DataContext.ToggleQuestionCommand,
+                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                          CommandParameter="{Binding}"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Text}" FontSize="13"
+                                                               Foreground="{StaticResource TextBrush}"/>
+                                                    <TextBlock Text="{Binding Subject}" FontSize="11"
+                                                               Foreground="{StaticResource Text3Brush}"/>
+                                                </StackPanel>
+                                                <Border Grid.Column="2" Style="{StaticResource BadgeNeutral}">
+                                                    <TextBlock Text="Mittel" FontSize="10.5"
+                                                               Foreground="{StaticResource Text3Brush}"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+
+                <!-- Preview -->
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="TEST VORSCHAU" Style="{StaticResource SectionLabel}"/>
+                        <StackPanel Margin="0,0,0,16">
+                            <Grid Margin="0,0,0,8">
+                                <TextBlock Text="Typ" FontSize="12" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="{Binding TestType}" FontSize="12" HorizontalAlignment="Right"
+                                           Foreground="{StaticResource TextBrush}"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,8">
+                                <TextBlock Text="Dauer" FontSize="12" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="{Binding DurationText}" FontSize="12" HorizontalAlignment="Right"
+                                           Foreground="{StaticResource TextBrush}"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,8">
+                                <TextBlock Text="Fragen" FontSize="12" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="{Binding SelectedCount}" FontSize="12" HorizontalAlignment="Right"
+                                           Foreground="{StaticResource TextBrush}"/>
+                            </Grid>
+                            <Grid>
+                                <TextBlock Text="Schwierigkeit" FontSize="12" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="{Binding SelectedDifficulty}" FontSize="12" HorizontalAlignment="Right"
+                                           Foreground="{StaticResource TextBrush}"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Running Timer -->
+                        <Border Background="{StaticResource Bg2Brush}" CornerRadius="8" Padding="14,10"
+                                Margin="0,0,0,14"
+                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="⏱ LÄUFT" FontSize="10.5" FontWeight="SemiBold"
+                                           Foreground="{StaticResource WarnBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding TimeRemainingText}" FontFamily="Consolas" FontSize="28"
+                                           Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Result -->
+                        <Border Background="{StaticResource SuccessSoftBrush}" CornerRadius="8" Padding="14,10"
+                                Margin="0,0,0,14"
+                                Visibility="{Binding IsSubmitted, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="✓ ABGESCHLOSSEN" FontSize="10.5" FontWeight="SemiBold"
+                                           Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock FontFamily="Georgia" FontSize="28"
+                                           Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center">
+                                    <Run Text="{Binding Score, StringFormat=F1}"/>
+                                    <Run Text=" %" FontSize="16"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Start Button -->
+            <Grid Grid.Row="3">
+                <Button Style="{StaticResource PrimaryButton}" Height="46" Padding="0"
+                        Command="{Binding StartTestCommand}"
+                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                    <TextBlock FontSize="15" FontWeight="Medium">
+                        <Run Text="▶  Test starten  ("/>
+                        <Run Text="{Binding SelectedCount}"/>
+                        <Run Text=" Fragen · "/>
+                        <Run Text="{Binding DurationText}"/>
+                        <Run Text=")"/>
+                    </TextBlock>
+                </Button>
+                <Button Style="{StaticResource DangerButton}" Height="46"
+                        Command="{Binding SubmitTestCommand}"
+                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="Test abgeben" FontSize="15" FontWeight="Medium"/>
+                </Button>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>
