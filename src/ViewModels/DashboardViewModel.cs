@@ -77,7 +77,9 @@ public partial class DashboardViewModel : ObservableObject
     public double TodayPercent => TotalToday > 0 ? (double)CorrectToday / TotalToday : 0;
     public string TodayPercentText => $"{TodayPercent * 100:F0}%";
     public string TimeLearnedText => $"{TimeLearnedMinutes / 60}h {TimeLearnedMinutes % 60}min";
-    public double XPProgress => XpToNextLevel > 0 ? (double)CurrentXP / XpToNextLevel : 0;
+    public double XPProgress => XpToNextLevel > 0
+        ? Math.Clamp((double)CurrentXP / XpToNextLevel, 0.0, 1.0)
+        : 0;
     public string XPProgressText => $"Level {Level}  ·  {CurrentXP}/{XpToNextLevel} XP  ·  Level {Level + 1}";
     public int TotalReviews => UpcomingReviews.Sum(r => r.Count);
 

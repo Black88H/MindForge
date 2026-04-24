@@ -204,19 +204,23 @@
     <!-- ═══ PROGRESS BAR ═══ -->
     <Style x:Key="MfProgressBar" TargetType="ProgressBar">
         <Setter Property="Height" Value="4"/>
+        <Setter Property="Minimum" Value="0"/>
         <Setter Property="Background" Value="{StaticResource Bg3Brush}"/>
         <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ProgressBar">
-                    <Border Background="{TemplateBinding Background}"
-                            CornerRadius="2">
+                    <Grid>
+                        <!-- PART_Track is required by WPF ProgressBar internals -->
+                        <Border x:Name="PART_Track"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="2"/>
                         <Border x:Name="PART_Indicator"
                                 HorizontalAlignment="Left"
                                 Background="{TemplateBinding Foreground}"
                                 CornerRadius="2"/>
-                    </Border>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

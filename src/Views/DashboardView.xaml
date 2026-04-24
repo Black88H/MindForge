@@ -327,7 +327,7 @@
                             </TextBlock>
                         </Grid>
 
-                        <ProgressBar Value="{Binding XPProgress}" Maximum="1"
+                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding XPProgress}"
                                      Style="{StaticResource SuccessProgressBar}"
                                      Height="8" Margin="0,0,0,8"/>
 
@@ -505,7 +505,7 @@
                                 </Grid>
 
                                 <!-- Progress -->
-                                <ProgressBar Value="{Binding Progress}" Maximum="1"
+                                <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}"
                                              Style="{StaticResource MfProgressBar}"
                                              Height="3" Margin="0,0,0,10"/>
 
@@ -609,7 +609,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="{Binding Day}" FontSize="12"
                                                    Foreground="{StaticResource Text2Brush}" VerticalAlignment="Center"/>
-                                        <ProgressBar Grid.Column="1" Value="{Binding Count}" Maximum="50"
+                                        <ProgressBar Grid.Column="1" Minimum="0" Maximum="50" Value="{Binding Count}"
                                                      Style="{StaticResource MfProgressBar}"
                                                      Height="4" VerticalAlignment="Center" Margin="8,0"/>
                                         <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="12"
