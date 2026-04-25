@@ -432,9 +432,14 @@
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding DataContext.ActiveMaterialTab,
-                                                        RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        Value="{Binding}">
+                                                    <DataTrigger Value="True">
+                                                        <DataTrigger.Binding>
+                                                            <MultiBinding Converter="{StaticResource EqualityConverter}">
+                                                                <Binding Path="DataContext.ActiveMaterialTab"
+                                                                         RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                                <Binding/>
+                                                            </MultiBinding>
+                                                        </DataTrigger.Binding>
                                                         <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>

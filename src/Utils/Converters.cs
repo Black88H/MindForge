@@ -118,3 +118,14 @@ public class BoolToNextLabelConverter : IValueConverter
         => value is true ? "Ergebnis →" : "Weiter →";
     public object ConvertBack(object value, Type t, object p, CultureInfo c) => throw new NotImplementedException();
 }
+
+// Returns true when both bound values are equal — use in DataTrigger with Value="True"
+// instead of the illegal Value="{Binding ...}"
+public class EqualityConverter : IMultiValueConverter
+{
+    public static readonly EqualityConverter Instance = new();
+    public object Convert(object[] values, Type t, object p, CultureInfo c)
+        => values.Length == 2 && Equals(values[0], values[1]);
+    public object[] ConvertBack(object value, Type[] types, object p, CultureInfo c)
+        => throw new NotImplementedException();
+}

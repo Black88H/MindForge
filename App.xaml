@@ -20,6 +20,7 @@
             <local:StringToVisibilityConverter x:Key="StringToVisibility"/>
             <local:IntToVisibilityConverter   x:Key="IntToVisibility"/>
             <local:BoolToNextLabelConverter   x:Key="BoolToNextLabel"/>
+            <local:EqualityConverter          x:Key="EqualityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
