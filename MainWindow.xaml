@@ -65,7 +65,7 @@
                             <TextBlock Text="MindForge" FontSize="14.5" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextBrush}"
                                        VerticalAlignment="Center"/>
-                            <TextBlock Text="v0.1.0" FontSize="10.5" Foreground="{StaticResource Text3Brush}"
+                            <TextBlock Text="v1.0.0" FontSize="10.5" Foreground="{StaticResource Text3Brush}"
                                        Margin="8,0,0,0" VerticalAlignment="Bottom"
                                        FontFamily="Consolas"/>
                         </StackPanel>
@@ -187,39 +187,116 @@
 
                         <!-- Nav Items -->
                         <StackPanel Grid.Row="0" Margin="10,14,10,6">
-                            <Button Style="{StaticResource SidebarNavButtonActive}"
-                                    Command="{Binding NavigateToCommand}" CommandParameter="Dashboard">
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Dashboard">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Dashboard">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="⊞" FontSize="15" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Text="Dashboard" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button Style="{StaticResource SidebarNavButton}"
-                                    Command="{Binding NavigateToCommand}" CommandParameter="QA">
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Learning">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Learning">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🧠" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Text="Lernen" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button Style="{StaticResource SidebarNavButton}"
-                                    Command="{Binding NavigateToCommand}" CommandParameter="TestCreator">
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Tests">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Tests">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="📝" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Text="Tests" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button Style="{StaticResource SidebarNavButton}"
-                                    Command="{Binding NavigateToCommand}" CommandParameter="Analytics">
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Analytics">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Analytics">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="📊" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Text="Analytics" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button Style="{StaticResource SidebarNavButton}"
-                                    Command="{Binding NavigateToCommand}" CommandParameter="ContentGenerator">
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="KITools">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="KITools">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="✨" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Text="KI-Werkzeuge" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Subjects">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Subjects">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📚" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock Text="Fächer" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Profile">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Profile">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="👤" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock Text="Profil" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -320,6 +397,13 @@
                                             </Setter.Value>
                                         </Setter>
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="Home">
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <views:HomeView/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
                                     <DataTrigger Binding="{Binding CurrentView}" Value="QA">
                                         <Setter Property="Content">
                                             <Setter.Value>
@@ -327,10 +411,31 @@
                                             </Setter.Value>
                                         </Setter>
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="Learning">
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <views:LearningView/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="Tests">
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <views:TestsView/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
                                     <DataTrigger Binding="{Binding CurrentView}" Value="ContentGenerator">
                                         <Setter Property="Content">
                                             <Setter.Value>
                                                 <views:ContentGeneratorView/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="KITools">
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <views:KIToolsView/>
                                             </Setter.Value>
                                         </Setter>
                                     </DataTrigger>
@@ -345,6 +450,20 @@
                                         <Setter Property="Content">
                                             <Setter.Value>
                                                 <views:AnalyticsView/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="Subjects">
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <views:SubjectsView/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentView}" Value="Profile">
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <views:ProfileView/>
                                             </Setter.Value>
                                         </Setter>
                                     </DataTrigger>

@@ -36,7 +36,7 @@ public partial class App : Application
 
                 // AI — Detection & Selection
                 services.AddSingleton<InternetDetector>();
-                services.AddSingleton<HardwareDetector>();
+                services.AddSingleton<MindForge.Services.AI.Selection.HardwareDetector>();
                 services.AddSingleton<TaskAnalyzer>();
                 services.AddScoped<ITokenTracker, TokenTrackerService>();
 

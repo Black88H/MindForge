@@ -3,7 +3,7 @@ namespace MindForge.Utils;
 public static class Constants
 {
     public const string AppName = "MindForge";
-    public const string AppVersion = "0.1.0";
+    public const string AppVersion = "1.0.0";
 
     public static class Colors
     {
@@ -44,11 +44,23 @@ public static class Constants
 
     public static class XP
     {
-        public const int CorrectAnswer   = 10;
-        public const int FirstCorrect    = 25;
-        public const int PerfectSession  = 50;
+        public const int CorrectAnswer    = 10;
+        public const int FirstCorrect     = 25;
+        public const int PerfectSession   = 50;
         public const int ContentGenerated = 150;
-        public const int TestCompleted   = 30;
-        public const int StreakBonus     = 20;
+        public const int TestCompleted    = 50;
+        public const int TestPerfect      = 200;
+        public const int StreakBonus      = 20;
+        public const int ChallengeMin     = 50;
+        public const int ChallengeMax     = 500;
+        public const int AchievementUnlock = 100;
+        public const int LearningPlanCreated = 75;
+    }
+
+    public static class GitHub
+    {
+        public const string Owner = "Black88H";
+        public const string Repo  = "MindForge";
+        public const string ReleasesApi = "https://api.github.com/repos/Black88H/MindForge/releases/latest";
     }
 }

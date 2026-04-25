@@ -16,97 +16,131 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Title + Summary Cards -->
+            <!-- Header -->
             <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                <TextBlock FontFamily="Georgia" FontSize="26" Foreground="{StaticResource TextBrush}" Margin="0,0,0,6">
-                    Analytics
-                </TextBlock>
+                <TextBlock Text="Analytics" FontFamily="Georgia" FontSize="26"
+                           Foreground="{StaticResource TextBrush}" Margin="0,0,0,6"/>
                 <TextBlock Text="Fortschritt, Heatmap und Schwächen im Überblick"
-                           FontSize="13" Foreground="{StaticResource Text3Brush}" Margin="0,0,0,20"/>
-
-                <!-- Summary Cards -->
-                <UniformGrid Columns="4">
-                    <Border Style="{StaticResource Card}" Margin="0,0,6,0">
-                        <StackPanel>
-                            <TextBlock Text="GESAMT-XP" Style="{StaticResource SectionLabel}"/>
-                            <TextBlock Text="{Binding TotalXP}" FontFamily="Georgia" FontSize="28"
-                                       Foreground="{StaticResource TextBrush}"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource Card}" Margin="6,0,6,0">
-                        <StackPanel>
-                            <TextBlock Text="LEVEL" Style="{StaticResource SectionLabel}"/>
-                            <TextBlock FontFamily="Georgia" FontSize="28" Foreground="{StaticResource AccentBrush}">
-                                <Run Text="{Binding Level}"/>
-                                <Run Text=" · Scholar" FontSize="16" Foreground="{StaticResource Text3Brush}"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource Card}" Margin="6,0,6,0">
-                        <StackPanel>
-                            <TextBlock Text="STREAK" Style="{StaticResource SectionLabel}"/>
-                            <TextBlock FontFamily="Georgia" FontSize="28" Foreground="{StaticResource StreakBrush}">
-                                <Run Text="{Binding CurrentStreak}"/>
-                                <Run Text=" Tage" FontSize="16"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource Card}" Margin="6,0,0,0">
-                        <StackPanel>
-                            <TextBlock Text="ERFOLGSRATE" Style="{StaticResource SectionLabel}"/>
-                            <TextBlock Text="{Binding OverallSuccessText}" FontFamily="Georgia" FontSize="28"
-                                       Foreground="{StaticResource SuccessBrush}"/>
-                        </StackPanel>
-                    </Border>
-                </UniformGrid>
+                           FontSize="13" Foreground="{StaticResource Text3Brush}"/>
             </StackPanel>
 
-            <!-- Tabs -->
-            <Border Grid.Row="1" Background="{StaticResource Bg1Brush}"
-                    BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
-                    CornerRadius="8" Padding="4" Margin="0,0,0,20">
-                <StackPanel Orientation="Horizontal">
-                    <ItemsControl ItemsSource="{Binding Tabs}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Padding="14,6" Margin="2,0"
-                                        Command="{Binding DataContext.SelectTabCommand,
-                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataContext.ActiveTab,
-                                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    Value="{Binding}">
-                                                    <Setter Property="Background" Value="{StaticResource Bg2Brush}"/>
-                                                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                    <TextBlock Text="{Binding}" FontSize="12.5"/>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
+            <!-- Summary Cards -->
+            <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,20">
+                <Border Style="{StaticResource Card}" Margin="0,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="GESAMT-XP" Style="{StaticResource SectionLabel}"/>
+                        <TextBlock Text="{Binding TotalXP}" FontFamily="Georgia" FontSize="28"
+                                   Foreground="{StaticResource TextBrush}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="6,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="LEVEL" Style="{StaticResource SectionLabel}"/>
+                        <TextBlock FontFamily="Georgia" FontSize="28" Foreground="{StaticResource AccentBrush}">
+                            <Run Text="{Binding Level}"/>
+                            <Run Text=" · Scholar" FontSize="16" Foreground="{StaticResource Text3Brush}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="6,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="STREAK" Style="{StaticResource SectionLabel}"/>
+                        <TextBlock FontFamily="Georgia" FontSize="28" Foreground="{StaticResource StreakBrush}">
+                            <Run Text="{Binding CurrentStreak}"/>
+                            <Run Text=" Tage" FontSize="16"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="6,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="ERFOLGSRATE" Style="{StaticResource SectionLabel}"/>
+                        <TextBlock Text="{Binding OverallSuccessText}" FontFamily="Georgia" FontSize="28"
+                                   Foreground="{StaticResource SuccessBrush}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Tab Bar -->
+            <Border Grid.Row="2" Background="{StaticResource Bg2Brush}" CornerRadius="8"
+                    Padding="4" Margin="0,0,0,20">
+                <UniformGrid Rows="1" Columns="5">
+                    <Button Height="34" Command="{Binding SelectTabCommand}" CommandParameter="0">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveTabIndex}" Value="0">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="XP-Verlauf" FontSize="12"/>
+                    </Button>
+                    <Button Height="34" Command="{Binding SelectTabCommand}" CommandParameter="1">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveTabIndex}" Value="1">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="Streaks" FontSize="12"/>
+                    </Button>
+                    <Button Height="34" Command="{Binding SelectTabCommand}" CommandParameter="2">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveTabIndex}" Value="2">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="Fächer" FontSize="12"/>
+                    </Button>
+                    <Button Height="34" Command="{Binding SelectTabCommand}" CommandParameter="3">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveTabIndex}" Value="3">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="Lernzeit" FontSize="12"/>
+                    </Button>
+                    <Button Height="34" Command="{Binding SelectTabCommand}" CommandParameter="4">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ActiveTabIndex}" Value="4">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="Errungenschaften" FontSize="12"/>
+                    </Button>
+                </UniformGrid>
             </Border>
 
-            <!-- XP Progress Tab -->
-            <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,12">
+            <!-- TAB 0: XP Chart -->
+            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,12"
+                    Visibility="{Binding ActiveTabIndex, Converter={StaticResource IntToVisibility}, ConverterParameter=0}">
                 <StackPanel>
-                    <TextBlock Text="XP VERLAUF · LETZTE 30 TAGE" Style="{StaticResource SectionLabel}"/>
-
-                    <!-- Simple bar chart -->
-                    <ItemsControl ItemsSource="{Binding XPHistory}" Height="120">
+                    <TextBlock Text="XP VERLAUF · LETZTE 30 TAGE" Style="{StaticResource SectionLabel}" Margin="0,0,0,12"/>
+                    <ItemsControl ItemsSource="{Binding XPHistory}" Height="140">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom"/>
@@ -114,10 +148,10 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="{StaticResource AccentBrush}" Width="12" Margin="1,0"
-                                        VerticalAlignment="Bottom" CornerRadius="2,2,0,0" Opacity="0.7">
+                                <Border Background="{StaticResource AccentBrush}" Width="14" Margin="1,0"
+                                        VerticalAlignment="Bottom" CornerRadius="2,2,0,0" Opacity="0.75">
                                     <Border.Height>
-                                        <Binding Path="Value" Converter="{StaticResource XPToHeight}"/>
+                                        <Binding Path="NormalizedHeight"/>
                                     </Border.Height>
                                     <Border.ToolTip>
                                         <ToolTip>
@@ -133,8 +167,7 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-
-                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,8,0,8"/>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,8,0,6"/>
                     <Grid>
                         <TextBlock Text="vor 30 Tagen" FontSize="10.5" Foreground="{StaticResource Text3Brush}" FontFamily="Consolas"/>
                         <TextBlock Text="Heute" FontSize="10.5" Foreground="{StaticResource Text3Brush}" FontFamily="Consolas" HorizontalAlignment="Right"/>
@@ -142,10 +175,76 @@
                 </StackPanel>
             </Border>
 
-            <!-- Subject Stats -->
-            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,12">
+            <!-- TAB 1: Streaks -->
+            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,12"
+                    Visibility="{Binding ActiveTabIndex, Converter={StaticResource IntToVisibility}, ConverterParameter=1}">
                 <StackPanel>
-                    <TextBlock Text="FÄCHER · NACH ERFOLGSRATE" Style="{StaticResource SectionLabel}"/>
+                    <TextBlock Text="STREAK ÜBERSICHT" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <UniformGrid Columns="3" Margin="0,0,0,20">
+                        <Border Background="{StaticResource Bg2Brush}" CornerRadius="10" Padding="20,14" Margin="0,0,8,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding CurrentStreak}" FontSize="36" FontWeight="Bold"
+                                           Foreground="{StaticResource StreakBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Aktuell" FontSize="12" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="{StaticResource Bg2Brush}" CornerRadius="10" Padding="20,14" Margin="0,0,8,0">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding LongestStreak}" FontSize="36" FontWeight="Bold"
+                                           Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Längster" FontSize="12" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="{StaticResource Bg2Brush}" CornerRadius="10" Padding="20,14">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding TotalActiveDays}" FontSize="36" FontWeight="Bold"
+                                           Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Lerndays gesamt" FontSize="12" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                    <!-- Heatmap placeholder -->
+                    <TextBlock Text="AKTIVITÄTS-HEATMAP (letzte 12 Wochen)" Style="{StaticResource SectionLabel}" Margin="0,0,0,10"/>
+                    <ItemsControl ItemsSource="{Binding StreakHistory}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="14" Height="14" CornerRadius="3" Margin="2">
+                                    <Border.ToolTip>
+                                        <ToolTip>
+                                            <TextBlock>
+                                                <Run Text="{Binding Label}"/>
+                                                <Run Text=": "/>
+                                                <Run Text="{Binding Value}"/>
+                                                <Run Text=" Fragen"/>
+                                            </TextBlock>
+                                        </ToolTip>
+                                    </Border.ToolTip>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{StaticResource Bg2Brush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource StreakBrush}"/>
+                                                    <Setter Property="Opacity" Value="0.8"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- TAB 2: Fächer -->
+            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,12"
+                    Visibility="{Binding ActiveTabIndex, Converter={StaticResource IntToVisibility}, ConverterParameter=2}">
+                <StackPanel>
+                    <TextBlock Text="FÄCHER · NACH ERFOLGSRATE" Style="{StaticResource SectionLabel}" Margin="0,0,0,12"/>
                     <ItemsControl ItemsSource="{Binding SubjectStats}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -155,16 +254,14 @@
                                         <ColumnDefinition Width="28"/>
                                         <ColumnDefinition Width="160"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="50"/>
-                                        <ColumnDefinition Width="60"/>
-                                        <ColumnDefinition Width="60"/>
+                                        <ColumnDefinition Width="56"/>
+                                        <ColumnDefinition Width="70"/>
                                     </Grid.ColumnDefinitions>
-
                                     <TextBlock Grid.Column="0" Text="{Binding Rank}" FontSize="12"
                                                Foreground="{StaticResource Text3Brush}" VerticalAlignment="Center"
                                                FontFamily="Consolas"/>
-                                    <Border Grid.Column="1" Width="22" Height="22" CornerRadius="6" VerticalAlignment="Center"
-                                            Margin="0,0,10,0">
+                                    <Border Grid.Column="1" Width="22" Height="22" CornerRadius="6"
+                                            VerticalAlignment="Center" Margin="0,0,10,0">
                                         <Border.Background>
                                             <SolidColorBrush Color="#225B8CFF"/>
                                         </Border.Background>
@@ -173,7 +270,8 @@
                                     </Border>
                                     <TextBlock Grid.Column="2" Text="{Binding Name}" FontSize="13"
                                                Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                                    <ProgressBar Grid.Column="3" Minimum="0" Maximum="1" Value="{Binding SuccessRate, Mode=OneWay}"
+                                    <ProgressBar Grid.Column="3" Minimum="0" Maximum="1"
+                                                 Value="{Binding SuccessRate, Mode=OneWay}"
                                                  Style="{StaticResource SuccessProgressBar}"
                                                  Height="4" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                     <TextBlock Grid.Column="4" Text="{Binding SuccessText}" FontSize="12"
@@ -184,11 +282,6 @@
                                         <Run Text="{Binding Questions}"/>
                                         <Run Text=" Fragen"/>
                                     </TextBlock>
-                                    <TextBlock Grid.Column="6" FontSize="11" Foreground="{StaticResource AccentBrush}"
-                                               VerticalAlignment="Center" HorizontalAlignment="Right">
-                                        <Run Text="Lvl "/>
-                                        <Run Text="{Binding Level}"/>
-                                    </TextBlock>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -196,25 +289,73 @@
                 </StackPanel>
             </Border>
 
-            <!-- Achievements Grid -->
-            <Border Grid.Row="4" Style="{StaticResource Card}">
+            <!-- TAB 3: Zeit -->
+            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,12"
+                    Visibility="{Binding ActiveTabIndex, Converter={StaticResource IntToVisibility}, ConverterParameter=3}">
                 <StackPanel>
-                    <Grid Margin="0,0,0,16">
-                        <TextBlock Text="ACHIEVEMENTS" Style="{StaticResource SectionLabel}" VerticalAlignment="Center"/>
-                        <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource Text3Brush}">
-                            <Run Text="{Binding Achievements.Count, Mode=OneWay}"/>
-                            <Run Text=" gesamt"/>
-                        </TextBlock>
-                    </Grid>
-                    <ItemsControl ItemsSource="{Binding Achievements}">
+                    <TextBlock Text="LERNZEIT DIESE WOCHE" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <ItemsControl ItemsSource="{Binding TimeData}" Height="140">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel/>
+                                <UniformGrid Rows="1"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="100" Margin="0,0,10,10" Padding="10"
+                                <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="4,0">
+                                    <Border Background="{StaticResource AccentBrush}" CornerRadius="3,3,0,0"
+                                            HorizontalAlignment="Center" Width="28" Opacity="0.8"
+                                            Height="{Binding NormalizedHeight}"/>
+                                    <TextBlock Text="{Binding Label}" FontSize="10" FontFamily="Consolas"
+                                               Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center"
+                                               Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding ValueText}" FontSize="10"
+                                               Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,8,0,12"/>
+                    <UniformGrid Columns="3">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding TotalMinutesThisWeek}" FontSize="24" FontWeight="Bold"
+                                       Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Minuten diese Woche" FontSize="11" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding AvgMinutesPerDay}" FontSize="24" FontWeight="Bold"
+                                       Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Ø pro Tag" FontSize="11" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding BestDay}" FontSize="24" FontWeight="Bold"
+                                       Foreground="{StaticResource WarnBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Bester Tag" FontSize="11" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- TAB 4: Achievements -->
+            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,12"
+                    Visibility="{Binding ActiveTabIndex, Converter={StaticResource IntToVisibility}, ConverterParameter=4}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,16">
+                        <TextBlock Text="ERRUNGENSCHAFTEN" Style="{StaticResource SectionLabel}" VerticalAlignment="Center"/>
+                        <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource Text3Brush}">
+                            <Run Text="{Binding UnlockedCount, Mode=OneWay}"/>
+                            <Run Text=" / "/>
+                            <Run Text="{Binding Achievements.Count, Mode=OneWay}"/>
+                            <Run Text=" freigeschaltet"/>
+                        </TextBlock>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding Achievements}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="108" Margin="0,0,10,10" Padding="12,10"
                                         CornerRadius="10" Cursor="Hand">
                                     <Border.Style>
                                         <Style TargetType="Border">
@@ -228,14 +369,42 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
+                                    <Border.ToolTip>
+                                        <ToolTip>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </Border.ToolTip>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding Icon}" FontSize="26"
+                                        <TextBlock Text="{Binding Icon}" FontSize="28"
                                                    HorizontalAlignment="Center" Margin="0,0,0,6"/>
                                         <TextBlock Text="{Binding Name}" FontSize="11" TextAlignment="Center"
-                                                   Foreground="{StaticResource TextBrush}"
-                                                   TextWrapping="Wrap" Margin="0,0,0,3"/>
+                                                   Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" Margin="0,0,0,3"/>
                                         <TextBlock Text="{Binding Rarity}" FontSize="10" TextAlignment="Center"
                                                    Foreground="{StaticResource Text3Brush}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Recommendations -->
+            <Border Grid.Row="4" Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="KI-EMPFEHLUNGEN" Style="{StaticResource SectionLabel}" Margin="0,0,0,12"/>
+                    <ItemsControl ItemsSource="{Binding Recommendations}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource Bg2Brush}" CornerRadius="8"
+                                        Padding="14,10" Margin="0,0,0,8">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="💡" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Top"/>
+                                        <TextBlock Text="{Binding}" FontSize="13" Foreground="{StaticResource Text2Brush}"
+                                                   TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>

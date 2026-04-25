@@ -24,34 +24,145 @@
                 <TextBlock Text="Alle Optionen für MindForge"
                            FontSize="11.5" Foreground="{StaticResource Text3Brush}" Margin="0,0,0,20"/>
                 <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-                <Button Style="{StaticResource SidebarNavButtonActive}" HorizontalAlignment="Stretch" Margin="0,0,0,2">
+
+                <Button HorizontalAlignment="Stretch" Margin="0,0,0,2"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="Darstellung">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="Darstellung">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal"><TextBlock Text="🎨  " FontSize="14"/><TextBlock Text="Darstellung"/></StackPanel>
                 </Button>
-                <Button Style="{StaticResource SidebarNavButton}" HorizontalAlignment="Stretch" Margin="0,0,0,2">
+                <Button HorizontalAlignment="Stretch" Margin="0,0,0,2"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="KI">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="KI">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal"><TextBlock Text="🤖  " FontSize="14"/><TextBlock Text="KI &amp; Provider"/></StackPanel>
                 </Button>
-                <Button Style="{StaticResource SidebarNavButton}" HorizontalAlignment="Stretch" Margin="0,0,0,2">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="💾  " FontSize="14"/><TextBlock Text="Speicher &amp; Datenbank"/></StackPanel>
+                <Button HorizontalAlignment="Stretch" Margin="0,0,0,2"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="Speicher">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="Speicher">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="💾  " FontSize="14"/><TextBlock Text="Speicher &amp; DB"/></StackPanel>
                 </Button>
-                <Button Style="{StaticResource SidebarNavButton}" HorizontalAlignment="Stretch" Margin="0,0,0,2">
+                <Button HorizontalAlignment="Stretch" Margin="0,0,0,2"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="Lernen">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="Lernen">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal"><TextBlock Text="📚  " FontSize="14"/><TextBlock Text="Lernen"/></StackPanel>
                 </Button>
-                <Button Style="{StaticResource SidebarNavButton}" HorizontalAlignment="Stretch" Margin="0,0,0,2">
+                <Button HorizontalAlignment="Stretch" Margin="0,0,0,2"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="Gamification">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="Gamification">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal"><TextBlock Text="🎮  " FontSize="14"/><TextBlock Text="Gamification"/></StackPanel>
                 </Button>
-                <Button Style="{StaticResource SidebarNavButton}" HorizontalAlignment="Stretch" Margin="0,0,0,2">
+                <Button HorizontalAlignment="Stretch" Margin="0,0,0,2"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="Offline">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="Offline">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal"><TextBlock Text="📡  " FontSize="14"/><TextBlock Text="Offline-Modus"/></StackPanel>
                 </Button>
-                <Button Style="{StaticResource SidebarNavButton}" HorizontalAlignment="Stretch" Margin="0,0,0,2">
+                <Button HorizontalAlignment="Stretch" Margin="0,0,0,2"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="Benachrichtigungen">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="Benachrichtigungen">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal"><TextBlock Text="🔔  " FontSize="14"/><TextBlock Text="Benachrichtigungen"/></StackPanel>
                 </Button>
-                <Button Style="{StaticResource SidebarNavButton}" HorizontalAlignment="Stretch" Margin="0,0,0,2">
+                <Button HorizontalAlignment="Stretch" Margin="0,0,0,2"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="Datenschutz">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="Datenschutz">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal"><TextBlock Text="🔒  " FontSize="14"/><TextBlock Text="Daten &amp; Datenschutz"/></StackPanel>
                 </Button>
-                <Button Style="{StaticResource SidebarNavButton}" HorizontalAlignment="Stretch" Margin="0,0,0,2">
-                    <StackPanel Orientation="Horizontal"><TextBlock Text="⌨  " FontSize="14"/><TextBlock Text="Tastaturkürzel"/></StackPanel>
+                <Button HorizontalAlignment="Stretch" Margin="0,0,0,2"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="Hardware">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="Hardware">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal"><TextBlock Text="💻  " FontSize="14"/><TextBlock Text="Hardware"/></StackPanel>
                 </Button>
-                <Button Style="{StaticResource SidebarNavButton}" HorizontalAlignment="Stretch">
+                <Button HorizontalAlignment="Stretch"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="Über">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveSection}" Value="Über">
+                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal"><TextBlock Text="ℹ  " FontSize="14"/><TextBlock Text="Über"/></StackPanel>
                 </Button>
             </StackPanel>
@@ -61,328 +172,418 @@
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="40,24,40,40">
             <StackPanel MaxWidth="680">
 
-                <!-- ─── THEME & FARBEN ─── -->
-                <TextBlock Text="THEME &amp; FARBEN" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
-
-                <Grid Margin="0,0,0,12">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Modus" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock Text="Hell / Dunkel / System-abhängig" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <RadioButton Content="Dunkel" IsChecked="True" Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
-                        <RadioButton Content="Hell"   Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
-                        <RadioButton Content="System" Foreground="{StaticResource Text2Brush}" FontSize="13"/>
-                    </StackPanel>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Farbschema" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock Text="Akzentfarbe der gesamten Oberfläche" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Ellipse Width="22" Height="22" Fill="#5B8CFF" Margin="4,0" Cursor="Hand" StrokeThickness="2" Stroke="White"/>
-                        <Ellipse Width="22" Height="22" Fill="#448AFF" Margin="4,0" Cursor="Hand"/>
-                        <Ellipse Width="22" Height="22" Fill="#88C0D0" Margin="4,0" Cursor="Hand"/>
-                        <Ellipse Width="22" Height="22" Fill="#BD93F9" Margin="4,0" Cursor="Hand"/>
-                    </StackPanel>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Dichte" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <RadioButton Content="Kompakt" Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
-                        <RadioButton Content="Standard" IsChecked="True" Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
-                        <RadioButton Content="Luftig"   Foreground="{StaticResource Text2Brush}" FontSize="13"/>
-                    </StackPanel>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Schriftgröße" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock Text="{Binding FontSize, StringFormat='Basis: {0:F1}px'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
-                    </StackPanel>
-                    <Slider Value="{Binding FontSize, Mode=TwoWay}" Minimum="12" Maximum="18"
-                            Style="{StaticResource MfSlider}" Width="220" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Schriftfamilie" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <ComboBox ItemsSource="{Binding FontFamilies}" SelectedItem="{Binding FontFamily}"
-                              Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Sidebar eingeklappt" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding SidebarCollapsed}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Farbenblind-Modus" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock Text="Blau/Orange statt Grün/Rot" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
-                    </StackPanel>
-                    <CheckBox IsChecked="{Binding ColorblindMode}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Hoher Kontrast" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock Text="Kräftigere Rahmen und Text" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
-                    </StackPanel>
-                    <CheckBox IsChecked="{Binding HighContrast}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,32">
-                    <TextBlock Text="Animationen &amp; Übergänge" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding AnimationsEnabled}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
+                <!-- ─── DARSTELLUNG ─── -->
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=Darstellung}">
+                    <TextBlock Text="DARSTELLUNG" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Modus" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="Hell / Dunkel / System-abhängig" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <RadioButton Content="Dunkel" IsChecked="{Binding IsDark}" Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
+                            <RadioButton Content="Hell" IsChecked="{Binding IsLight}" Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
+                            <RadioButton Content="System" IsChecked="{Binding IsSystem}" Foreground="{StaticResource Text2Brush}" FontSize="13"/>
+                        </StackPanel>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Farbpalette" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="Forge · Material · Nord · Dracula" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding Palette}"
+                                  Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Dichte" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <RadioButton Content="Kompakt" Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
+                            <RadioButton Content="Standard" IsChecked="True" Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
+                            <RadioButton Content="Luftig" Foreground="{StaticResource Text2Brush}" FontSize="13"/>
+                        </StackPanel>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Schriftgröße" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding FontSize, StringFormat='Basis: {0:F1}px'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <Slider Value="{Binding FontSize, Mode=TwoWay}" Minimum="12" Maximum="18"
+                                Style="{StaticResource MfSlider}" Width="220" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Schriftfamilie" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding FontFamilies}" SelectedItem="{Binding FontFamily}"
+                                  Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Sidebar eingeklappt" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding SidebarCollapsed}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Farbenblind-Modus" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="Blau/Orange statt Grün/Rot" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <CheckBox IsChecked="{Binding ColorblindMode}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Hoher Kontrast" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding HighContrast}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,0">
+                        <TextBlock Text="Animationen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding AnimationsEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
 
                 <!-- ─── KI & PROVIDER ─── -->
-                <TextBlock Text="KI &amp; PROVIDER" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Claude API Key" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <PasswordBox Style="{StaticResource MfPasswordBox}" Width="320" HorizontalAlignment="Right"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="OpenAI API Key" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <PasswordBox Style="{StaticResource MfPasswordBox}" Width="320" HorizontalAlignment="Right"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Gemini API Key" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <PasswordBox Style="{StaticResource MfPasswordBox}" Width="320" HorizontalAlignment="Right"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Ollama Endpoint" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding OllamaEndpoint}" Style="{StaticResource MfTextBox}"
-                             Width="320" HorizontalAlignment="Right"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Standard-Provider" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <ComboBox ItemsSource="{Binding Providers}" SelectedItem="{Binding DefaultProvider}"
-                              Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,32">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Token-Limit" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock Text="{Binding TokenLimit, StringFormat='{}{0} Tokens'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
-                    </StackPanel>
-                    <Slider Value="{Binding TokenLimit}" Minimum="100" Maximum="8000"
-                            Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=KI}">
+                    <TextBlock Text="KI &amp; PROVIDER" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Claude API Key" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <PasswordBox Style="{StaticResource MfPasswordBox}" Width="320" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="OpenAI API Key" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <PasswordBox Style="{StaticResource MfPasswordBox}" Width="320" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Gemini API Key" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <PasswordBox Style="{StaticResource MfPasswordBox}" Width="320" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Ollama Endpoint" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding OllamaEndpoint}" Style="{StaticResource MfTextBox}" Width="280" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Standard-Provider" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding Providers}" SelectedItem="{Binding DefaultProvider}"
+                                  Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Token-Limit" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding TokenLimit, StringFormat='{}{0} Tokens'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <Slider Value="{Binding TokenLimit}" Minimum="100" Maximum="8000"
+                                Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,0">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Token-Budget" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding TokenBudgetStatusText}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <TextBox Text="{Binding TokenBudgetUSD, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource MfTextBox}" Width="100" HorizontalAlignment="Right"/>
+                    </Grid>
+                </StackPanel>
 
                 <!-- ─── SPEICHER ─── -->
-                <TextBlock Text="SPEICHER &amp; DATENBANK" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Datenbanktyp" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <RadioButton Content="SQLite" IsChecked="True" Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
-                        <RadioButton Content="SQL Server" Foreground="{StaticResource Text2Brush}" FontSize="13"/>
-                    </StackPanel>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="SQLite Pfad" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <TextBox Text="{Binding SqlitePath}" Style="{StaticResource MfTextBox}" Width="240" Margin="0,0,8,0"/>
-                        <Button Style="{StaticResource SecondaryButton}" Padding="10,0"
-                                Command="{Binding BrowseSqlitePathCommand}">
-                            <TextBlock Text="Durchsuchen"/>
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=Speicher}">
+                    <TextBlock Text="SPEICHER &amp; DATENBANK" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Datenbanktyp" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <RadioButton Content="SQLite" IsChecked="True" Foreground="{StaticResource Text2Brush}" FontSize="13" Margin="0,0,14,0"/>
+                            <RadioButton Content="SQL Server" Foreground="{StaticResource Text2Brush}" FontSize="13"/>
+                        </StackPanel>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="SQLite Pfad" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBox Text="{Binding SqlitePath}" Style="{StaticResource MfTextBox}" Width="220" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource SecondaryButton}" Padding="10,0"
+                                    Command="{Binding BrowseSqlitePathCommand}">
+                                <TextBlock Text="Durchsuchen"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Auto-Backup" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding AutoBackup}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Backup-Häufigkeit" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding BackupFrequencies}" SelectedItem="{Binding BackupFrequency}"
+                                  Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,0">
+                        <TextBlock Text="Backup erstellen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Padding="16,6"
+                                Command="{Binding CreateBackupCommand}">
+                            <TextBlock Text="Jetzt sichern" FontSize="12"/>
                         </Button>
-                    </StackPanel>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Auto-Backup" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding AutoBackup}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,32">
-                    <TextBlock Text="Backup-Häufigkeit" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <ComboBox ItemsSource="{Binding BackupFrequencies}" SelectedItem="{Binding BackupFrequency}"
-                              Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
-                </Grid>
+                    </Grid>
+                </StackPanel>
 
                 <!-- ─── LERNEN ─── -->
-                <TextBlock Text="LERNEN" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Standard-Schwierigkeit" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <ComboBox ItemsSource="{Binding Difficulties}" SelectedItem="{Binding DefaultDifficulty}"
-                              Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Lernmethode" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <ComboBox ItemsSource="{Binding LearningMethods}" SelectedItem="{Binding LearningMethod}"
-                              Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Fragen pro Sitzung" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock Text="{Binding QuestionsPerSession, StringFormat='{}{0} Fragen'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
-                    </StackPanel>
-                    <Slider Value="{Binding QuestionsPerSession}" Minimum="5" Maximum="100"
-                            Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,32"/>
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=Lernen}">
+                    <TextBlock Text="LERNEN" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Standard-Schwierigkeit" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding Difficulties}" SelectedItem="{Binding DefaultDifficulty}"
+                                  Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Lernmethode" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding LearningMethods}" SelectedItem="{Binding LearningMethod}"
+                                  Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Fragen pro Sitzung" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding QuestionsPerSession, StringFormat='{}{0} Fragen'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <Slider Value="{Binding QuestionsPerSession}" Minimum="5" Maximum="100"
+                                Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Zeitlimit aktivieren" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding TimeLimitEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,0">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Sekunden pro Frage" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding TimeLimitSeconds, StringFormat='{}{0}s'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <Slider Value="{Binding TimeLimitSeconds}" Minimum="10" Maximum="120"
+                                Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                IsEnabled="{Binding TimeLimitEnabled}"/>
+                    </Grid>
+                </StackPanel>
 
                 <!-- ─── GAMIFICATION ─── -->
-                <TextBlock Text="GAMIFICATION" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=Gamification}">
+                    <TextBlock Text="GAMIFICATION" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="XP verdienen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding XpEarningEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Streak-Tracking" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding StreakTrackingEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Achievements" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding AchievementsEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,0">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="XP-Multiplikator" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding XpMultiplierText}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <Slider Value="{Binding XpMultiplier}" Minimum="1" Maximum="3" TickFrequency="0.5"
+                                Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
 
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="XP verdienen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding XpEarningEnabled}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Streak-Tracking" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding StreakTrackingEnabled}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Achievements" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding AchievementsEnabled}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,32">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="XP-Multiplikator" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock Text="{Binding XpMultiplierText}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
-                    </StackPanel>
-                    <Slider Value="{Binding XpMultiplier}" Minimum="1" Maximum="3" TickFrequency="0.5"
-                            Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
+                <!-- ─── OFFLINE ─── -->
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=Offline}">
+                    <TextBlock Text="OFFLINE-MODUS" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Offline-Modus aktivieren" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding OfflineModeEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Auto-Sync" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding AutoSync}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Lokales KI-Modell" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding OfflineModels}" SelectedItem="{Binding OfflineModel}"
+                                  Style="{StaticResource MfComboBox}" Width="200" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,0">
+                        <TextBlock Text="Lokale Daten nach Sync löschen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding DeleteLocalAfterSync}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
 
                 <!-- ─── BENACHRICHTIGUNGEN ─── -->
-                <TextBlock Text="BENACHRICHTIGUNGEN" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Alle Benachrichtigungen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding NotificationsEnabled}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Sound" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding SoundEnabled}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Tägliche Erinnerung" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding DailyReminderEnabled}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,32">
-                    <TextBlock Text="Streak-Benachrichtigungen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding StreakNotificationsEnabled}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=Benachrichtigungen}">
+                    <TextBlock Text="BENACHRICHTIGUNGEN" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Alle Benachrichtigungen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding NotificationsEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Sound" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding SoundEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Tägliche Erinnerung" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding DailyReminderEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,0">
+                        <TextBlock Text="Streak-Benachrichtigungen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding StreakNotificationsEnabled}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
 
                 <!-- ─── DATENSCHUTZ ─── -->
-                <TextBlock Text="DATEN &amp; DATENSCHUTZ" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=Datenschutz}">
+                    <TextBlock Text="DATEN &amp; DATENSCHUTZ" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Analytics teilen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding AnalyticsSharing}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Auto-Logout" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding AutoLogout}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <TextBlock Text="Datenverschlüsselung" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding DataEncryption}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,0">
+                        <TextBlock Text="Daten exportieren" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Padding="16,6"
+                                Command="{Binding ExportDataCommand}">
+                            <TextBlock Text="Als JSON exportieren" FontSize="12"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
 
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Analytics teilen" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding AnalyticsSharing}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <TextBlock Text="Auto-Logout" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding AutoLogout}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,32">
-                    <TextBlock Text="Datenverschlüsselung" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
-                    <CheckBox IsChecked="{Binding DataEncryption}" Style="{StaticResource ToggleSwitch}"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                </Grid>
-
-                <!-- ─── TASTATURKÜRZEL ─── -->
-                <TextBlock Text="TASTATURKÜRZEL" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
-                <Border Style="{StaticResource Card}" Margin="0,0,0,32">
-                    <ItemsControl ItemsSource="{Binding Shortcuts}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="0,0,0,8">
-                                    <Border Background="{StaticResource Bg2Brush}" CornerRadius="4"
-                                            Padding="8,3" HorizontalAlignment="Left">
-                                        <TextBlock Text="{Binding Keys}" FontFamily="Consolas" FontSize="12"
-                                                   Foreground="{StaticResource TextBrush}"/>
-                                    </Border>
-                                    <TextBlock Text="{Binding Action}" FontSize="12.5"
-                                               Foreground="{StaticResource Text2Brush}"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Border>
+                <!-- ─── HARDWARE ─── -->
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=Hardware}">
+                    <TextBlock Text="HARDWARE &amp; PERFORMANCE" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="ERKANNTE HARDWARE" Style="{StaticResource SectionLabel}" Margin="0,0,0,10"/>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="CPU" FontSize="12" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="{Binding CpuName}" FontSize="12" Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="RAM" FontSize="12" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="{Binding RamInfo}" FontSize="12" Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="Auflösung" FontSize="12" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="{Binding ScreenInfo}" FontSize="12" Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
+                                    Padding="14,6" Margin="0,8,0,0" Command="{Binding DetectHardwareCommand}">
+                                <TextBlock Text="Neu erkennen" FontSize="12"/>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Max. CPU-Auslastung" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding MaxCpuUsage, StringFormat='{}{0}%'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <Slider Value="{Binding MaxCpuUsage}" Minimum="20" Maximum="100"
+                                Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Max. RAM-Nutzung" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding MaxRamUsage, StringFormat='{}{0}%'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                        </StackPanel>
+                        <Slider Value="{Binding MaxRamUsage}" Minimum="20" Maximum="100"
+                                Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,0">
+                        <TextBlock Text="Automatisch optimieren" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding AutoOptimize}" Style="{StaticResource ToggleSwitch}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
 
                 <!-- ─── ÜBER ─── -->
-                <TextBlock Text="ÜBER MINDFORGE" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
-                <Border Style="{StaticResource Card}" Margin="0,0,0,24">
-                    <StackPanel>
-                        <TextBlock Text="{Binding AppVersion}" FontFamily="Georgia" FontSize="20"
-                                   Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Text="Eine professionelle Learning-App für anspruchsvolle Studenten."
-                                   FontSize="12.5" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,12"/>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="GitHub" FontSize="12" Foreground="{StaticResource AccentBrush}" Cursor="Hand" Margin="0,0,16,0"/>
-                            <TextBlock Text="Website" FontSize="12" Foreground="{StaticResource AccentBrush}" Cursor="Hand" Margin="0,0,16,0"/>
-                            <TextBlock Text="Feedback" FontSize="12" Foreground="{StaticResource AccentBrush}" Cursor="Hand"/>
+                <StackPanel Visibility="{Binding ActiveSection, Converter={StaticResource StringToVisibility}, ConverterParameter=Über}">
+                    <TextBlock Text="ÜBER MINDFORGE" Style="{StaticResource SectionLabel}" Margin="0,0,0,16"/>
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="{Binding AppVersion}" FontFamily="Georgia" FontSize="20"
+                                       Foreground="{StaticResource TextBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="Eine professionelle Learning-App für anspruchsvolle Studenten."
+                                       FontSize="12.5" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,16"/>
+                            <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="Update-Status" FontSize="12" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="{Binding UpdateStatusText}" FontSize="12"
+                                           Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <TextBlock Text="Neue Version" FontSize="12" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="{Binding LatestVersion}" FontSize="12"
+                                           Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Right"
+                                           Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisibility}}"/>
+                            </Grid>
+                            <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
+                                    Padding="16,8" Command="{Binding CheckUpdatesCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔄  " FontSize="13"/>
+                                    <TextBlock Text="Auf Updates prüfen" FontSize="13"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
+                    </Border>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="GitHub" FontSize="12" Foreground="{StaticResource AccentBrush}" Cursor="Hand" Margin="0,0,16,0"/>
+                        <TextBlock Text="Feedback" FontSize="12" Foreground="{StaticResource AccentBrush}" Cursor="Hand"/>
                     </StackPanel>
-                </Border>
+                </StackPanel>
 
-                <!-- Save Button -->
+                <!-- Save Bar (always visible) -->
+                <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,24,0,16"/>
                 <Grid>
                     <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"
                             Height="38" Padding="20,0" Command="{Binding SaveCommand}">
@@ -391,7 +592,6 @@
                     <TextBlock Text="{Binding SaveStatus}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                FontSize="13" Foreground="{StaticResource SuccessBrush}"/>
                 </Grid>
-
             </StackPanel>
         </ScrollViewer>
     </Grid>

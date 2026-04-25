@@ -33,11 +33,24 @@ public partial class MainViewModel : ObservableObject
     public double XPProgress => XpToNextLevel > 0 ? (double)CurrentXP / XpToNextLevel : 0;
     public string XPProgressText => $"{CurrentXP} / {XpToNextLevel} XP";
 
+    private static readonly Dictionary<string, string> ViewLabels = new()
+    {
+        ["Dashboard"]       = "Dashboard",
+        ["Learning"]        = "Lernen",
+        ["Tests"]           = "Tests",
+        ["Analytics"]       = "Analytics",
+        ["ContentGenerator"]= "KI-Werkzeuge",
+        ["Subjects"]        = "Fächer",
+        ["Profile"]         = "Profil",
+        ["Settings"]        = "Einstellungen",
+        ["QA"]              = "Lernen",
+    };
+
     [RelayCommand]
     private void NavigateTo(string view)
     {
         CurrentView = view;
-        Breadcrumb = view;
+        Breadcrumb = ViewLabels.TryGetValue(view, out var label) ? label : view;
     }
 
     [RelayCommand]
@@ -47,7 +60,7 @@ public partial class MainViewModel : ObservableObject
     private void SelectSubject(SubjectViewModel? subject)
     {
         ActiveSubject = subject;
-        CurrentView = "QA";
+        CurrentView = "Learning";
         Breadcrumb = subject?.Name ?? "Lernen";
     }
 

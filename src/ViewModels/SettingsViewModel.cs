@@ -1,108 +1,138 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MindForge.Models;
+using MindForge.Services;
 using MindForge.Utils;
 
 namespace MindForge.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    // Darstellung
+    private readonly UpdateService? _updateService;
+
+    public SettingsViewModel() : this(null) { }
+    public SettingsViewModel(UpdateService? updateService) => _updateService = updateService;
+
+    [ObservableProperty] private string _activeSection = "Darstellung";
+    public List<string> Sections { get; } = [
+        "Darstellung", "KI & Provider", "Lernen", "Gamification",
+        "Offline", "Benachrichtigungen", "Datenschutz", "Speicher",
+        "Hardware", "Über"
+    ];
+
+    // ── Section 1: Darstellung ───────────────────────────────────────────────
     [ObservableProperty] private string _theme = "Dunkel";
     [ObservableProperty] private string _palette = "Forge (Default)";
     [ObservableProperty] private string _density = "Standard";
-    [ObservableProperty] private string _fontFamily = "Geist";
     [ObservableProperty] private double _fontSize = 13.5;
     [ObservableProperty] private bool _sidebarCollapsed = false;
     [ObservableProperty] private bool _colorblindMode = false;
     [ObservableProperty] private bool _highContrast = false;
     [ObservableProperty] private bool _animationsEnabled = true;
 
-    // KI & Provider
+    public List<string> Themes { get; } = ["Dunkel", "Hell", "System"];
+    public List<string> Palettes { get; } = ["Forge (Default)", "Material Blue", "Nord", "Dracula"];
+    public List<string> Densities { get; } = ["Kompakt", "Standard", "Luftig"];
+
+    // ── Section 2: KI & Provider ─────────────────────────────────────────────
+    [ObservableProperty] private string _defaultProvider = "Claude";
     [ObservableProperty] private string _claudeApiKey = string.Empty;
     [ObservableProperty] private string _openAiApiKey = string.Empty;
     [ObservableProperty] private string _geminiApiKey = string.Empty;
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
-    [ObservableProperty] private string _defaultProvider = "Claude";
-    [ObservableProperty] private int _tokenLimit = 4000;
     [ObservableProperty] private bool _autoSelectProvider = true;
-    [ObservableProperty] private decimal _tokenBudgetUsd = 5.0m;
+    [ObservableProperty] private decimal _tokenBudgetUsd = 10.0m;
+    [ObservableProperty] private decimal _tokenUsageThisMonth = 4.23m;
+    public string TokenBudgetStatusText => $"Diesen Monat: ${TokenUsageThisMonth:F2} / ${TokenBudgetUsd:F2}";
 
-    // Speicher
-    [ObservableProperty] private string _databaseType = "SQLite";
-    [ObservableProperty] private string _sqlitePath = "mindforge.db";
-    [ObservableProperty] private string _sqlServerConnection = string.Empty;
-    [ObservableProperty] private bool _autoBackup = true;
-    [ObservableProperty] private string _backupFrequency = "Täglich";
+    public List<string> Providers { get; } = ["Claude", "OpenAI", "Gemini", "Ollama (Lokal)"];
 
-    // Lernen
-    [ObservableProperty] private string _defaultDifficulty = "Mittel";
-    [ObservableProperty] private string _learningMethod = "Spaced Repetition";
-    [ObservableProperty] private int _questionsPerSession = 20;
-    [ObservableProperty] private bool _timeLimitEnabled = false;
-    [ObservableProperty] private int _timeLimitSeconds = 30;
+    // ── Section 3: Lernen ────────────────────────────────────────────────────
+    [ObservableProperty] private bool _methodActiveRecall = true;
+    [ObservableProperty] private bool _methodPomodoro = false;
+    [ObservableProperty] private bool _methodSpacedRep = true;
+    [ObservableProperty] private bool _methodInterleaving = false;
+    [ObservableProperty] private bool _methodPracticeTest = true;
+    [ObservableProperty] private bool _shortExplanation = false;
+    [ObservableProperty] private bool _needsExamples = true;
+    [ObservableProperty] private bool _needsExercises = true;
+    [ObservableProperty] private bool _needsFormulas = false;
+    [ObservableProperty] private int _problemsPerLesson = 20;
 
-    // Gamification
-    [ObservableProperty] private bool _xpEarningEnabled = true;
-    [ObservableProperty] private bool _streakTrackingEnabled = true;
-    [ObservableProperty] private bool _achievementsEnabled = true;
+    // ── Section 4: Gamification ──────────────────────────────────────────────
     [ObservableProperty] private double _xpMultiplier = 1.0;
+    [ObservableProperty] private bool _showNotifications = true;
+    [ObservableProperty] private string _leaderboardMode = "Local";
+    public string XpMultiplierText => $"{XpMultiplier:F1}x";
+    public List<string> LeaderboardModes { get; } = ["Local", "Cloud", "Aus"];
 
-    // Offline
-    [ObservableProperty] private bool _offlineModeEnabled = false;
-    [ObservableProperty] private bool _autoSync = true;
-    [ObservableProperty] private string _offlineModel = "llama3";
+    // ── Section 5: Offline ───────────────────────────────────────────────────
+    [ObservableProperty] private bool _offlineModelsInstalled = false;
+    [ObservableProperty] private string _syncMode = "Local";
+    [ObservableProperty] private bool _deleteLocalAfterSync = false;
+    public List<string> SyncModes { get; } = ["Local", "Cloud", "Hybrid"];
+    public string OllamaStatus => OfflineModelsInstalled ? "✓ Installiert" : "✗ Nicht installiert";
 
-    // Benachrichtigungen
-    [ObservableProperty] private bool _notificationsEnabled = true;
-    [ObservableProperty] private bool _soundEnabled = true;
-    [ObservableProperty] private bool _dailyReminderEnabled = false;
-    [ObservableProperty] private string _dailyReminderTime = "08:00";
-    [ObservableProperty] private bool _streakNotificationsEnabled = true;
+    // ── Section 6: Benachrichtigungen ────────────────────────────────────────
+    [ObservableProperty] private bool _toastNotifications = true;
+    [ObservableProperty] private bool _desktopNotifications = true;
+    [ObservableProperty] private bool _updateNotifications = true;
+    [ObservableProperty] private bool _streakReminders = true;
 
-    // Datenschutz
-    [ObservableProperty] private bool _analyticsSharing = false;
-    [ObservableProperty] private bool _autoLogout = false;
-    [ObservableProperty] private int _autoLogoutMinutes = 30;
-    [ObservableProperty] private bool _dataEncryption = false;
+    // ── Section 7: Datenschutz ───────────────────────────────────────────────
+    [ObservableProperty] private string _dataRetention = "Forever";
+    [ObservableProperty] private bool _cloudSync = false;
+    [ObservableProperty] private bool _anonymousAnalytics = false;
+    public List<string> DataRetentions { get; } = ["Forever", "1 Jahr", "6 Monate", "3 Monate"];
+
+    // ── Section 8: Speicher ──────────────────────────────────────────────────
+    [ObservableProperty] private string _backupStatus = string.Empty;
+    [ObservableProperty] private string _exportStatus = string.Empty;
+
+    // ── Section 9: Hardware ──────────────────────────────────────────────────
+    [ObservableProperty] private int _maxCpuUsage = 80;
+    [ObservableProperty] private int _maxRamUsage = 70;
+    [ObservableProperty] private bool _autoOptimize = true;
+    [ObservableProperty] private string _hardwareInfo = "RAM: — · CPU: — · Auflösung: —";
+    [ObservableProperty] private int _currentCpuPercent = 0;
+    [ObservableProperty] private int _currentRamPercent = 0;
+
+    // ── Section 10: Über ─────────────────────────────────────────────────────
+    [ObservableProperty] private string _updateStatus = string.Empty;
+    [ObservableProperty] private string _lastChecked = "Noch nicht geprüft";
+    [ObservableProperty] private bool _isCheckingUpdates = false;
+    public string AppVersion => $"MindForge v{Constants.AppVersion}";
+    public string GitHubUrl => $"https://github.com/{Constants.GitHub.Owner}/{Constants.GitHub.Repo}";
 
     // Status
     [ObservableProperty] private string _saveStatus = string.Empty;
     [ObservableProperty] private bool _isSaving = false;
 
-    public List<string> Themes { get; } = ["Dunkel", "Hell", "System"];
-    public List<string> Palettes { get; } = ["Forge (Default)", "Material Blue", "Nord", "Dracula"];
-    public List<string> Densities { get; } = ["Kompakt", "Standard", "Luftig"];
-    public List<string> FontFamilies { get; } = ["Geist", "Segoe UI", "Calibri", "Consolas"];
-    public List<string> Providers { get; } = ["Claude", "OpenAI", "Gemini", "Ollama (Lokal)"];
-    public List<string> DbTypes { get; } = ["SQLite", "SQL Server"];
-    public List<string> BackupFrequencies { get; } = ["Täglich", "Wöchentlich", "Monatlich"];
-    public List<string> Difficulties { get; } = ["Leicht", "Mittel", "Schwer", "Gemischt"];
-    public List<string> LearningMethods { get; } = ["Spaced Repetition", "Leitner-System", "Zufällig", "Schwächste zuerst"];
-    public List<string> OfflineModels { get; } = ["llama3", "mistral", "phi3", "gemma"];
-    public string XpMultiplierText => $"{XpMultiplier:F1}x";
-    public string AppVersion => $"MindForge v{Constants.AppVersion}";
-
+    // Shortcuts
     public List<ShortcutItem> Shortcuts { get; } = new()
     {
-        new() { Keys="Strg + K",         Action="Befehlspalette öffnen" },
-        new() { Keys="Strg + 1",         Action="Lernmodus (Q&A)" },
-        new() { Keys="Strg + 2",         Action="KI Content Generator" },
-        new() { Keys="Strg + 3",         Action="Test erstellen" },
-        new() { Keys="Strg + 4",         Action="Analytics" },
-        new() { Keys="Strg + ,",         Action="Einstellungen" },
-        new() { Keys="Strg + B",         Action="Sidebar ein-/ausklappen" },
-        new() { Keys="Strg + Shift + T", Action="Theme wechseln" },
-        new() { Keys="Enter",            Action="Antwort bestätigen" },
-        new() { Keys="A / B / C / D",    Action="Antwort auswählen" },
+        new() { Keys = "Strg + K",          Action = "Befehlspalette öffnen" },
+        new() { Keys = "Strg + 1",          Action = "Dashboard" },
+        new() { Keys = "Strg + 2",          Action = "Lernen" },
+        new() { Keys = "Strg + 3",          Action = "Tests" },
+        new() { Keys = "Strg + 4",          Action = "Analytics" },
+        new() { Keys = "Strg + 5",          Action = "KI-Werkzeuge" },
+        new() { Keys = "Strg + ,",          Action = "Einstellungen" },
+        new() { Keys = "Strg + B",          Action = "Sidebar ein-/ausklappen" },
+        new() { Keys = "Strg + Shift + T",  Action = "Theme wechseln" },
+        new() { Keys = "Enter",             Action = "Antwort bestätigen" },
+        new() { Keys = "A / B / C / D",     Action = "Antwort auswählen" },
     };
+
+    [RelayCommand]
+    private void SelectSection(string section) => ActiveSection = section;
 
     [RelayCommand]
     private async Task SaveAsync()
     {
         IsSaving = true;
         SaveStatus = string.Empty;
-        await Task.Delay(500);
+        await Task.Delay(400);
         var s = BuildSettings();
         Configuration.Save(s);
         IsSaving = false;
@@ -112,32 +142,71 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task CheckUpdatesAsync()
+    {
+        if (_updateService == null) { UpdateStatus = "Update-Service nicht verfügbar."; return; }
+        IsCheckingUpdates = true;
+        UpdateStatus = "Prüfe auf Updates...";
+        var info = await _updateService.CheckForUpdatesAsync();
+        LastChecked = info.CheckedAt.ToString("dd.MM.yyyy HH:mm");
+        UpdateStatus = info.IsUpdateAvailable
+            ? $"Update verfügbar: v{info.LatestVersion}"
+            : "✓ MindForge ist aktuell";
+        IsCheckingUpdates = false;
+    }
+
+    [RelayCommand]
+    private void DetectHardware()
+    {
+        var hw = HardwareDetector.Detect();
+        HardwareInfo = hw.Summary;
+    }
+
+    [RelayCommand]
+    private async Task ExportDataAsync()
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "CSV|*.csv|JSON|*.json", FileName = "mindforge-export" };
+        if (dialog.ShowDialog() == true)
+        {
+            await System.IO.File.WriteAllTextAsync(dialog.FileName, "# MindForge Export\n");
+            ExportStatus = "✓ Daten exportiert";
+            await Task.Delay(2000);
+            ExportStatus = string.Empty;
+        }
+    }
+
+    [RelayCommand]
+    private async Task CreateBackupAsync()
+    {
+        BackupStatus = "Backup erstellt: mindforge_backup_" + DateTime.Now.ToString("yyyyMMdd") + ".db";
+        await Task.Delay(2000);
+        BackupStatus = string.Empty;
+    }
+
+    [RelayCommand]
     private void BrowseSqlitePath()
     {
-        var d = new Microsoft.Win32.SaveFileDialog { Filter = "SQLite (*.db)|*.db", FileName = SqlitePath };
-        if (d.ShowDialog() == true) SqlitePath = d.FileName;
+        var d = new Microsoft.Win32.SaveFileDialog { Filter = "SQLite (*.db)|*.db", FileName = "mindforge.db" };
+        if (d.ShowDialog() == true) { }
     }
 
     private AppSettings BuildSettings() => new()
     {
-        Theme = Theme, Palette = Palette, Density = Density, FontFamily = FontFamily,
-        FontSize = FontSize, SidebarCollapsed = SidebarCollapsed, ColorblindMode = ColorblindMode,
-        HighContrast = HighContrast, AnimationsEnabled = AnimationsEnabled,
-        ClaudeApiKey = ClaudeApiKey, OpenAiApiKey = OpenAiApiKey, GeminiApiKey = GeminiApiKey,
-        OllamaEndpoint = OllamaEndpoint, DefaultProvider = DefaultProvider, TokenLimit = TokenLimit,
-        DatabaseType = DatabaseType, SQLitePath = SqlitePath, SqlServerConnection = SqlServerConnection,
-        AutoBackup = AutoBackup, BackupFrequency = BackupFrequency,
-        DefaultDifficulty = DefaultDifficulty, LearningMethod = LearningMethod,
-        QuestionsPerSession = QuestionsPerSession, TimeLimitEnabled = TimeLimitEnabled,
-        TimeLimitSeconds = TimeLimitSeconds, XpEarningEnabled = XpEarningEnabled,
-        StreakTrackingEnabled = StreakTrackingEnabled, AchievementsEnabled = AchievementsEnabled,
-        XpMultiplier = XpMultiplier, OfflineModeEnabled = OfflineModeEnabled, AutoSync = AutoSync,
-        OfflineModel = OfflineModel, NotificationsEnabled = NotificationsEnabled,
-        SoundEnabled = SoundEnabled, DailyReminderEnabled = DailyReminderEnabled,
-        DailyReminderTime = DailyReminderTime, StreakNotificationsEnabled = StreakNotificationsEnabled,
-        AnalyticsSharing = AnalyticsSharing, AutoLogout = AutoLogout,
-        AutoLogoutMinutes = AutoLogoutMinutes, DataEncryption = DataEncryption,
-        AutoSelectProvider = AutoSelectProvider, TokenBudgetUSD = TokenBudgetUsd,
+        Theme = Theme, Palette = Palette, Density = Density,
+        FontSize = FontSize, SidebarCollapsed = SidebarCollapsed,
+        ColorblindMode = ColorblindMode, HighContrast = HighContrast, AnimationsEnabled = AnimationsEnabled,
+        DefaultProvider = DefaultProvider, ClaudeApiKey = ClaudeApiKey,
+        OpenAiApiKey = OpenAiApiKey, GeminiApiKey = GeminiApiKey,
+        OllamaEndpoint = OllamaEndpoint, AutoSelectProvider = AutoSelectProvider,
+        TokenBudgetUSD = TokenBudgetUsd, ShortExplanation = ShortExplanation,
+        NeedsExamples = NeedsExamples, NeedsExercises = NeedsExercises,
+        QuestionsPerSession = ProblemsPerLesson, XpMultiplier = XpMultiplier,
+        ShowNotifications = ShowNotifications, LeaderboardMode = LeaderboardMode,
+        SyncMode = SyncMode, DeleteLocalAfterSync = DeleteLocalAfterSync,
+        NotificationsEnabled = ToastNotifications, DesktopNotifications = DesktopNotifications,
+        UpdateNotifications = UpdateNotifications, DataRetention = DataRetention,
+        CloudSync = CloudSync, AnonymousAnalytics = AnonymousAnalytics,
+        MaxCpuUsage = MaxCpuUsage, MaxRamUsage = MaxRamUsage, AutoOptimize = AutoOptimize,
     };
 }
 

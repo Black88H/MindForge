@@ -9,12 +9,17 @@
                 <ResourceDictionary Source="src/Themes/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <local:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
-            <local:BoolToWidthConverter      x:Key="BoolToWidth"/>
-            <local:PlusOneConverter          x:Key="PlusOne"/>
-            <local:XPToHeightConverter       x:Key="XPToHeight"/>
-            <local:BoolToSavingTextConverter x:Key="BoolToSavingText"/>
-            <local:InvertBoolConverter       x:Key="InvertBool"/>
+            <local:BoolToVisibilityConverter  x:Key="BoolToVisibility"/>
+            <local:BoolToWidthConverter       x:Key="BoolToWidth"/>
+            <local:PlusOneConverter           x:Key="PlusOne"/>
+            <local:XPToHeightConverter        x:Key="XPToHeight"/>
+            <local:BoolToSavingTextConverter  x:Key="BoolToSavingText"/>
+            <local:InvertBoolConverter        x:Key="InvertBool"/>
+            <local:StepToVisibilityConverter  x:Key="StepToVisibility"/>
+            <local:StepToNextLabelConverter   x:Key="StepToNextLabel"/>
+            <local:StringToVisibilityConverter x:Key="StringToVisibility"/>
+            <local:IntToVisibilityConverter   x:Key="IntToVisibility"/>
+            <local:BoolToNextLabelConverter   x:Key="BoolToNextLabel"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

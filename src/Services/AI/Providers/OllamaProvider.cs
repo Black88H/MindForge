@@ -2,8 +2,8 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using MindForge.Services.AI.Models;
-using MindForge.Services.AI.Selection;
 using MindForge.Services.AI.Utilities;
+using MindForge.Services.AI.Selection;
 using MindForge.Utils;
 
 namespace MindForge.Services.AI.Providers;
@@ -11,12 +11,12 @@ namespace MindForge.Services.AI.Providers;
 public class OllamaProvider : IAIProvider
 {
     private readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(120) };
-    private readonly HardwareDetector _hardware;
+    private readonly MindForge.Services.AI.Selection.HardwareDetector _hardware;
 
     public string Name => "Ollama";
     public bool IsAvailable { get; private set; }
 
-    public OllamaProvider(HardwareDetector hardware) => _hardware = hardware;
+    public OllamaProvider(MindForge.Services.AI.Selection.HardwareDetector hardware) => _hardware = hardware;
 
     public async Task<bool> CheckConnectionAsync()
     {
@@ -69,5 +69,5 @@ public class OllamaProvider : IAIProvider
         catch (Exception ex) { return AIResponse.Failure(Name, ex.Message); }
     }
 
-    private static AIConfig GetConfig() => AIConfig.FromAppSettings(Configuration.Load());
+    private static AIConfig GetConfig() => AIConfig.FromAppSettings(MindForge.Utils.Configuration.Load());
 }

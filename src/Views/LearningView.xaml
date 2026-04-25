@@ -1,0 +1,485 @@
+<UserControl x:Class="MindForge.Views.LearningView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:MindForge.ViewModels"
+             Background="{StaticResource BgBrush}">
+
+    <UserControl.DataContext>
+        <vm:LearningViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <!-- Main Content -->
+            <ColumnDefinition Width="240"/>
+            <!-- Right Sidebar -->
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <!-- Material Library -->
+        </Grid.RowDefinitions>
+
+        <!-- ══ MAIN LEARNING AREA ══ -->
+        <ScrollViewer Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto"
+                      Style="{StaticResource MfScrollViewer}">
+            <Grid MaxWidth="860" Margin="32,28,24,28" HorizontalAlignment="Left">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Top bar: subject + difficulty + upload -->
+                <Grid Grid.Row="0" Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Difficulty filter -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <TextBlock Text="NIVEAU:" Style="{StaticResource SectionLabel}"
+                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ItemsControl ItemsSource="{Binding DifficultyOptions}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Margin="0,0,4,0" Padding="10,4" Height="28"
+                                            Style="{StaticResource SecondaryButton}" FontSize="12">
+                                        <TextBlock Text="{Binding}"/>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Upload material button -->
+                    <Button Grid.Column="4" Style="{StaticResource SecondaryButton}" Height="32"
+                            Command="{Binding UploadMaterialCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📎 " FontSize="13"/>
+                            <TextBlock Text="Material hochladen"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Question Card -->
+                <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
+                    <Grid>
+                        <!-- Accent glow -->
+                        <Ellipse Width="300" Height="300" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Margin="0,-60,-60,0" Opacity="0.06">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="#FF5B8CFF" Offset="0"/>
+                                    <GradientStop Color="Transparent" Offset="1"/>
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <StackPanel Margin="24,22,24,22">
+                            <!-- Tags row -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <Border Style="{StaticResource BadgeAccent}" Margin="0,0,6,0">
+                                    <TextBlock Text="{Binding SubjectName}"
+                                               Foreground="{StaticResource AccentBrush}"
+                                               FontSize="11.5" FontWeight="Medium"/>
+                                </Border>
+                                <Border Style="{StaticResource BadgeNeutral}" Margin="0,0,6,0">
+                                    <TextBlock Text="{Binding QuestionTag}"
+                                               Foreground="{StaticResource Text2Brush}" FontSize="11.5"/>
+                                </Border>
+                                <Border Style="{StaticResource BadgeNeutral}">
+                                    <TextBlock Text="{Binding DifficultyTag}"
+                                               Foreground="{StaticResource Text2Brush}" FontSize="11.5"/>
+                                </Border>
+                                <TextBlock HorizontalAlignment="Right" Margin="12,0,0,0" VerticalAlignment="Center"
+                                           Text="{Binding QuestionNumber}"
+                                           FontSize="11" Foreground="{StaticResource Text3Brush}" FontFamily="Consolas"/>
+                            </StackPanel>
+
+                            <!-- Session Progress -->
+                            <Grid Margin="0,0,0,12">
+                                <ProgressBar Minimum="0" Maximum="1" Value="{Binding SessionProgress, Mode=OneWay}"
+                                             Style="{StaticResource MfProgressBar}" Height="3"/>
+                                <TextBlock HorizontalAlignment="Right" FontSize="11"
+                                           Foreground="{StaticResource Text3Brush}"
+                                           Text="{Binding SessionProgressText}" Margin="0,-16,0,0"/>
+                            </Grid>
+
+                            <!-- Question Text -->
+                            <TextBlock Text="{Binding QuestionText}"
+                                       FontFamily="Georgia" FontSize="22" LineHeight="30"
+                                       Foreground="{StaticResource TextBrush}"
+                                       TextWrapping="Wrap" Margin="0,0,0,20"/>
+
+                            <!-- Answer Options -->
+                            <UniformGrid Rows="2" Columns="2" Margin="0,0,0,18">
+                                <ItemsControl ItemsSource="{Binding Options}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Rows="2" Columns="2"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Margin="3"
+                                                    Command="{Binding DataContext.SelectOptionCommand,
+                                                        RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource AnswerOptionButton}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsCorrect}" Value="True">
+                                                                <Setter Property="Background" Value="{StaticResource SuccessSoftBrush}"/>
+                                                                <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsWrong}" Value="True">
+                                                                <Setter Property="Background" Value="{StaticResource DangerSoftBrush}"/>
+                                                                <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Background="{StaticResource Bg3Brush}" CornerRadius="4"
+                                                            Padding="5,2" Margin="0,0,10,0">
+                                                        <TextBlock Text="{Binding Label}" FontSize="11"
+                                                                   Foreground="{StaticResource Text2Brush}"
+                                                                   FontFamily="Consolas"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding Text}" FontFamily="Consolas"
+                                                               FontSize="13" Foreground="{StaticResource Text2Brush}"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </UniformGrid>
+
+                            <!-- Explanation (shown after answer) -->
+                            <Border Background="{StaticResource Bg2Brush}" CornerRadius="8" Padding="14,12"
+                                    Margin="0,0,0,14"
+                                    Visibility="{Binding ShowExplanation, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel>
+                                    <TextBlock Text="KI-ERKLÄRUNG" Style="{StaticResource SectionLabel}"
+                                               Margin="0,0,0,8"/>
+                                    <TextBlock Text="{Binding Explanation}" FontSize="13"
+                                               Foreground="{StaticResource Text2Brush}"
+                                               TextWrapping="Wrap" LineHeight="20"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Action Buttons -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- AI Explanation button -->
+                                <Button Grid.Column="0" Style="{StaticResource PrimaryButton}" Height="36"
+                                        Command="{Binding ShowAIExplanationAsyncCommand}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="✨ " FontSize="13"/>
+                                        <TextBlock Text="{Binding IsLoadingExplanation, Converter={StaticResource BoolToSavingText}, ConverterParameter=Lädt|KI-Erklärung}"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Submit button -->
+                                <Button Grid.Column="2" Style="{StaticResource SecondaryButton}" Height="36"
+                                        Command="{Binding SubmitAnswerAsyncCommand}"
+                                        Visibility="{Binding IsAnswered, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                                    <TextBlock Text="Beantworten"/>
+                                </Button>
+
+                                <!-- Next button -->
+                                <Button Grid.Column="2" Style="{StaticResource SecondaryButton}" Height="36"
+                                        Command="{Binding NextQuestionCommand}"
+                                        Visibility="{Binding IsAnswered, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="Nächste →"/>
+                                </Button>
+
+                                <!-- Other question -->
+                                <Button Grid.Column="4" Style="{StaticResource GhostButton}"
+                                        Command="{Binding NextQuestionCommand}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⇄ " FontSize="12"/>
+                                        <TextBlock Text="Andere Frage"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Learning Plan Panel -->
+                <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,12,0,0"
+                        Visibility="{Binding ShowPlanPanel, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,16">
+                            <TextBlock Text="LERNPLAN ERSTELLEN" Style="{StaticResource SectionLabel}"/>
+                            <Button HorizontalAlignment="Right" Style="{StaticResource GhostButton}"
+                                    Command="{Binding TogglePlanPanelCommand}">
+                                <TextBlock Text="✕" FontSize="12"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- Step indicator -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <ItemsControl>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                            <TextBlock Foreground="{StaticResource Text3Brush}" FontSize="12" FontFamily="Consolas">
+                                <Run Text="Schritt "/>
+                                <Run Text="{Binding PlanStep}"/>
+                                <Run Text=" von 5"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- Step 2: Methods -->
+                        <StackPanel Visibility="{Binding PlanStep, Converter={StaticResource StepToVisibility}, ConverterParameter=2}">
+                            <TextBlock Text="Lernmethoden auswählen" FontSize="14" FontWeight="Medium"
+                                       Foreground="{StaticResource TextBrush}" Margin="0,0,0,12"/>
+                            <ItemsControl ItemsSource="{Binding AvailableMethods}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,4" Padding="10,8"
+                                                Background="{StaticResource Bg2Brush}" CornerRadius="6"
+                                                Cursor="Hand">
+                                            <StackPanel Orientation="Horizontal">
+                                                <CheckBox IsChecked="{Binding IsSelected}"
+                                                          VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                <TextBlock Text="{Binding Icon}" FontSize="16" Margin="0,0,8,0"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Name}" FontSize="13"
+                                                           Foreground="{StaticResource Text2Brush}"
+                                                           VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Step 3: Schedule -->
+                        <StackPanel Visibility="{Binding PlanStep, Converter={StaticResource StepToVisibility}, ConverterParameter=3}">
+                            <TextBlock Text="Zeitplan" FontSize="14" FontWeight="Medium"
+                                       Foreground="{StaticResource TextBrush}" Margin="0,0,0,12"/>
+                            <Grid Margin="0,0,0,12">
+                                <TextBlock Text="Tage verfügbar" FontSize="13"
+                                           Foreground="{StaticResource Text2Brush}"/>
+                                <TextBlock Text="{Binding PlanDays}" HorizontalAlignment="Right"
+                                           FontSize="13" Foreground="{StaticResource AccentBrush}" FontWeight="Medium"/>
+                            </Grid>
+                            <Slider Value="{Binding PlanDays}" Minimum="5" Maximum="50"
+                                    Style="{StaticResource MfSlider}" Margin="0,0,0,16"/>
+                            <Grid Margin="0,0,0,12">
+                                <TextBlock Text="Minuten pro Tag" FontSize="13"
+                                           Foreground="{StaticResource Text2Brush}"/>
+                                <TextBlock Text="{Binding PlanMinutesPerDay}" HorizontalAlignment="Right"
+                                           FontSize="13" Foreground="{StaticResource AccentBrush}" FontWeight="Medium"/>
+                            </Grid>
+                            <Slider Value="{Binding PlanMinutesPerDay}" Minimum="5" Maximum="180"
+                                    Style="{StaticResource MfSlider}"/>
+                        </StackPanel>
+
+                        <!-- Navigation -->
+                        <Grid Margin="0,16,0,0">
+                            <Button HorizontalAlignment="Left" Style="{StaticResource GhostButton}"
+                                    Command="{Binding PrevPlanStepCommand}"
+                                    Visibility="{Binding PlanStep, Converter={StaticResource StepToVisibility}, ConverterParameter=1+}">
+                                <TextBlock Text="← Zurück"/>
+                            </Button>
+                            <Button HorizontalAlignment="Right" Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding NextPlanStepCommand}">
+                                <TextBlock Text="Weiter →"/>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- ══ RIGHT SIDEBAR ══ -->
+        <Border Grid.Column="1" Grid.Row="0"
+                Background="{StaticResource Bg1Brush}"
+                BorderBrush="{StaticResource LineBrush}"
+                BorderThickness="1,0,0,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="16,20,16,20">
+
+                    <!-- Today stats -->
+                    <TextBlock Text="HEUTE" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
+                    <TextBlock FontFamily="Georgia" FontSize="28"
+                               Foreground="{StaticResource TextBrush}" Margin="0,0,0,4">
+                        <Run Text="{Binding CorrectToday}"/>
+                        <Run Text="/" FontSize="18" Foreground="{StaticResource Text3Brush}"/>
+                        <Run Text="{Binding TotalToday}" FontSize="18" Foreground="{StaticResource Text3Brush}"/>
+                    </TextBlock>
+                    <ProgressBar Value="{Binding SessionProgress, Mode=OneWay}"
+                                 Maximum="1" Style="{StaticResource SuccessProgressBar}"
+                                 Height="4" Margin="0,4,0,16"/>
+
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,16"/>
+
+                    <!-- Streak -->
+                    <TextBlock Text="SERIE" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <TextBlock Text="🔥 " FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="Georgia" FontSize="24"
+                                   Foreground="{StaticResource StreakBrush}" VerticalAlignment="Center">
+                            <Run Text="{Binding StreakDays}"/>
+                            <Run Text=" Tage" FontSize="14" Foreground="#FFFF9A5C"/>
+                        </TextBlock>
+                    </StackPanel>
+                    <Border Background="{StaticResource WarnSoftBrush}" CornerRadius="6" Padding="8,4"
+                            Margin="0,4,0,16"
+                            Visibility="{Binding StreakInDanger, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="⚠ Streak in Gefahr!" FontSize="11.5"
+                                   Foreground="{StaticResource WarnBrush}" HorizontalAlignment="Center"/>
+                    </Border>
+
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,16"/>
+
+                    <!-- XP Bar -->
+                    <TextBlock Text="XP" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
+                    <Grid Margin="0,0,0,6">
+                        <TextBlock FontSize="11" Foreground="{StaticResource Text2Brush}">
+                            <Run Text="Lvl "/>
+                            <Run Text="{Binding Level}"/>
+                        </TextBlock>
+                        <TextBlock Text="{Binding CurrentXP}" HorizontalAlignment="Right"
+                                   FontSize="11" Foreground="{StaticResource AccentBrush}"
+                                   FontFamily="Consolas"/>
+                    </Grid>
+                    <ProgressBar Value="{Binding XPProgress, Mode=OneWay}" Maximum="1"
+                                 Style="{StaticResource SuccessProgressBar}"
+                                 Height="6" Margin="0,0,0,16"/>
+
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,16"/>
+
+                    <!-- Next review -->
+                    <TextBlock Text="NÄCHSTE WIEDERHOLUNG" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding NextReviewDate, StringFormat={}{0:dd.MM.yyyy}}"
+                               FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,16"/>
+
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,16"/>
+
+                    <!-- Quick Actions -->
+                    <TextBlock Text="SCHNELLZUGRIFF" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
+                    <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch"
+                            Margin="0,0,0,4" Command="{Binding TogglePlanPanelCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📅 " FontSize="13"/>
+                            <TextBlock Text="Lernplan"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch"
+                            Command="{Binding UploadMaterialCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📎 " FontSize="13"/>
+                            <TextBlock Text="Material"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- ══ MATERIAL LIBRARY (bottom) ══ -->
+        <Border Grid.Row="1" Grid.ColumnSpan="2"
+                Background="{StaticResource Bg1Brush}"
+                BorderBrush="{StaticResource LineBrush}"
+                BorderThickness="0,1,0,0" MaxHeight="220">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Library header -->
+                <Grid Grid.Row="0" Margin="16,10,16,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="MATERIALBIBLIOTHEK" Style="{StaticResource SectionLabel}"/>
+                        <!-- Tabs -->
+                        <ItemsControl ItemsSource="{Binding MaterialTabs}" Margin="16,0,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Margin="0,0,4,0" Padding="10,4" Height="26" FontSize="11.5"
+                                            Command="{Binding DataContext.SetMaterialTabCommand,
+                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DataContext.ActiveMaterialTab,
+                                                        RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        Value="{Binding}">
+                                                        <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <TextBlock Text="{Binding}"/>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                    <Button HorizontalAlignment="Right" Style="{StaticResource SecondaryButton}"
+                            Height="28" Padding="10,0" FontSize="12"
+                            Command="{Binding UploadMaterialCommand}">
+                        <TextBlock Text="+ Hochladen"/>
+                    </Button>
+                </Grid>
+
+                <!-- Materials list -->
+                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Disabled" Margin="16,8,16,10">
+                    <ItemsControl ItemsSource="{Binding Materials}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource Bg2Brush}" CornerRadius="8"
+                                        Margin="0,0,8,0" Padding="12,10" Width="160" Cursor="Hand">
+                                    <StackPanel>
+                                        <TextBlock Text="📄" FontSize="22" HorizontalAlignment="Center"
+                                                   Margin="0,0,0,6"/>
+                                        <TextBlock Text="{Binding FileName}" FontSize="11.5"
+                                                   Foreground="{StaticResource TextBrush}"
+                                                   TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding FileType}" FontSize="10.5"
+                                                   Foreground="{StaticResource Text3Brush}"
+                                                   HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
