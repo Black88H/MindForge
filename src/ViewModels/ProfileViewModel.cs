@@ -14,6 +14,10 @@ public partial class ProfileViewModel : ObservableObject
     [ObservableProperty] private string _editName = string.Empty;
     [ObservableProperty] private string _editEmail = string.Empty;
 
+    // View alias
+    public string EditUserName { get => EditName; set => EditName = value; }
+    partial void OnEditNameChanged(string value) => OnPropertyChanged(nameof(EditUserName));
+
     // Stats
     [ObservableProperty] private int _totalXP = 12450;
     [ObservableProperty] private int _level = 12;
