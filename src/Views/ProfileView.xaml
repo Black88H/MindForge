@@ -29,7 +29,7 @@
                     <!-- Avatar -->
                     <Border Grid.Column="0" Width="80" Height="80" CornerRadius="40"
                             Background="{StaticResource AccentGradient}" Margin="0,0,24,0">
-                        <TextBlock Text="{Binding AvatarLetter}" FontSize="32" FontFamily="Georgia"
+                        <TextBlock Text="{Binding AvatarInitials}" FontSize="32" FontFamily="Georgia"
                                    Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
 
@@ -51,7 +51,7 @@
                                 <Border Background="{StaticResource SuccessSoftBrush}" CornerRadius="12" Padding="10,4">
                                     <TextBlock FontSize="12" Foreground="{StaticResource SuccessBrush}">
                                         <Run Text="🔥 "/>
-                                        <Run Text="{Binding Streak}" FontWeight="SemiBold"/>
+                                        <Run Text="{Binding CurrentStreak}" FontWeight="SemiBold"/>
                                         <Run Text=" Tage"/>
                                     </TextBlock>
                                 </Border>
@@ -82,7 +82,7 @@
                     <!-- Edit / Save Button -->
                     <StackPanel Grid.Column="2" VerticalAlignment="Top">
                         <Button Style="{StaticResource SecondaryButton}" Padding="16,8"
-                                Command="{Binding EditCommand}"
+                                Command="{Binding StartEditCommand}"
                                 Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
                             <TextBlock Text="Bearbeiten" FontSize="13"/>
                         </Button>
@@ -93,7 +93,7 @@
                                 <TextBlock Text="Abbrechen" FontSize="13"/>
                             </Button>
                             <Button Style="{StaticResource PrimaryButton}" Padding="14,8"
-                                    Command="{Binding SaveCommand}">
+                                    Command="{Binding SaveProfileCommand}">
                                 <TextBlock Text="Speichern" FontSize="13"/>
                             </Button>
                         </StackPanel>
@@ -113,12 +113,12 @@
                             <Run Text="Level "/>
                             <Run Text="{Binding Level}" FontWeight="Bold"/>
                             <Run Text=" → Level "/>
-                            <Run Text="{Binding NextLevel}"/>
+                            <Run Text="{Binding NextLevel, Mode=OneWay}"/>
                         </TextBlock>
-                        <TextBlock Grid.Column="1" Text="{Binding XPText}" FontSize="12"
+                        <TextBlock Grid.Column="1" Text="{Binding XPProgressText}" FontSize="12"
                                    Foreground="{StaticResource Text3Brush}"/>
                     </Grid>
-                    <ProgressBar Value="{Binding XPProgress}" Minimum="0" Maximum="1"
+                    <ProgressBar Value="{Binding XPProgress, Mode=OneWay}" Minimum="0" Maximum="1"
                                  Style="{StaticResource SuccessProgressBar}" Height="6"/>
                 </StackPanel>
             </Border>
@@ -135,7 +135,7 @@
                 </Border>
                 <Border Style="{StaticResource Card}" Margin="0,0,10,0" Padding="16,14">
                     <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="{Binding Streak}" FontSize="24" FontWeight="Bold"
+                        <TextBlock Text="{Binding CurrentStreak}" FontSize="24" FontWeight="Bold"
                                    Foreground="{StaticResource StreakBrush}" HorizontalAlignment="Center"/>
                         <TextBlock Text="Tage Streak" FontSize="11" Foreground="{StaticResource Text3Brush}"
                                    HorizontalAlignment="Center"/>
@@ -143,7 +143,7 @@
                 </Border>
                 <Border Style="{StaticResource Card}" Margin="0,0,10,0" Padding="16,14">
                     <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="{Binding TotalQuestions}" FontSize="24" FontWeight="Bold"
+                        <TextBlock Text="{Binding TotalQuestionsAnswered}" FontSize="24" FontWeight="Bold"
                                    Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center"/>
                         <TextBlock Text="Beantwortet" FontSize="11" Foreground="{StaticResource Text3Brush}"
                                    HorizontalAlignment="Center"/>
@@ -171,7 +171,7 @@
                     <StackPanel>
                         <TextBlock Text="Errungenschaften" FontFamily="Georgia" FontSize="18"
                                    Foreground="{StaticResource TextBrush}" Margin="0,0,0,16"/>
-                        <ItemsControl ItemsSource="{Binding Achievements}">
+                        <ItemsControl ItemsSource="{Binding RecentAchievements}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>

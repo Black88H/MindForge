@@ -280,7 +280,7 @@
                     <Grid Margin="0,0,0,12">
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="Token-Limit" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
-                            <TextBlock Text="{Binding TokenLimit, StringFormat='{}{0} Tokens'}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
+                            <TextBlock Text="{Binding TokenLimit, StringFormat='{}{0} Tokens', Mode=OneWay}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
                         </StackPanel>
                         <Slider Value="{Binding TokenLimit}" Minimum="100" Maximum="8000"
                                 Style="{StaticResource MfSlider}" Width="240" HorizontalAlignment="Right" VerticalAlignment="Center"/>
@@ -291,7 +291,7 @@
                             <TextBlock Text="Token-Budget" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
                             <TextBlock Text="{Binding TokenBudgetStatusText}" FontSize="11.5" Foreground="{StaticResource Text3Brush}"/>
                         </StackPanel>
-                        <TextBox Text="{Binding TokenBudgetUSD, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox Text="{Binding TokenBudgetUsd, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource MfTextBox}" Width="100" HorizontalAlignment="Right"/>
                     </Grid>
                 </StackPanel>
@@ -491,7 +491,7 @@
                     <Grid Margin="0,0,0,0">
                         <TextBlock Text="Daten exportieren" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
                         <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Padding="16,6"
-                                Command="{Binding ExportDataCommand}">
+                                Command="{Binding ExportDataAsyncCommand}">
                             <TextBlock Text="Als JSON exportieren" FontSize="12"/>
                         </Button>
                     </Grid>
@@ -568,7 +568,7 @@
                                            Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisibility}}"/>
                             </Grid>
                             <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
-                                    Padding="16,8" Command="{Binding CheckUpdatesCommand}">
+                                    Padding="16,8" Command="{Binding CheckUpdatesAsyncCommand}">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🔄  " FontSize="13"/>
                                     <TextBlock Text="Auf Updates prüfen" FontSize="13"/>
@@ -586,8 +586,8 @@
                 <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,24,0,16"/>
                 <Grid>
                     <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"
-                            Height="38" Padding="20,0" Command="{Binding SaveCommand}">
-                        <TextBlock Text="{Binding IsSaving, Converter={StaticResource BoolToSavingText}}"/>
+                            Height="38" Padding="20,0" Command="{Binding SaveAsyncCommand}">
+                        <TextBlock Text="{Binding SaveButtonText}"/>
                     </Button>
                     <TextBlock Text="{Binding SaveStatus}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                FontSize="13" Foreground="{StaticResource SuccessBrush}"/>

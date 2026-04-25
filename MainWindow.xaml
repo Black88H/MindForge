@@ -348,7 +348,7 @@
                                                     <TextBlock Text="{Binding Name}" FontSize="13"
                                                                Foreground="{StaticResource Text2Brush}"
                                                                TextTrimming="CharacterEllipsis"/>
-                                                    <ProgressBar Value="{Binding Progress}" Maximum="1"
+                                                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" Maximum="1"
                                                                  Style="{StaticResource MfProgressBar}"
                                                                  Height="2" Margin="0,3,0,0"/>
                                                 </StackPanel>

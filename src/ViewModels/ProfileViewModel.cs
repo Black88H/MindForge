@@ -25,6 +25,7 @@ public partial class ProfileViewModel : ObservableObject
     [ObservableProperty] private int _totalQuestionsAnswered = 2847;
     [ObservableProperty] private double _overallSuccessRate = 0.82;
 
+    public int NextLevel => Level + 1;
     public double XPProgress => XpToNextLevel > 0 ? Math.Clamp((double)TotalXP / XpToNextLevel, 0, 1) : 0;
     public string XPProgressText => $"{TotalXP} / {XpToNextLevel} XP";
     public string OverallSuccessText => $"{OverallSuccessRate * 100:F0}%";

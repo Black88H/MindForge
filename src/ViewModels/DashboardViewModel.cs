@@ -114,6 +114,7 @@ public class AchievementBadge
     public string Name { get; set; } = string.Empty;
     public string Icon { get; set; } = "🏆";
     public string Rarity { get; set; } = "Häufig";
+    public string Description { get; set; } = string.Empty;
     public bool IsUnlocked { get; set; } = true;
 }
 

@@ -89,6 +89,19 @@ public partial class AnalyticsViewModel : ObservableObject
         "Erstelle einen Lernplan für Quantenmechanik — dein schwächstes Fach."
     };
 
+    // Streak tab extras
+    public int LongestStreak => 18;
+    public int TotalActiveDays => 94;
+
+    // Time tab extras
+    public int TotalMinutesThisWeek => 347;
+    public int AvgMinutesPerDay => 50;
+    public string BestDay => "Mo";
+    public ObservableCollection<TimeItem> TimeData => TimeTracking;
+
+    // Achievement tab extras
+    public int UnlockedCount => AchievementsUnlocked;
+
     [RelayCommand]
     private void SelectTab(string tab) => ActiveTab = tab;
 
@@ -110,6 +123,7 @@ public class ChartPoint
     public double Value { get; set; }
     public double MaxValue { get; set; } = 500;
     public double NormalizedHeight => Math.Clamp(Value / MaxValue, 0, 1) * 120;
+    public bool IsActive => Value > 0;
 }
 
 public class SubjectStatItem
@@ -130,4 +144,7 @@ public class TimeItem
     public double Hours { get; set; }
     public string Color { get; set; } = "#5B8CFF";
     public string HoursText => $"{Hours:F1}h";
+    public string Label => SubjectName.Length > 9 ? SubjectName[..9] + "…" : SubjectName;
+    public string ValueText => $"{Hours:F1}h";
+    public double NormalizedHeight => Math.Clamp(Hours / 25.0, 0, 1) * 120;
 }

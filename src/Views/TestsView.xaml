@@ -11,7 +11,7 @@
     <Grid>
         <!-- SETUP PANEL -->
         <ScrollViewer VerticalScrollBarVisibility="Auto"
-                      Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                      Visibility="{Binding IsTestRunning, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
             <Grid MaxWidth="1100" Margin="40,32,40,40" HorizontalAlignment="Left">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -27,17 +27,17 @@
                                FontSize="13" Foreground="{StaticResource Text3Brush}"/>
                 </StackPanel>
 
-                <!-- Creator Tabs -->
+                <!-- Creator Card -->
                 <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,24">
                     <StackPanel>
-                        <!-- Tab Bar -->
+                        <!-- Tab Bar — uses string ActiveCreatorTab -->
                         <Border Background="{StaticResource Bg2Brush}" CornerRadius="8" Padding="4" Margin="0,0,0,20">
                             <UniformGrid Rows="1" Columns="4">
-                                <Button Height="34" Command="{Binding SelectCreatorTabCommand}" CommandParameter="0">
+                                <Button Height="34" Command="{Binding SetCreatorTabCommand}" CommandParameter="Neu">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding CreatorTab}" Value="0">
+                                                <DataTrigger Binding="{Binding ActiveCreatorTab}" Value="Neu">
                                                     <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
                                                     <Setter Property="Foreground" Value="White"/>
                                                 </DataTrigger>
@@ -46,11 +46,11 @@
                                     </Button.Style>
                                     <TextBlock Text="Neuer Test" FontSize="12"/>
                                 </Button>
-                                <Button Height="34" Command="{Binding SelectCreatorTabCommand}" CommandParameter="1">
+                                <Button Height="34" Command="{Binding SetCreatorTabCommand}" CommandParameter="Aus Lernplan">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding CreatorTab}" Value="1">
+                                                <DataTrigger Binding="{Binding ActiveCreatorTab}" Value="Aus Lernplan">
                                                     <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
                                                     <Setter Property="Foreground" Value="White"/>
                                                 </DataTrigger>
@@ -59,11 +59,11 @@
                                     </Button.Style>
                                     <TextBlock Text="Aus Lernplan" FontSize="12"/>
                                 </Button>
-                                <Button Height="34" Command="{Binding SelectCreatorTabCommand}" CommandParameter="2">
+                                <Button Height="34" Command="{Binding SetCreatorTabCommand}" CommandParameter="Aus Vorlage">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding CreatorTab}" Value="2">
+                                                <DataTrigger Binding="{Binding ActiveCreatorTab}" Value="Aus Vorlage">
                                                     <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
                                                     <Setter Property="Foreground" Value="White"/>
                                                 </DataTrigger>
@@ -72,11 +72,11 @@
                                     </Button.Style>
                                     <TextBlock Text="Aus Vorlage" FontSize="12"/>
                                 </Button>
-                                <Button Height="34" Command="{Binding SelectCreatorTabCommand}" CommandParameter="3">
+                                <Button Height="34" Command="{Binding SetCreatorTabCommand}" CommandParameter="OCR Upload">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding CreatorTab}" Value="3">
+                                                <DataTrigger Binding="{Binding ActiveCreatorTab}" Value="OCR Upload">
                                                     <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
                                                     <Setter Property="Foreground" Value="White"/>
                                                 </DataTrigger>
@@ -88,14 +88,14 @@
                             </UniformGrid>
                         </Border>
 
-                        <!-- Tab 0: New Test -->
-                        <StackPanel Visibility="{Binding CreatorTab, Converter={StaticResource IntToVisibility}, ConverterParameter=0}">
+                        <!-- Tab: Neuer Test -->
+                        <StackPanel Visibility="{Binding ActiveCreatorTab, Converter={StaticResource StringToVisibility}, ConverterParameter=Neu}">
                             <UniformGrid Columns="2" Margin="0,0,0,16">
                                 <StackPanel Margin="0,0,8,0">
                                     <TextBlock Text="FACH" Style="{StaticResource SectionLabel}" Margin="0,0,0,6"/>
                                     <Border Background="{StaticResource Bg2Brush}" BorderBrush="{StaticResource LineBrush}"
                                             BorderThickness="1" CornerRadius="7" Padding="12,10">
-                                        <TextBox Text="{Binding TestSubject, UpdateSourceTrigger=PropertyChanged}"
+                                        <TextBox Text="{Binding SelectedSubject, UpdateSourceTrigger=PropertyChanged}"
                                                  Background="Transparent" BorderThickness="0"
                                                  Foreground="{StaticResource TextBrush}" FontSize="13"
                                                  CaretBrush="{StaticResource AccentBrush}"/>
@@ -113,32 +113,22 @@
                                 </StackPanel>
                             </UniformGrid>
                             <TextBlock Text="SCHWIERIGKEIT" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <RadioButton Content="Leicht" GroupName="Diff" IsChecked="{Binding IsEasy}"
-                                             Margin="0,0,16,0" Foreground="{StaticResource Text2Brush}"/>
-                                <RadioButton Content="Mittel" GroupName="Diff" IsChecked="{Binding IsMedium}"
-                                             Margin="0,0,16,0" Foreground="{StaticResource Text2Brush}"/>
-                                <RadioButton Content="Schwer" GroupName="Diff" IsChecked="{Binding IsHard}"
-                                             Foreground="{StaticResource Text2Brush}"/>
-                            </StackPanel>
+                            <ComboBox ItemsSource="{Binding Difficulties}" SelectedItem="{Binding SelectedDifficulty}"
+                                      Style="{StaticResource MfComboBox}" HorizontalAlignment="Left"
+                                      Width="200" Margin="0,0,0,16"/>
                             <TextBlock Text="MODUS" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                                <RadioButton Content="Normal" GroupName="Mode" IsChecked="{Binding IsNormalMode}"
-                                             Margin="0,0,16,0" Foreground="{StaticResource Text2Brush}"/>
-                                <RadioButton Content="Prüfung" GroupName="Mode" IsChecked="{Binding IsExamMode}"
-                                             Margin="0,0,16,0" Foreground="{StaticResource Text2Brush}"/>
-                                <RadioButton Content="Übung" GroupName="Mode" IsChecked="{Binding IsPracticeMode}"
-                                             Foreground="{StaticResource Text2Brush}"/>
-                            </StackPanel>
-                            <CheckBox Content="Zeitlimit aktivieren" IsChecked="{Binding TimeLimitEnabled}"
+                            <ComboBox ItemsSource="{Binding TestModes}" SelectedItem="{Binding SelectedMode}"
+                                      Style="{StaticResource MfComboBox}" HorizontalAlignment="Left"
+                                      Width="200" Margin="0,0,0,16"/>
+                            <CheckBox Content="Timer aktivieren" IsChecked="{Binding TimerEnabled}"
                                       Foreground="{StaticResource Text2Brush}" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal"
-                                        Visibility="{Binding TimeLimitEnabled, Converter={StaticResource BoolToVisibility}}">
-                                <TextBlock Text="Sekunden pro Frage:" Foreground="{StaticResource Text3Brush}"
+                                        Visibility="{Binding TimerEnabled, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="Minuten:" Foreground="{StaticResource Text3Brush}"
                                            FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <Border Background="{StaticResource Bg2Brush}" BorderBrush="{StaticResource LineBrush}"
                                         BorderThickness="1" CornerRadius="6" Padding="10,6" Width="80">
-                                    <TextBox Text="{Binding TimeLimitSeconds, UpdateSourceTrigger=PropertyChanged}"
+                                    <TextBox Text="{Binding TimerMinutes, UpdateSourceTrigger=PropertyChanged}"
                                              Background="Transparent" BorderThickness="0"
                                              Foreground="{StaticResource TextBrush}" FontSize="13"
                                              CaretBrush="{StaticResource AccentBrush}"/>
@@ -146,8 +136,8 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Tab 1: From Plan -->
-                        <StackPanel Visibility="{Binding CreatorTab, Converter={StaticResource IntToVisibility}, ConverterParameter=1}">
+                        <!-- Tab: Aus Lernplan -->
+                        <StackPanel Visibility="{Binding ActiveCreatorTab, Converter={StaticResource StringToVisibility}, ConverterParameter=Aus Lernplan}">
                             <TextBlock Text="Wähle einen aktiven Lernplan als Testgrundlage."
                                        FontSize="13" Foreground="{StaticResource Text3Brush}" Margin="0,0,0,16"/>
                             <Border Background="{StaticResource Bg2Brush}" CornerRadius="10" Padding="16" Margin="0,0,0,8">
@@ -163,8 +153,8 @@
                             </Border>
                         </StackPanel>
 
-                        <!-- Tab 2: From Template -->
-                        <StackPanel Visibility="{Binding CreatorTab, Converter={StaticResource IntToVisibility}, ConverterParameter=2}">
+                        <!-- Tab: Aus Vorlage -->
+                        <StackPanel Visibility="{Binding ActiveCreatorTab, Converter={StaticResource StringToVisibility}, ConverterParameter=Aus Vorlage}">
                             <TextBlock Text="Wähle eine vorgefertigte Testvorlage."
                                        FontSize="13" Foreground="{StaticResource Text3Brush}" Margin="0,0,0,16"/>
                             <UniformGrid Columns="2">
@@ -195,8 +185,8 @@
                             </UniformGrid>
                         </StackPanel>
 
-                        <!-- Tab 3: OCR Upload -->
-                        <StackPanel Visibility="{Binding CreatorTab, Converter={StaticResource IntToVisibility}, ConverterParameter=3}">
+                        <!-- Tab: OCR Upload -->
+                        <StackPanel Visibility="{Binding ActiveCreatorTab, Converter={StaticResource StringToVisibility}, ConverterParameter=OCR Upload}">
                             <Border Background="{StaticResource Bg2Brush}" BorderBrush="{StaticResource LineBrush}"
                                     BorderThickness="2" CornerRadius="10" Padding="32" Margin="0,0,0,16">
                                 <StackPanel HorizontalAlignment="Center">
@@ -206,20 +196,28 @@
                                     <TextBlock Text="oder" FontSize="12" Foreground="{StaticResource Text3Brush}"
                                                HorizontalAlignment="Center" Margin="0,8,0,8"/>
                                     <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Center"
-                                            Command="{Binding UploadFileCommand}" Padding="20,8">
+                                            Command="{Binding UploadOCRCommand}" Padding="20,8">
                                         <TextBlock Text="Datei auswählen" FontSize="13"/>
                                     </Button>
-                                    <TextBlock Text="{Binding UploadedFileName}"
+                                    <TextBlock Text="{Binding OcrUploadPath}"
                                                Foreground="{StaticResource AccentBrush}" FontSize="12"
                                                HorizontalAlignment="Center" Margin="0,8,0,0"
-                                               Visibility="{Binding UploadedFileName, Converter={StaticResource StringToVisibility}}"/>
+                                               Visibility="{Binding OcrUploadPath, Converter={StaticResource StringToVisibility}}"/>
+                                    <StackPanel Margin="0,12,0,0"
+                                                Visibility="{Binding OcrUploadPath, Converter={StaticResource StringToVisibility}}">
+                                        <TextBlock Text="{Binding OcrStatus}" FontSize="12"
+                                                   Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center"
+                                                   Margin="0,0,0,6"/>
+                                        <ProgressBar Value="{Binding OcrProgress, Mode=OneWay}" Minimum="0" Maximum="100"
+                                                     Style="{StaticResource SuccessProgressBar}" Height="4"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
 
                         <!-- Start Button -->
                         <Button Style="{StaticResource PrimaryButton}" Height="44" Margin="0,20,0,0"
-                                Command="{Binding StartTestCommand}">
+                                Command="{Binding StartTestAsyncCommand}">
                             <TextBlock Text="Test starten →" FontSize="14"/>
                         </Button>
                     </StackPanel>
@@ -248,12 +246,13 @@
                                                            Foreground="{StaticResource Text3Brush}"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="16,0">
-                                                <TextBlock Text="{Binding Score}" FontSize="18" FontWeight="Bold"
-                                                           Foreground="{Binding ScoreColor}" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding ScoreText}" FontSize="18" FontWeight="Bold"
+                                                           HorizontalAlignment="Right"
+                                                           Foreground="{StaticResource SuccessBrush}"/>
                                                 <TextBlock Text="{Binding QuestionsText}" FontSize="11"
                                                            Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Right"/>
                                             </StackPanel>
-                                            <TextBlock Grid.Column="2" Text="{Binding Mode}" FontSize="11"
+                                            <TextBlock Grid.Column="2" Text="{Binding ModeText}" FontSize="11"
                                                        Foreground="{StaticResource Text3Brush}" VerticalAlignment="Center"
                                                        Margin="0,0,4,0"/>
                                         </Grid>
@@ -261,7 +260,7 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Text="Keine Tests bisher." FontSize="13" Foreground="{StaticResource Text3Brush}"
+                        <TextBlock Text="Noch keine Tests absolviert." FontSize="13" Foreground="{StaticResource Text3Brush}"
                                    HorizontalAlignment="Center" Margin="0,16,0,0"
                                    Visibility="{Binding HasNoHistory, Converter={StaticResource BoolToVisibility}}"/>
                     </StackPanel>
@@ -270,7 +269,7 @@
         </ScrollViewer>
 
         <!-- RUNNING TEST PANEL -->
-        <Grid Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
+        <Grid Visibility="{Binding IsTestRunning, Converter={StaticResource BoolToVisibility}}"
               Margin="40,32,40,40">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -287,22 +286,18 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="{Binding CurrentSubjectName}" FontFamily="Georgia" FontSize="18"
+                        <TextBlock Text="{Binding SelectedSubject}" FontFamily="Georgia" FontSize="18"
                                    Foreground="{StaticResource TextBrush}"/>
-                        <TextBlock FontSize="12" Foreground="{StaticResource Text3Brush}">
-                            <Run Text="Frage"/>
-                            <Run Text="{Binding CurrentQuestionIndex}"/>
-                            <Run Text="von"/>
-                            <Run Text="{Binding TotalQuestions}"/>
-                        </TextBlock>
+                        <TextBlock Text="{Binding QuestionProgress}" FontSize="12"
+                                   Foreground="{StaticResource Text3Brush}"/>
                     </StackPanel>
                     <Border Grid.Column="1" Background="{StaticResource Bg2Brush}" CornerRadius="8"
                             Padding="16,8" Margin="0,0,16,0"
-                            Visibility="{Binding IsExamMode, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="{Binding TimeRemaining}" FontSize="20" FontWeight="Bold"
+                            Visibility="{Binding TimerEnabled, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{Binding TimeRemainingText}" FontSize="20" FontWeight="Bold"
                                    Foreground="{StaticResource DangerBrush}" FontFamily="Consolas"/>
                     </Border>
-                    <ProgressBar Grid.Column="2" Value="{Binding TestProgress}" Minimum="0" Maximum="1"
+                    <ProgressBar Grid.Column="2" Value="{Binding TestProgress, Mode=OneWay}" Minimum="0" Maximum="1"
                                  Style="{StaticResource SuccessProgressBar}" Width="160" Height="6"/>
                 </Grid>
             </Border>
@@ -310,14 +305,14 @@
             <!-- Question Card -->
             <Border Grid.Row="1" Style="{StaticResource Card}" VerticalAlignment="Top">
                 <StackPanel>
-                    <TextBlock Text="{Binding CurrentQuestion}" FontSize="16" Foreground="{StaticResource TextBrush}"
+                    <TextBlock Text="{Binding CurrentQuestionText}" FontSize="16" Foreground="{StaticResource TextBrush}"
                                TextWrapping="Wrap" Margin="0,0,0,24" LineHeight="26"/>
-                    <ItemsControl ItemsSource="{Binding CurrentAnswers}">
+                    <ItemsControl ItemsSource="{Binding CurrentOptions}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Button Margin="0,0,0,10" Height="46" HorizontalContentAlignment="Left"
                                         Padding="16,0"
-                                        Command="{Binding DataContext.SelectAnswerCommand,
+                                        Command="{Binding DataContext.SelectTestOptionCommand,
                                             RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}">
                                     <Button.Style>
@@ -338,12 +333,27 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
-                                    <TextBlock Text="{Binding Text}" FontSize="13" TextWrapping="Wrap"
-                                               Foreground="{StaticResource Text2Brush}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Background="{StaticResource Bg2Brush}" CornerRadius="4"
+                                                Padding="6,2" Margin="0,0,10,0">
+                                            <TextBlock Text="{Binding Label}" FontSize="12" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource Text3Brush}" FontFamily="Consolas"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding Text}" FontSize="13" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource Text2Brush}" VerticalAlignment="Center"/>
+                                    </StackPanel>
                                 </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+
+                    <!-- Explanation -->
+                    <Border Background="{StaticResource SuccessSoftBrush}" CornerRadius="8" Padding="14,10"
+                            Margin="0,8,0,0"
+                            Visibility="{Binding CurrentExplanation, Converter={StaticResource StringToVisibility}}">
+                        <TextBlock Text="{Binding CurrentExplanation}" FontSize="12.5"
+                                   Foreground="{StaticResource SuccessBrush}" TextWrapping="Wrap"/>
+                    </Border>
                 </StackPanel>
             </Border>
 
@@ -355,11 +365,17 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Style="{StaticResource SecondaryButton}" Height="40" Padding="20,0"
-                        Command="{Binding AbortTestCommand}">
+                        Command="{Binding EndTestCommand}">
                     <TextBlock Text="Abbrechen"/>
                 </Button>
                 <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Height="40" Padding="24,0"
-                        Command="{Binding NextQuestionCommand}">
+                        Command="{Binding SubmitTestAnswerAsyncCommand}"
+                        Visibility="{Binding CurrentAnswered, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                    <TextBlock Text="Antworten"/>
+                </Button>
+                <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Height="40" Padding="24,0"
+                        Command="{Binding NextTestQuestionCommand}"
+                        Visibility="{Binding CurrentAnswered, Converter={StaticResource BoolToVisibility}}">
                     <TextBlock Text="{Binding IsLastQuestion, Converter={StaticResource BoolToNextLabel}}"/>
                 </Button>
             </Grid>

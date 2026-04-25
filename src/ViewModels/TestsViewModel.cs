@@ -84,7 +84,9 @@ public partial class TestsViewModel : ObservableObject
     public string QuestionProgress => IsTestRunning
         ? $"Frage {CurrentQuestionIndex + 1} von {TotalQuestions}" : string.Empty;
     public double TestProgress => TotalQuestions > 0
-        ? (double)CurrentQuestionIndex / TotalQuestions : 0;
+        ? Math.Clamp((double)CurrentQuestionIndex / TotalQuestions, 0, 1) : 0;
+    public bool IsLastQuestion => TotalQuestions > 0 && CurrentQuestionIndex >= TotalQuestions - 1;
+    public bool HasNoHistory => TestHistory.Count == 0;
 
     [RelayCommand]
     private void SetCreatorTab(string tab) => ActiveCreatorTab = tab;
@@ -136,6 +138,7 @@ public partial class TestsViewModel : ObservableObject
             return;
         }
         CurrentQuestionIndex++;
+        OnPropertyChanged(nameof(IsLastQuestion));
         CurrentAnswered = false;
         SelectedOption = null;
         LoadMockQuestion(CurrentQuestionIndex);
@@ -154,6 +157,7 @@ public partial class TestsViewModel : ObservableObject
         ErrorAnalysis = FinalCorrect < FinalTotal ? "Fehler in: Theorie, Berechnungen" : "Perfekt!";
         SmartSuggestions = new(["Wiederhole Kapitel 3", "Übe Berechnungsaufgaben"]);
 
+        OnPropertyChanged(nameof(HasNoHistory));
         TestHistory.Insert(0, new TestHistoryItem
         {
             Name = string.IsNullOrEmpty(TestName) ? "Unbenannter Test" : TestName,
@@ -242,4 +246,6 @@ public class TestHistoryItem
     public int Questions { get; set; }
     public string ScoreText => $"{Score}%";
     public string ScoreColor => Score >= 80 ? "#3FCF8E" : Score >= 60 ? "#FFB547" : "#FF6B6B";
+    public string QuestionsText => $"{Questions} Fragen";
+    public string ModeText => "Normal";
 }

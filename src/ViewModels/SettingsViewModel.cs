@@ -30,6 +30,12 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _highContrast = false;
     [ObservableProperty] private bool _animationsEnabled = true;
 
+    public bool IsDark   { get => Theme == "Dunkel"; set { if (value) Theme = "Dunkel"; } }
+    public bool IsLight  { get => Theme == "Hell";   set { if (value) Theme = "Hell"; } }
+    public bool IsSystem { get => Theme == "System"; set { if (value) Theme = "System"; } }
+    public List<string> FontFamilies { get; } = ["Segoe UI", "Consolas", "Calibri", "Georgia", "Arial"];
+    [ObservableProperty] private string _fontFamily = "Segoe UI";
+
     public List<string> Themes { get; } = ["Dunkel", "Hell", "System"];
     public List<string> Palettes { get; } = ["Forge (Default)", "Material Blue", "Nord", "Dracula"];
     public List<string> Densities { get; } = ["Kompakt", "Standard", "Luftig"];
@@ -41,6 +47,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _geminiApiKey = string.Empty;
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
     [ObservableProperty] private bool _autoSelectProvider = true;
+    [ObservableProperty] private int _tokenLimit = 4096;
     [ObservableProperty] private decimal _tokenBudgetUsd = 10.0m;
     [ObservableProperty] private decimal _tokenUsageThisMonth = 4.23m;
     public string TokenBudgetStatusText => $"Diesen Monat: ${TokenUsageThisMonth:F2} / ${TokenBudgetUsd:F2}";
@@ -48,6 +55,13 @@ public partial class SettingsViewModel : ObservableObject
     public List<string> Providers { get; } = ["Claude", "OpenAI", "Gemini", "Ollama (Lokal)"];
 
     // ── Section 3: Lernen ────────────────────────────────────────────────────
+    public List<string> Difficulties { get; } = ["Leicht", "Mittel", "Schwer", "Gemischt"];
+    [ObservableProperty] private string _defaultDifficulty = "Mittel";
+    public List<string> LearningMethods { get; } = ["Active Recall", "Karteikarten", "Multiple Choice", "Mixed"];
+    [ObservableProperty] private string _learningMethod = "Mixed";
+    [ObservableProperty] private int _questionsPerSession = 20;
+    [ObservableProperty] private bool _timeLimitEnabled = false;
+    [ObservableProperty] private int _timeLimitSeconds = 60;
     [ObservableProperty] private bool _methodActiveRecall = true;
     [ObservableProperty] private bool _methodPomodoro = false;
     [ObservableProperty] private bool _methodSpacedRep = true;
@@ -60,6 +74,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _problemsPerLesson = 20;
 
     // ── Section 4: Gamification ──────────────────────────────────────────────
+    [ObservableProperty] private bool _xpEarningEnabled = true;
+    [ObservableProperty] private bool _streakTrackingEnabled = true;
+    [ObservableProperty] private bool _achievementsEnabled = true;
     [ObservableProperty] private double _xpMultiplier = 1.0;
     [ObservableProperty] private bool _showNotifications = true;
     [ObservableProperty] private string _leaderboardMode = "Local";
@@ -67,6 +84,10 @@ public partial class SettingsViewModel : ObservableObject
     public List<string> LeaderboardModes { get; } = ["Local", "Cloud", "Aus"];
 
     // ── Section 5: Offline ───────────────────────────────────────────────────
+    [ObservableProperty] private bool _offlineModeEnabled = false;
+    [ObservableProperty] private bool _autoSync = true;
+    public List<string> OfflineModels { get; } = ["Llama 3.1 8B", "Mistral 7B", "Phi-3 Mini"];
+    [ObservableProperty] private string _offlineModel = "Llama 3.1 8B";
     [ObservableProperty] private bool _offlineModelsInstalled = false;
     [ObservableProperty] private string _syncMode = "Local";
     [ObservableProperty] private bool _deleteLocalAfterSync = false;
@@ -74,22 +95,36 @@ public partial class SettingsViewModel : ObservableObject
     public string OllamaStatus => OfflineModelsInstalled ? "✓ Installiert" : "✗ Nicht installiert";
 
     // ── Section 6: Benachrichtigungen ────────────────────────────────────────
+    [ObservableProperty] private bool _notificationsEnabled = true;
+    [ObservableProperty] private bool _soundEnabled = true;
+    [ObservableProperty] private bool _dailyReminderEnabled = true;
+    [ObservableProperty] private bool _streakNotificationsEnabled = true;
     [ObservableProperty] private bool _toastNotifications = true;
     [ObservableProperty] private bool _desktopNotifications = true;
     [ObservableProperty] private bool _updateNotifications = true;
     [ObservableProperty] private bool _streakReminders = true;
 
     // ── Section 7: Datenschutz ───────────────────────────────────────────────
+    [ObservableProperty] private bool _analyticsSharing = false;
+    [ObservableProperty] private bool _autoLogout = false;
+    [ObservableProperty] private bool _dataEncryption = false;
     [ObservableProperty] private string _dataRetention = "Forever";
     [ObservableProperty] private bool _cloudSync = false;
     [ObservableProperty] private bool _anonymousAnalytics = false;
     public List<string> DataRetentions { get; } = ["Forever", "1 Jahr", "6 Monate", "3 Monate"];
 
     // ── Section 8: Speicher ──────────────────────────────────────────────────
+    [ObservableProperty] private string _sqlitePath = "mindforge.db";
+    [ObservableProperty] private bool _autoBackup = true;
+    [ObservableProperty] private string _backupFrequency = "Täglich";
+    public List<string> BackupFrequencies { get; } = ["Täglich", "Wöchentlich", "Monatlich"];
     [ObservableProperty] private string _backupStatus = string.Empty;
     [ObservableProperty] private string _exportStatus = string.Empty;
 
     // ── Section 9: Hardware ──────────────────────────────────────────────────
+    public string CpuName => HardwareInfo.Split('·').ElementAtOrDefault(0)?.Trim() ?? "—";
+    public string RamInfo => HardwareInfo.Split('·').ElementAtOrDefault(1)?.Trim() ?? "—";
+    public string ScreenInfo => HardwareInfo.Split('·').ElementAtOrDefault(2)?.Trim() ?? "—";
     [ObservableProperty] private int _maxCpuUsage = 80;
     [ObservableProperty] private int _maxRamUsage = 70;
     [ObservableProperty] private bool _autoOptimize = true;
@@ -99,14 +134,19 @@ public partial class SettingsViewModel : ObservableObject
 
     // ── Section 10: Über ─────────────────────────────────────────────────────
     [ObservableProperty] private string _updateStatus = string.Empty;
+    [ObservableProperty] private string _latestVersion = string.Empty;
+    [ObservableProperty] private bool _updateAvailable = false;
     [ObservableProperty] private string _lastChecked = "Noch nicht geprüft";
     [ObservableProperty] private bool _isCheckingUpdates = false;
+    public string UpdateStatusText => UpdateStatus;
     public string AppVersion => $"MindForge v{Constants.AppVersion}";
     public string GitHubUrl => $"https://github.com/{Constants.GitHub.Owner}/{Constants.GitHub.Repo}";
 
     // Status
     [ObservableProperty] private string _saveStatus = string.Empty;
     [ObservableProperty] private bool _isSaving = false;
+    public string SaveButtonText => IsSaving ? "Speichern..." : "Speichern";
+    partial void OnIsSavingChanged(bool value) => OnPropertyChanged(nameof(SaveButtonText));
 
     // Shortcuts
     public List<ShortcutItem> Shortcuts { get; } = new()
@@ -149,6 +189,8 @@ public partial class SettingsViewModel : ObservableObject
         UpdateStatus = "Prüfe auf Updates...";
         var info = await _updateService.CheckForUpdatesAsync();
         LastChecked = info.CheckedAt.ToString("dd.MM.yyyy HH:mm");
+        UpdateAvailable = info.IsUpdateAvailable;
+        LatestVersion = info.IsUpdateAvailable ? $"v{info.LatestVersion}" : string.Empty;
         UpdateStatus = info.IsUpdateAvailable
             ? $"Update verfügbar: v{info.LatestVersion}"
             : "✓ MindForge ist aktuell";
