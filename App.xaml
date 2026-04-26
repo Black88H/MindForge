@@ -21,6 +21,7 @@
             <local:IntToVisibilityConverter   x:Key="IntToVisibility"/>
             <local:BoolToNextLabelConverter   x:Key="BoolToNextLabel"/>
             <local:EqualityConverter          x:Key="EqualityConverter"/>
+            <local:ViewLocatorConverter       x:Key="ViewLocator"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

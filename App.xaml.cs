@@ -8,6 +8,7 @@ using MindForge.Services.AI.Providers;
 using MindForge.Services.AI.Selection;
 using MindForge.Utils;
 using MindForge.ViewModels;
+using MindForge.Views;
 
 namespace MindForge;
 
@@ -58,6 +59,10 @@ public partial class App : Application
                 services.AddTransient<AnalyticsViewModel>();
                 services.AddTransient<SettingsViewModel>();
 
+                // Auth
+                services.AddScoped<AuthService>();
+                services.AddTransient<LoginViewModel>();
+
                 services.AddSingleton<MainWindow>();
             })
             .Build();
@@ -86,10 +91,24 @@ public partial class App : Application
             }
         }
 
+        // Show login window; shutdown if user closes without logging in
+        using (var loginScope = _host.Services.CreateScope())
+        {
+            var authService  = loginScope.ServiceProvider.GetRequiredService<AuthService>();
+            var loginVm      = loginScope.ServiceProvider.GetRequiredService<LoginViewModel>();
+            var loginWindow  = new LoginView(loginVm);
+            var loggedIn     = loginWindow.ShowDialog();
+            if (loggedIn != true)
+            {
+                Shutdown();
+                return;
+            }
+        }
+
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
 
-        Logger.Info("MindForge v0.3.0 gestartet");
+        Logger.Info("MindForge v1.0.0 gestartet");
     }
 
     protected override async void OnExit(ExitEventArgs e)

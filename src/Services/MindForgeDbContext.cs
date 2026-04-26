@@ -8,6 +8,9 @@ public class MindForgeDbContext : DbContext
 {
     public MindForgeDbContext(DbContextOptions<MindForgeDbContext> options) : base(options) { }
 
+    // Auth
+    public DbSet<User>        Users        => Set<User>();
+
     // Existing
     public DbSet<Question>    Questions    => Set<Question>();
     public DbSet<Answer>      Answers      => Set<Answer>();
@@ -112,6 +115,10 @@ public class MindForgeDbContext : DbContext
           .WithMany(c => c.UserChallenges)
           .HasForeignKey(uc => uc.ChallengeId)
           .OnDelete(DeleteBehavior.Cascade);
+
+        // User indexes
+        mb.Entity<User>().HasIndex(u => u.Username).IsUnique();
+        mb.Entity<User>().HasIndex(u => u.Email).IsUnique();
 
         // Indexes (existing)
         mb.Entity<Question>().HasIndex(q => q.SubjectId);

@@ -1,0 +1,329 @@
+<Window x:Class="MindForge.Views.LoginView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:MindForge.ViewModels"
+        Title="MindForge"
+        Width="440" Height="580"
+        MinWidth="400" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+
+    <Window.Resources>
+        <!-- Tab button style -->
+        <Style x:Key="TabBtn" TargetType="Button">
+            <Setter Property="Background"   Value="Transparent"/>
+            <Setter Property="Foreground"   Value="{StaticResource Text3Brush}"/>
+            <Setter Property="BorderBrush"  Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize"     Value="14"/>
+            <Setter Property="FontFamily"   Value="Segoe UI"/>
+            <Setter Property="Cursor"       Value="Hand"/>
+            <Setter Property="Padding"      Value="0,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Input field style -->
+        <Style x:Key="InputBox" TargetType="TextBox">
+            <Setter Property="Background"    Value="{StaticResource Bg3Brush}"/>
+            <Setter Property="Foreground"    Value="{StaticResource TextBrush}"/>
+            <Setter Property="CaretBrush"    Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush"   Value="{StaticResource LineBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"       Value="12,10"/>
+            <Setter Property="FontSize"      Value="13"/>
+            <Setter Property="FontFamily"    Value="Segoe UI"/>
+            <Setter Property="Height"        Value="42"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Password field style -->
+        <Style x:Key="PwdBox" TargetType="PasswordBox">
+            <Setter Property="Background"    Value="{StaticResource Bg3Brush}"/>
+            <Setter Property="Foreground"    Value="{StaticResource TextBrush}"/>
+            <Setter Property="CaretBrush"    Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush"   Value="{StaticResource LineBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"       Value="12,10"/>
+            <Setter Property="FontSize"      Value="13"/>
+            <Setter Property="FontFamily"    Value="Segoe UI"/>
+            <Setter Property="Height"        Value="42"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Primary action button -->
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background"    Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground"    Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize"      Value="14"/>
+            <Setter Property="FontWeight"    Value="SemiBold"/>
+            <Setter Property="FontFamily"    Value="Segoe UI"/>
+            <Setter Property="Height"        Value="44"/>
+            <Setter Property="Cursor"        Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource Accent2Brush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.5"/>
+                                <Setter Property="Background" Value="{StaticResource Bg3Brush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource Text3Brush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <!-- Outer card -->
+    <Border Background="{StaticResource Bg1Brush}"
+            CornerRadius="16"
+            BorderBrush="{StaticResource LineBrush}"
+            BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="32" ShadowDepth="8" Opacity="0.5" Color="#000000"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>  <!-- drag bar -->
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Drag handle -->
+            <Border Grid.Row="0" Height="32" Background="Transparent"
+                    MouseDown="DragBar_MouseDown" Cursor="SizeAll"/>
+
+            <!-- Content -->
+            <StackPanel Grid.Row="1" Margin="40,0,40,36">
+
+                <!-- Logo + headline -->
+                <StackPanel HorizontalAlignment="Center" Margin="0,0,0,28">
+                    <Border Width="52" Height="52" CornerRadius="14"
+                            HorizontalAlignment="Center" Margin="0,0,0,14">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#5B8CFF" Offset="0"/>
+                                <GradientStop Color="#BD93F9" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <TextBlock Text="M" FontSize="24" FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="MindForge"
+                               FontSize="22" FontWeight="Bold"
+                               Foreground="{StaticResource TextBrush}"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Lerne smarter. Wisse mehr."
+                               FontSize="12" Foreground="{StaticResource Text3Brush}"
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <!-- Tab switcher -->
+                <Grid Margin="0,0,0,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="2"/>
+                    </Grid.RowDefinitions>
+
+                    <Button Grid.Column="0" Grid.Row="0" Content="Anmelden"
+                            Command="{Binding ShowLoginCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource TabBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLoginTab}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Column="1" Grid.Row="0" Content="Registrieren"
+                            Command="{Binding ShowRegisterCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource TabBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRegisterTab}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <!-- underline for Login tab -->
+                    <Border Grid.Column="0" Grid.Row="1" Height="2" CornerRadius="1"
+                            HorizontalAlignment="Stretch">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLoginTab}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                    <!-- underline for Register tab -->
+                    <Border Grid.Column="1" Grid.Row="1" Height="2" CornerRadius="1"
+                            HorizontalAlignment="Stretch">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRegisterTab}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                </Grid>
+
+                <!-- ── LOGIN PANEL ── -->
+                <StackPanel Visibility="{Binding IsLoginTab, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="Benutzername oder E-Mail"
+                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                    <TextBox Style="{StaticResource InputBox}"
+                             Text="{Binding LoginIdentifier, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,14"/>
+
+                    <TextBlock Text="Passwort"
+                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                    <PasswordBox x:Name="LoginPasswordBox"
+                                 Style="{StaticResource PwdBox}"
+                                 PasswordChanged="LoginPasswordBox_PasswordChanged"
+                                 Margin="0,0,0,20"/>
+
+                    <Button Content="Anmelden"
+                            Style="{StaticResource PrimaryBtn}"
+                            Command="{Binding LoginAsyncCommand}"
+                            IsDefault="True"/>
+                </StackPanel>
+
+                <!-- ── REGISTER PANEL ── -->
+                <StackPanel Visibility="{Binding IsRegisterTab, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="Benutzername"
+                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                    <TextBox Style="{StaticResource InputBox}"
+                             Text="{Binding RegisterUsername, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,14"/>
+
+                    <TextBlock Text="E-Mail"
+                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                    <TextBox Style="{StaticResource InputBox}"
+                             Text="{Binding RegisterEmail, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,14"/>
+
+                    <TextBlock Text="Passwort"
+                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                    <PasswordBox x:Name="RegisterPasswordBox"
+                                 Style="{StaticResource PwdBox}"
+                                 PasswordChanged="RegisterPasswordBox_PasswordChanged"
+                                 Margin="0,0,0,14"/>
+
+                    <TextBlock Text="Passwort bestätigen"
+                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                    <PasswordBox x:Name="RegisterConfirmBox"
+                                 Style="{StaticResource PwdBox}"
+                                 PasswordChanged="RegisterConfirmBox_PasswordChanged"
+                                 Margin="0,0,0,20"/>
+
+                    <Button Content="Konto erstellen"
+                            Style="{StaticResource PrimaryBtn}"
+                            Command="{Binding RegisterAsyncCommand}"
+                            IsDefault="True"/>
+                </StackPanel>
+
+                <!-- Error message -->
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="{StaticResource DangerBrush}"
+                           FontSize="12" TextWrapping="Wrap"
+                           HorizontalAlignment="Center"
+                           Margin="0,12,0,0"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}"/>
+
+                <!-- Busy indicator -->
+                <ProgressBar IsIndeterminate="True" Height="2"
+                             Foreground="{StaticResource AccentBrush}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Margin="0,12,0,0"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
