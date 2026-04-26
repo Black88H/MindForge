@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Input;
 using MindForge.ViewModels;
 
 namespace MindForge.Views;
@@ -16,6 +17,15 @@ public partial class LoginView : Window
         {
             DialogResult = true;
             Close();
+        };
+        // WindowChrome + WindowStyle=None: queue keyboard focus at Input priority
+        // so WPF's focus-restore pass has finished before we steal focus.
+        Loaded += (_, _) =>
+        {
+            Activate();
+            Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Input,
+                new Action(() => Keyboard.Focus(LoginIdentifierBox)));
         };
     }
 

@@ -8,8 +8,15 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         WindowStyle="None"
-        AllowsTransparency="True"
-        Background="Transparent">
+        Background="{StaticResource Bg1Brush}">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"
+                      ResizeBorderThickness="4,4,4,4"
+                      CornerRadius="0"
+                      GlassFrameThickness="0"
+                      UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <!-- Tab button style -->
@@ -145,10 +152,6 @@
             CornerRadius="16"
             BorderBrush="{StaticResource LineBrush}"
             BorderThickness="1">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="32" ShadowDepth="8" Opacity="0.5" Color="#000000"/>
-        </Border.Effect>
-
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>  <!-- drag bar -->
@@ -257,7 +260,8 @@
                 <StackPanel Visibility="{Binding IsLoginTab, Converter={StaticResource BoolToVisibility}}">
                     <TextBlock Text="Benutzername oder E-Mail"
                                FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
-                    <TextBox Style="{StaticResource InputBox}"
+                    <TextBox x:Name="LoginIdentifierBox"
+                             Style="{StaticResource InputBox}"
                              Text="{Binding LoginIdentifier, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,14"/>
 
