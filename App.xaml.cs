@@ -40,9 +40,14 @@ public partial class App : Application
 
                 // ── Domain Services ───────────────────────────────────────────
                 services.AddScoped<AuthService>();
-                services.AddScoped<GamificationService>();
-                services.AddScoped<SpacedRepetitionService>();
-                services.AddScoped<LearningPlanService>();
+                services.AddScoped<IGamificationService, GamificationService>();
+                services.AddScoped<ISpacedRepetitionService, SpacedRepetitionService>();
+                services.AddScoped<ILearningPlanService, LearningPlanService>();
+                services.AddScoped<IFileIngestionService, FileIngestionService>();
+                services.AddScoped<IKnowledgeGraphService, KnowledgeGraphService>();
+                services.AddScoped<IChatService, ChatService>();
+                services.AddScoped<ITestService, TestService>();
+                services.AddScoped<IAPIKeyService, APIKeyService>();
                 services.AddScoped<OCRDocumentService>();
                 services.AddScoped<TestRunnerService>();
                 services.AddScoped<AnalyticsService>();
@@ -73,6 +78,10 @@ public partial class App : Application
                 services.AddScoped<KIToolsViewModel>();
                 services.AddScoped<SubjectsViewModel>();
                 services.AddScoped<ProfileViewModel>();
+                services.AddScoped<ChatViewModel>();
+                services.AddScoped<MaterialLibraryViewModel>();
+                services.AddScoped<KnowledgeGraphViewModel>();
+                services.AddScoped<LearningPlanViewModel>();
                 services.AddTransient<LoginViewModel>();
 
                 services.AddSingleton<MainWindow>();

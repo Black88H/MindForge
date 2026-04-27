@@ -1,96 +1,89 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MindForge.Models;
 
 namespace MindForge.Services;
 
-public class SpacedRepetitionService
+public interface ISpacedRepetitionService
+{
+    Task<SpacedRepetitionItem> ScheduleReviewAsync(Guid userId, Guid knowledgeNodeId);
+    Task<List<SpacedRepetitionItem>> GetDueReviewsAsync(Guid userId);
+    Task RecordReviewAsync(Guid itemId, int quality);
+}
+
+public class SpacedRepetitionService : ISpacedRepetitionService
 {
     private readonly MindForgeDbContext _db;
 
     public SpacedRepetitionService(MindForgeDbContext db) => _db = db;
 
-    // SM-2 algorithm
-    public DateTime CalculateNextReview(SpacedRepetitionItem item, int quality)
+    public async Task<SpacedRepetitionItem> ScheduleReviewAsync(Guid userId, Guid knowledgeNodeId)
+    {
+        var existing = await _db.Set<SpacedRepetitionItem>()
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.KnowledgeNodeId == knowledgeNodeId);
+
+        if (existing != null) return existing;
+
+        var item = new SpacedRepetitionItem
+        {
+            UserId = userId,
+            KnowledgeNodeId = knowledgeNodeId,
+            EaseFactor = 2.5f,
+            Interval = 1,
+            Repetitions = 0,
+            NextReviewDate = DateTime.UtcNow.Date.AddDays(1)
+        };
+
+        _db.Set<SpacedRepetitionItem>().Add(item);
+        await _db.SaveChangesAsync();
+        return item;
+    }
+
+    public async Task<List<SpacedRepetitionItem>> GetDueReviewsAsync(Guid userId)
+    {
+        return await _db.Set<SpacedRepetitionItem>()
+            .Include(s => s.KnowledgeNode)
+            .Where(s => s.UserId == userId && s.NextReviewDate <= DateTime.UtcNow.Date)
+            .OrderBy(s => s.NextReviewDate)
+            .ToListAsync();
+    }
+
+    public async Task RecordReviewAsync(Guid itemId, int quality)
     {
         quality = Math.Clamp(quality, 0, 5);
 
-        if (quality < 3)
+        var item = await _db.Set<SpacedRepetitionItem>().FindAsync(itemId)
+            ?? throw new ArgumentException("Item nicht gefunden");
+
+        // SM-2 Algorithmus
+        item.LastQuality = quality;
+        item.LastReviewDate = DateTime.UtcNow;
+
+        if (quality >= 3)
         {
-            item.IntervalDays = 1;
-            item.EaseFactor = Math.Max(1.3m, item.EaseFactor + 0.6m - 5 * (0.08m + (5 - quality) * 0.02m));
+            item.Repetitions++;
+            item.Interval = item.Repetitions switch
+            {
+                1 => 1,
+                2 => 6,
+                _ => (int)Math.Round(item.Interval * item.EaseFactor)
+            };
         }
         else
         {
-            item.IntervalDays = item.Repetitions == 0 ? 1
-                               : item.Repetitions == 1 ? 6
-                               : (int)Math.Round((double)(item.IntervalDays * item.EaseFactor));
-            item.EaseFactor += 0.1m - (5 - quality) * (0.08m + (5 - quality) * 0.02m);
-            item.EaseFactor = Math.Max(1.3m, item.EaseFactor);
+            item.Repetitions = 0;
+            item.Interval = 1;
         }
 
-        item.LastQuality = quality;
-        item.Repetitions++;
-        item.NextReviewDate = DateTime.UtcNow.AddDays(item.IntervalDays);
-        return item.NextReviewDate;
-    }
+        // EaseFactor anpassen
+        var ef = item.EaseFactor + (0.1f - (5 - quality) * (0.08f + (5 - quality) * 0.02f));
+        item.EaseFactor = Math.Max(1.3f, ef);
 
-    public async Task<List<UserProgress>> GetDueItemsAsync(string userId)
-    {
-        var today = DateTime.UtcNow.Date;
-        var dueProgressIds = await _db.SpacedRepetitionItems
-            .Where(sri => sri.NextReviewDate.Date <= today)
-            .Select(sri => sri.UserProgressId)
-            .ToListAsync();
+        item.NextReviewDate = DateTime.UtcNow.Date.AddDays(item.Interval);
 
-        return await _db.UserProgress
-            .Include(p => p.Subject)
-            .Where(p => p.UserId == userId && dueProgressIds.Contains(p.Id))
-            .ToListAsync();
-    }
-
-    public async Task UpdateReviewAsync(Guid userProgressId, int quality)
-    {
-        var item = await _db.SpacedRepetitionItems
-            .FirstOrDefaultAsync(sri => sri.UserProgressId == userProgressId);
-
-        if (item == null)
-        {
-            item = new SpacedRepetitionItem { UserProgressId = userProgressId };
-            _db.SpacedRepetitionItems.Add(item);
-        }
-
-        CalculateNextReview(item, quality);
         await _db.SaveChangesAsync();
-    }
-
-    public async Task<int> GetDueCountAsync(string userId)
-    {
-        var today = DateTime.UtcNow.Date;
-        var progressIds = await _db.UserProgress
-            .Where(p => p.UserId == userId)
-            .Select(p => p.Id)
-            .ToListAsync();
-
-        return await _db.SpacedRepetitionItems
-            .CountAsync(sri => progressIds.Contains(sri.UserProgressId) && sri.NextReviewDate.Date <= today);
-    }
-
-    public async Task<List<(DateTime Date, int Count)>> GetUpcomingReviewsAsync(string userId, int days = 7)
-    {
-        var progressIds = await _db.UserProgress
-            .Where(p => p.UserId == userId)
-            .Select(p => p.Id)
-            .ToListAsync();
-
-        var upcoming = await _db.SpacedRepetitionItems
-            .Where(sri => progressIds.Contains(sri.UserProgressId) &&
-                          sri.NextReviewDate.Date >= DateTime.UtcNow.Date &&
-                          sri.NextReviewDate.Date <= DateTime.UtcNow.AddDays(days).Date)
-            .GroupBy(sri => sri.NextReviewDate.Date)
-            .Select(g => new { Date = g.Key, Count = g.Count() })
-            .OrderBy(x => x.Date)
-            .ToListAsync();
-
-        return upcoming.Select(x => (x.Date, x.Count)).ToList();
     }
 }

@@ -10,6 +10,18 @@
         FontFamily="Segoe UI" FontSize="13.5"
         Foreground="{StaticResource TextBrush}">
 
+    <WindowChrome.WindowChrome>
+        <!-- GlassFrameThickness="0" keeps the custom transparent look.
+             CaptionHeight=48 matches header height so DragMove() and
+             double-click-to-maximize still work via the XAML handler.
+             ResizeBorderThickness enables corner/edge resize. -->
+        <WindowChrome CaptionHeight="48"
+                      GlassFrameThickness="0"
+                      ResizeBorderThickness="6"
+                      UseAeroCaptionButtons="False"
+                      CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
+
     <!-- DataContext is injected via DI in MainWindow.xaml.cs -->
 
     <Border Background="{StaticResource BgBrush}"
@@ -33,7 +45,8 @@
                     BorderBrush="{StaticResource LineBrush}"
                     BorderThickness="0,0,0,1"
                     Height="48">
-                <Grid Margin="18,0,14,0">
+                <Grid Margin="18,0,14,0"
+                      WindowChrome.IsHitTestVisibleInChrome="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <!-- Logo -->
@@ -279,6 +292,72 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="📚" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Text="Fächer" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- ── Phase 1 ─────────────────────────────── -->
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Chat">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Chat">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🤖" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock Text="KI-Tutor" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Materialien">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Materialien">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📂" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock Text="Materialien" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Wissensgraph">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Wissensgraph">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🕸" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock Text="Wissensgraph" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding NavigateToCommand}" CommandParameter="Lernplan">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentView}" Value="Lernplan">
+                                                <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📋" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock Text="Lernplan" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                             <Button Command="{Binding NavigateToCommand}" CommandParameter="Profile">

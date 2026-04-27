@@ -49,5 +49,5 @@ public class Question
     public ICollection<Answer> Answers { get; set; } = [];
 }
 
-public enum QuestionType { MultipleChoice, TrueFalse, FreeText, FillInTheBlank }
+public enum QuestionType { MultipleChoice, TrueFalse, FreeText, FillInTheBlank, FillBlank, Matching }
 public enum DifficultyLevel { Leicht, Mittel, Schwer }

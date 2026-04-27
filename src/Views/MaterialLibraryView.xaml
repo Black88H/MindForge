@@ -1,0 +1,167 @@
+<UserControl x:Class="MindForge.Views.MaterialLibraryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:MindForge.Models"
+             Background="{StaticResource BgBrush}">
+    <!-- DataContext injected via DI by ViewLocatorConverter -->
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource MfScrollViewer}">
+        <Grid MaxWidth="1280" Margin="32,28,32,80">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>  <!-- header -->
+                <RowDefinition Height="Auto"/>  <!-- upload zone -->
+                <RowDefinition Height="Auto"/>  <!-- processing -->
+                <RowDefinition Height="Auto"/>  <!-- material grid -->
+            </Grid.RowDefinitions>
+
+            <!-- ── Header ─────────────────────────────────────────────────── -->
+            <Grid Grid.Row="0" Margin="0,0,0,28">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Materialien" FontSize="22" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock Text="PDFs, Word-Dokumente und Bilder — alles wird automatisch verarbeitet."
+                               FontSize="13" Foreground="{StaticResource Text3Brush}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1" Style="{StaticResource PrimaryButton}"
+                        Command="{Binding UploadMaterialCommand}"
+                        VerticalAlignment="Bottom">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⬆ " FontSize="13"/>
+                        <TextBlock Text="Datei hochladen"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- ── Drag-Drop Upload Zone ──────────────────────────────────── -->
+            <Border Grid.Row="1" Margin="0,0,0,24"
+                    Style="{StaticResource Card}"
+                    MinHeight="120"
+                    BorderThickness="1"
+                    AllowDrop="True"
+                    Drop="DropZone_Drop"
+                    DragOver="DropZone_DragOver">
+                <Border.BorderBrush>
+                    <SolidColorBrush Color="{StaticResource AccentColor}" Opacity="0.4"/>
+                </Border.BorderBrush>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,16">
+                    <TextBlock Text="📂" FontSize="36" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Dateien hier ablegen"
+                               FontSize="14" FontWeight="Medium"
+                               Foreground="{StaticResource TextBrush}"
+                               HorizontalAlignment="Center" Margin="0,8,0,4"/>
+                    <TextBlock Text="PDF · DOCX · PNG · JPG"
+                               FontSize="12" Foreground="{StaticResource Text3Brush}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ── Processing indicator ───────────────────────────────────── -->
+            <StackPanel Grid.Row="2" Margin="0,0,0,24"
+                        Orientation="Horizontal"
+                        Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibility}}">
+                <ProgressBar IsIndeterminate="True" Width="200" Height="4"
+                             Style="{StaticResource MfProgressBar}" Margin="0,0,12,0"
+                             VerticalAlignment="Center"/>
+                <TextBlock Text="Datei wird verarbeitet…"
+                           FontSize="13" Foreground="{StaticResource AccentBrush}"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- ── Empty state ────────────────────────────────────────────── -->
+            <StackPanel Grid.Row="3"
+                        HorizontalAlignment="Center" Margin="0,40"
+                        Visibility="{Binding HasMaterials, Converter={StaticResource BoolToVisibility},
+                                             ConverterParameter=invert}">
+                <TextBlock Text="📚" FontSize="48" HorizontalAlignment="Center"/>
+                <TextBlock Text="Keine Materialien vorhanden"
+                           FontSize="16" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"
+                           HorizontalAlignment="Center" Margin="0,12,0,6"/>
+                <TextBlock Text="Lade PDFs, Word-Dokumente oder Fotos hoch."
+                           FontSize="13" Foreground="{StaticResource Text3Brush}"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- ── Material cards ─────────────────────────────────────────── -->
+            <ItemsControl Grid.Row="3"
+                          ItemsSource="{Binding Materials}"
+                          Visibility="{Binding HasMaterials, Converter={StaticResource BoolToVisibility}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:Material}">
+                        <Border Style="{StaticResource Card}" Margin="0,0,16,16"
+                                Width="220" Height="140">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Format icon -->
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                    <Border Width="28" Height="28" CornerRadius="6"
+                                            Background="{StaticResource AccentSoftBrush}">
+                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   FontSize="14">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="📄"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding OriginalFormat}" Value="PDF">
+                                                            <Setter Property="Text" Value="📕"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding OriginalFormat}" Value="DOCX">
+                                                            <Setter Property="Text" Value="📝"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding OriginalFormat}" Value="Image">
+                                                            <Setter Property="Text" Value="🖼"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding OriginalFormat}" Value="Handwriting">
+                                                            <Setter Property="Text" Value="✍"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                    <TextBlock Text="{Binding OriginalFormat}"
+                                               FontSize="11" Foreground="{StaticResource AccentBrush}"
+                                               VerticalAlignment="Center" Margin="8,0,0,0"
+                                               FontWeight="Medium"/>
+                                </StackPanel>
+
+                                <!-- File name -->
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding OriginalFileName}"
+                                           FontSize="13" FontWeight="Medium"
+                                           Foreground="{StaticResource TextBrush}"
+                                           TextWrapping="Wrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxHeight="36"/>
+
+                                <!-- Token count + date -->
+                                <TextBlock Grid.Row="2"
+                                           FontSize="11" Foreground="{StaticResource Text3Brush}"
+                                           Margin="0,8,0,0">
+                                    <Run Text="{Binding TokenCount, Mode=OneWay}"/>
+                                    <Run Text=" Tokens · "/>
+                                    <Run Text="{Binding ExtractedAt, StringFormat=dd.MM.yy, Mode=OneWay}"/>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </Grid>
+    </ScrollViewer>
+</UserControl>

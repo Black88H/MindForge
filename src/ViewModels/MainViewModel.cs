@@ -56,6 +56,11 @@ public partial class MainViewModel : ObservableObject
         ["Profile"]         = "Profil",
         ["Settings"]        = "Einstellungen",
         ["QA"]              = "Lernen",
+        // Phase 1
+        ["Chat"]            = "KI-Tutor",
+        ["Materialien"]     = "Materialien",
+        ["Wissensgraph"]    = "Wissensgraph",
+        ["Lernplan"]        = "Lernplan",
     };
 
     private async Task LoadSubjectsAsync()

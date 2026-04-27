@@ -14,8 +14,8 @@ namespace MindForge.ViewModels;
 public partial class LearningViewModel : ObservableObject
 {
     private readonly IAISelector _ai;
-    private readonly SpacedRepetitionService _sr;
-    private readonly GamificationService _gamification;
+    private readonly ISpacedRepetitionService _sr;
+    private readonly IGamificationService _gamification;
     private readonly QuestionRepository _questions;
     private readonly UserProgressRepository _progress;
     private readonly MindForgeDbContext _db;
@@ -25,8 +25,8 @@ public partial class LearningViewModel : ObservableObject
 
     public LearningViewModel(
         IAISelector ai,
-        SpacedRepetitionService sr,
-        GamificationService gamification,
+        ISpacedRepetitionService sr,
+        IGamificationService gamification,
         QuestionRepository questions,
         UserProgressRepository progress,
         MindForgeDbContext db)
@@ -212,8 +212,8 @@ public partial class LearningViewModel : ObservableObject
         if (IsCorrect)
         {
             await _progress.RecordCorrectAnswerAsync(_current.SubjectId);
-            var xp = await _gamification.AddXPAsync("default", XPAction.CorrectAnswer);
-            CurrentXP += xp;
+            var xpEvent = await _gamification.AwardXPAsync(Guid.Empty, 10, XPSource.LessonCompleted, "Frage richtig beantwortet");
+            CurrentXP += xpEvent.Amount;
         }
         else
         {

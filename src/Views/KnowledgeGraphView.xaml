@@ -1,0 +1,171 @@
+<UserControl x:Class="MindForge.Views.KnowledgeGraphView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:MindForge.Models"
+             Background="{StaticResource BgBrush}">
+    <!-- DataContext injected via DI by ViewLocatorConverter -->
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>       <!-- canvas area -->
+            <ColumnDefinition Width="280"/>     <!-- detail panel -->
+        </Grid.ColumnDefinitions>
+
+        <!-- ── Header (spans full width) ──────────────────────────────── -->
+        <Border Grid.Column="0" Grid.ColumnSpan="2"
+                Background="{StaticResource Bg1Brush}"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1"
+                Padding="24,14" VerticalAlignment="Top">
+            <StackPanel>
+                <TextBlock Text="Wissensgraph" FontSize="18" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"/>
+                <TextBlock Text="Jeder Knoten = ein Konzept. Farbe = Beherrschungsgrad (rot → grün)."
+                           FontSize="12" Foreground="{StaticResource Text3Brush}" Margin="0,3,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ── Canvas with nodes ─────────────────────────────────────── -->
+        <Grid Grid.Column="0" Margin="0,58,0,0">
+
+            <!-- Empty state -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{Binding HasNodes, Converter={StaticResource BoolToVisibility},
+                                             ConverterParameter=invert}">
+                <TextBlock Text="🕸" FontSize="48" HorizontalAlignment="Center"/>
+                <TextBlock Text="Noch kein Wissensgraph"
+                           FontSize="16" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"
+                           HorizontalAlignment="Center" Margin="0,12,0,6"/>
+                <TextBlock Text="Lade zuerst Lernmaterial hoch."
+                           FontSize="13" Foreground="{StaticResource Text3Brush}"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Scrollable canvas for the graph -->
+            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"
+                          Visibility="{Binding HasNodes, Converter={StaticResource BoolToVisibility}}">
+                <Canvas x:Name="GraphCanvas" MinWidth="800" MinHeight="600"
+                        Background="Transparent">
+
+                    <!-- Edges (rendered below nodes) -->
+                    <ItemsControl ItemsSource="{Binding Edges}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:KnowledgeEdge}">
+                                <!-- Simplified edge: a line from fixed positions.
+                                     For a full graph layout, a converter computing
+                                     X/Y from a layout algorithm would be needed.
+                                     Here we use a decorative placeholder. -->
+                                <Line Stroke="{StaticResource LineBrush}"
+                                      StrokeThickness="1.5"
+                                      X1="0" Y1="0" X2="100" Y2="80"
+                                      Opacity="0.5"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Nodes -->
+                    <ItemsControl ItemsSource="{Binding Nodes}" x:Name="NodesControl">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <!-- Positioned by NodePositionConverter in code-behind -->
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:KnowledgeNode}">
+                                <Button Width="120" Height="60"
+                                        Margin="5"
+                                        Command="{Binding DataContext.SelectNodeCommand,
+                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Cursor="Hand" BorderThickness="0">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bd"
+                                                    CornerRadius="8"
+                                                    BorderThickness="2"
+                                                    Padding="8,6"
+                                                    BorderBrush="{StaticResource LineBrush}"
+                                                    Background="{StaticResource Bg2Brush}">
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontSize="11" FontWeight="Medium"
+                                                           Foreground="{StaticResource TextBrush}"
+                                                           TextWrapping="Wrap"
+                                                           TextAlignment="Center"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bd" Property="BorderBrush"
+                                                            Value="{StaticResource AccentBrush}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Canvas>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ── Detail panel ──────────────────────────────────────────── -->
+        <Border Grid.Column="1"
+                Background="{StaticResource Bg1Brush}"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="1,0,0,0"
+                Padding="20,72,20,20">
+            <StackPanel>
+                <!-- Empty selection -->
+                <StackPanel Visibility="{Binding HasSelectedNode,
+                                         Converter={StaticResource BoolToVisibility},
+                                         ConverterParameter=invert}">
+                    <TextBlock Text="Knoten auswählen"
+                               FontSize="13" Foreground="{StaticResource Text3Brush}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <!-- Selected node details -->
+                <StackPanel Visibility="{Binding HasSelectedNode, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="{Binding SelectedNode.Title}"
+                               FontSize="16" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"
+                               TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="Beherrschungsgrad"
+                               Style="{StaticResource SectionLabel}"/>
+                    <ProgressBar Value="{Binding SelectedNode.MasteryLevel, Mode=OneWay}"
+                                 Maximum="1" Minimum="0"
+                                 Style="{StaticResource MfProgressBar}"
+                                 Height="6" Margin="0,4,0,12"/>
+
+                    <TextBlock Text="Zusammenfassung"
+                               Style="{StaticResource SectionLabel}"/>
+                    <TextBlock Text="{Binding SelectedNode.Summary}"
+                               FontSize="12" Foreground="{StaticResource Text2Brush}"
+                               TextWrapping="Wrap" Margin="0,0,0,16"/>
+
+                    <TextBlock Text="Zuletzt wiederholt"
+                               Style="{StaticResource SectionLabel}"/>
+                    <TextBlock FontSize="12" Foreground="{StaticResource Text2Brush}">
+                        <Run Text="{Binding SelectedNode.LastReviewed,
+                                            StringFormat=dd.MM.yyyy,
+                                            TargetNullValue='Noch nie',
+                                            Mode=OneWay}"/>
+                    </TextBlock>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

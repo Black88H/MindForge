@@ -3,7 +3,7 @@ using MindForge.Models;
 
 namespace MindForge.Services;
 
-public class AchievementRepository : IGamificationService
+public class AchievementRepository
 {
     private readonly MindForgeDbContext _db;
     private readonly UserProgressRepository _progress;

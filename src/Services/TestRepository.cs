@@ -3,7 +3,7 @@ using MindForge.Models;
 
 namespace MindForge.Services;
 
-public class TestRepository : ITestService
+public class TestRepository
 {
     private readonly MindForgeDbContext _db;
 
@@ -11,7 +11,7 @@ public class TestRepository : ITestService
 
     public async Task<Test> CreateTestAsync(
         string name, Guid[] questionIds, int durationMinutes,
-        DifficultyLevel difficulty, TestType type)
+        Difficulty difficulty, TestType type)
     {
         var test = new Test
         {

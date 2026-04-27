@@ -268,6 +268,131 @@ namespace MindForge.Migrations
                     b.ToTable("Answers");
                 });
 
+            modelBuilder.Entity("MindForge.Models.Badge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IconKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Requirement")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("XPReward")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Badges");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000001"),
+                            Description = "Erstes Material hochgeladen",
+                            IconKey = "upload",
+                            Name = "Erster Upload",
+                            Requirement = "{\"type\":\"materials_uploaded\",\"count\":1}",
+                            XPReward = 50
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000002"),
+                            Description = "10 Materialien hochgeladen",
+                            IconKey = "books",
+                            Name = "Wissensdurst",
+                            Requirement = "{\"type\":\"materials_uploaded\",\"count\":10}",
+                            XPReward = 200
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000003"),
+                            Description = "Ersten Test abgeschlossen",
+                            IconKey = "test",
+                            Name = "Testpilot",
+                            Requirement = "{\"type\":\"tests_completed\",\"count\":1}",
+                            XPReward = 50
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000004"),
+                            Description = "100% in einem Test",
+                            IconKey = "star",
+                            Name = "Perfektionist",
+                            Requirement = "{\"type\":\"perfect_score\",\"count\":1}",
+                            XPReward = 200
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000005"),
+                            Description = "5 Feynman-Sessions bestanden",
+                            IconKey = "brain",
+                            Name = "Feynman-Meister",
+                            Requirement = "{\"type\":\"feynman_passed\",\"count\":5}",
+                            XPReward = 300
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000006"),
+                            Description = "7 Tage in Folge gelernt",
+                            IconKey = "fire",
+                            Name = "Wochenstreak",
+                            Requirement = "{\"type\":\"streak\",\"count\":7}",
+                            XPReward = 100
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000007"),
+                            Description = "30 Tage in Folge gelernt",
+                            IconKey = "fire2",
+                            Name = "Monatsstreak",
+                            Requirement = "{\"type\":\"streak\",\"count\":30}",
+                            XPReward = 500
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000008"),
+                            Description = "50 Chat-Nachrichten gesendet",
+                            IconKey = "chat",
+                            Name = "KI-Flüsterer",
+                            Requirement = "{\"type\":\"chat_messages\",\"count\":50}",
+                            XPReward = 150
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000009"),
+                            Description = "Ersten Lernplan erstellt",
+                            IconKey = "calendar",
+                            Name = "Planer",
+                            Requirement = "{\"type\":\"plans_created\",\"count\":1}",
+                            XPReward = 50
+                        },
+                        new
+                        {
+                            Id = new Guid("b0000001-0000-0000-0000-000000000010"),
+                            Description = "Level 10 erreicht",
+                            IconKey = "trophy",
+                            Name = "Level 10",
+                            Requirement = "{\"type\":\"level\",\"count\":10}",
+                            XPReward = 1000
+                        });
+                });
+
             modelBuilder.Entity("MindForge.Models.Challenge", b =>
                 {
                     b.Property<Guid>("Id")
@@ -310,6 +435,157 @@ namespace MindForge.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Challenges");
+                });
+
+            modelBuilder.Entity("MindForge.Models.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("SubjectId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TokensUsed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ChatMessages");
+                });
+
+            modelBuilder.Entity("MindForge.Models.FeynmanSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AiAssessment")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GapsIdentified")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("KnowledgeNodeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("MasteryScore")
+                        .HasColumnType("REAL");
+
+                    b.Property<Guid>("TestId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserExplanation")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KnowledgeNodeId");
+
+                    b.HasIndex("TestId");
+
+                    b.ToTable("FeynmanSessions");
+                });
+
+            modelBuilder.Entity("MindForge.Models.KnowledgeEdge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("FromNodeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RelationType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<float>("Strength")
+                        .HasColumnType("REAL");
+
+                    b.Property<Guid>("ToNodeId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FromNodeId");
+
+                    b.HasIndex("ToNodeId");
+
+                    b.ToTable("KnowledgeEdges");
+                });
+
+            modelBuilder.Entity("MindForge.Models.KnowledgeNode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastReviewed")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("MasteryLevel")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("MaterialIds")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("KnowledgeNodes");
                 });
 
             modelBuilder.Entity("MindForge.Models.LearningMethod", b =>
@@ -403,6 +679,12 @@ namespace MindForge.Migrations
                     b.Property<int>("DifficultyLevel")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("GoalDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("MinutesPerDay")
                         .HasColumnType("INTEGER");
 
@@ -420,8 +702,7 @@ namespace MindForge.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
+                    b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -458,6 +739,106 @@ namespace MindForge.Migrations
                     b.HasIndex("LearningPlanId");
 
                     b.ToTable("LearningPlanMethods");
+                });
+
+            modelBuilder.Entity("MindForge.Models.LearningTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("KnowledgeNodeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PlanId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ScheduledDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TaskType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KnowledgeNodeId");
+
+                    b.HasIndex("PlanId");
+
+                    b.ToTable("LearningTasks");
+                });
+
+            modelBuilder.Entity("MindForge.Models.Material", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExtractedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KiContent")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KiContentHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OriginalFilePath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OriginalFormat")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TokenCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Materials");
                 });
 
             modelBuilder.Entity("MindForge.Models.MaterialLibrary", b =>
@@ -631,14 +1012,23 @@ namespace MindForge.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("EaseFactor")
-                        .HasColumnType("TEXT");
+                    b.Property<float>("EaseFactor")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("Interval")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("IntervalDays")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("KnowledgeNodeId")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("LastQuality")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("LastReviewDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("NextReviewDate")
                         .HasColumnType("TEXT");
@@ -646,10 +1036,15 @@ namespace MindForge.Migrations
                     b.Property<int>("Repetitions")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("UserProgressId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("KnowledgeNodeId");
 
                     b.HasIndex("NextReviewDate");
 
@@ -717,11 +1112,31 @@ namespace MindForge.Migrations
                     b.ToTable("Subjects");
                 });
 
+            modelBuilder.Entity("MindForge.Models.SystemSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("SystemSettings");
+                });
+
             modelBuilder.Entity("MindForge.Models.Test", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CoveragePercent")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -730,6 +1145,9 @@ namespace MindForge.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("DurationMinutes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsSkipped")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -741,17 +1159,80 @@ namespace MindForge.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("QuestionIds");
 
+                    b.Property<float?>("Score")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("SourcePhotoPath")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid?>("SubjectId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TestSourceType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("TimeTakenSeconds")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Type")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SubjectId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("Tests");
+                });
+
+            modelBuilder.Entity("MindForge.Models.TestQuestion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Explanation")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool?>("IsCorrect")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Options")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("QuestionText")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("QuestionType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TestId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserAnswer")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TestId");
+
+                    b.ToTable("TestQuestions");
                 });
 
             modelBuilder.Entity("MindForge.Models.TestResult", b =>
@@ -863,6 +1344,30 @@ namespace MindForge.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("MindForge.Models.UserBadge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BadgeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UnlockedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BadgeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserBadges");
                 });
 
             modelBuilder.Entity("MindForge.Models.UserChallenge", b =>
@@ -1041,6 +1546,36 @@ namespace MindForge.Migrations
                     b.ToTable("UserTestHistory");
                 });
 
+            modelBuilder.Entity("MindForge.Models.XPEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("XPEvents");
+                });
+
             modelBuilder.Entity("MindForge.Models.Answer", b =>
                 {
                     b.HasOne("MindForge.Models.Question", "Question")
@@ -1050,6 +1585,80 @@ namespace MindForge.Migrations
                         .IsRequired();
 
                     b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("MindForge.Models.ChatMessage", b =>
+                {
+                    b.HasOne("MindForge.Models.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId");
+
+                    b.HasOne("MindForge.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MindForge.Models.FeynmanSession", b =>
+                {
+                    b.HasOne("MindForge.Models.KnowledgeNode", "KnowledgeNode")
+                        .WithMany()
+                        .HasForeignKey("KnowledgeNodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MindForge.Models.Test", "Test")
+                        .WithMany("FeynmanSessions")
+                        .HasForeignKey("TestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("KnowledgeNode");
+
+                    b.Navigation("Test");
+                });
+
+            modelBuilder.Entity("MindForge.Models.KnowledgeEdge", b =>
+                {
+                    b.HasOne("MindForge.Models.KnowledgeNode", "FromNode")
+                        .WithMany("OutgoingEdges")
+                        .HasForeignKey("FromNodeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MindForge.Models.KnowledgeNode", "ToNode")
+                        .WithMany("IncomingEdges")
+                        .HasForeignKey("ToNodeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FromNode");
+
+                    b.Navigation("ToNode");
+                });
+
+            modelBuilder.Entity("MindForge.Models.KnowledgeNode", b =>
+                {
+                    b.HasOne("MindForge.Models.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MindForge.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MindForge.Models.LearningPlan", b =>
@@ -1081,6 +1690,42 @@ namespace MindForge.Migrations
                     b.Navigation("LearningPlan");
                 });
 
+            modelBuilder.Entity("MindForge.Models.LearningTask", b =>
+                {
+                    b.HasOne("MindForge.Models.KnowledgeNode", "KnowledgeNode")
+                        .WithMany()
+                        .HasForeignKey("KnowledgeNodeId");
+
+                    b.HasOne("MindForge.Models.LearningPlan", "Plan")
+                        .WithMany("Tasks")
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("KnowledgeNode");
+
+                    b.Navigation("Plan");
+                });
+
+            modelBuilder.Entity("MindForge.Models.Material", b =>
+                {
+                    b.HasOne("MindForge.Models.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MindForge.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MindForge.Models.MaterialLibrary", b =>
                 {
                     b.HasOne("MindForge.Models.Subject", "Subject")
@@ -1104,11 +1749,19 @@ namespace MindForge.Migrations
 
             modelBuilder.Entity("MindForge.Models.SpacedRepetitionItem", b =>
                 {
+                    b.HasOne("MindForge.Models.KnowledgeNode", "KnowledgeNode")
+                        .WithMany()
+                        .HasForeignKey("KnowledgeNodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("MindForge.Models.UserProgress", "UserProgress")
                         .WithMany()
                         .HasForeignKey("UserProgressId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("KnowledgeNode");
 
                     b.Navigation("UserProgress");
                 });
@@ -1120,7 +1773,26 @@ namespace MindForge.Migrations
                         .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("MindForge.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Subject");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MindForge.Models.TestQuestion", b =>
+                {
+                    b.HasOne("MindForge.Models.Test", "Test")
+                        .WithMany("Questions")
+                        .HasForeignKey("TestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Test");
                 });
 
             modelBuilder.Entity("MindForge.Models.TestResult", b =>
@@ -1132,6 +1804,25 @@ namespace MindForge.Migrations
                         .IsRequired();
 
                     b.Navigation("Test");
+                });
+
+            modelBuilder.Entity("MindForge.Models.UserBadge", b =>
+                {
+                    b.HasOne("MindForge.Models.Badge", "Badge")
+                        .WithMany()
+                        .HasForeignKey("BadgeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MindForge.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Badge");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MindForge.Models.UserChallenge", b =>
@@ -1166,9 +1857,27 @@ namespace MindForge.Migrations
                     b.Navigation("Test");
                 });
 
+            modelBuilder.Entity("MindForge.Models.XPEvent", b =>
+                {
+                    b.HasOne("MindForge.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MindForge.Models.Challenge", b =>
                 {
                     b.Navigation("UserChallenges");
+                });
+
+            modelBuilder.Entity("MindForge.Models.KnowledgeNode", b =>
+                {
+                    b.Navigation("IncomingEdges");
+
+                    b.Navigation("OutgoingEdges");
                 });
 
             modelBuilder.Entity("MindForge.Models.LearningMethod", b =>
@@ -1179,6 +1888,8 @@ namespace MindForge.Migrations
             modelBuilder.Entity("MindForge.Models.LearningPlan", b =>
                 {
                     b.Navigation("Methods");
+
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("MindForge.Models.Question", b =>
@@ -1195,6 +1906,10 @@ namespace MindForge.Migrations
 
             modelBuilder.Entity("MindForge.Models.Test", b =>
                 {
+                    b.Navigation("FeynmanSessions");
+
+                    b.Navigation("Questions");
+
                     b.Navigation("Results");
                 });
 #pragma warning restore 612, 618

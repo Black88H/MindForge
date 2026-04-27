@@ -142,18 +142,23 @@ public class ViewLocatorConverter : IValueConverter
 {
     private static readonly Dictionary<string, (Type View, Type? Vm)> Map = new()
     {
-        ["Dashboard"]        = (typeof(DashboardView),        typeof(MindForge.ViewModels.DashboardViewModel)),
-        ["Home"]             = (typeof(HomeView),             typeof(MindForge.ViewModels.HomeViewModel)),
-        ["QA"]               = (typeof(QAView),               typeof(MindForge.ViewModels.QAViewModel)),
-        ["Learning"]         = (typeof(LearningView),         typeof(MindForge.ViewModels.LearningViewModel)),
-        ["Tests"]            = (typeof(TestsView),            typeof(MindForge.ViewModels.TestsViewModel)),
-        ["ContentGenerator"] = (typeof(ContentGeneratorView), typeof(MindForge.ViewModels.ContentGeneratorViewModel)),
-        ["KITools"]          = (typeof(KIToolsView),          typeof(MindForge.ViewModels.KIToolsViewModel)),
-        ["TestCreator"]      = (typeof(TestCreatorView),      typeof(MindForge.ViewModels.TestCreatorViewModel)),
-        ["Analytics"]        = (typeof(AnalyticsView),        typeof(MindForge.ViewModels.AnalyticsViewModel)),
-        ["Subjects"]         = (typeof(SubjectsView),         typeof(MindForge.ViewModels.SubjectsViewModel)),
-        ["Profile"]          = (typeof(ProfileView),          typeof(MindForge.ViewModels.ProfileViewModel)),
-        ["Settings"]         = (typeof(SettingsView),         typeof(MindForge.ViewModels.SettingsViewModel)),
+        ["Dashboard"]        = (typeof(DashboardView),          typeof(MindForge.ViewModels.DashboardViewModel)),
+        ["Home"]             = (typeof(HomeView),               typeof(MindForge.ViewModels.HomeViewModel)),
+        ["QA"]               = (typeof(QAView),                 typeof(MindForge.ViewModels.QAViewModel)),
+        ["Learning"]         = (typeof(LearningView),           typeof(MindForge.ViewModels.LearningViewModel)),
+        ["Tests"]            = (typeof(TestsView),              typeof(MindForge.ViewModels.TestsViewModel)),
+        ["ContentGenerator"] = (typeof(ContentGeneratorView),   typeof(MindForge.ViewModels.ContentGeneratorViewModel)),
+        ["KITools"]          = (typeof(KIToolsView),            typeof(MindForge.ViewModels.KIToolsViewModel)),
+        ["TestCreator"]      = (typeof(TestCreatorView),        typeof(MindForge.ViewModels.TestCreatorViewModel)),
+        ["Analytics"]        = (typeof(AnalyticsView),          typeof(MindForge.ViewModels.AnalyticsViewModel)),
+        ["Subjects"]         = (typeof(SubjectsView),           typeof(MindForge.ViewModels.SubjectsViewModel)),
+        ["Profile"]          = (typeof(ProfileView),            typeof(MindForge.ViewModels.ProfileViewModel)),
+        ["Settings"]         = (typeof(SettingsView),           typeof(MindForge.ViewModels.SettingsViewModel)),
+        // Phase 1 additions
+        ["Chat"]             = (typeof(ChatView),               typeof(MindForge.ViewModels.ChatViewModel)),
+        ["Materialien"]      = (typeof(MaterialLibraryView),    typeof(MindForge.ViewModels.MaterialLibraryViewModel)),
+        ["Wissensgraph"]     = (typeof(KnowledgeGraphView),     typeof(MindForge.ViewModels.KnowledgeGraphViewModel)),
+        ["Lernplan"]         = (typeof(LearningPlanView),       typeof(MindForge.ViewModels.LearningPlanViewModel)),
     };
 
     public object? Convert(object value, Type t, object p, CultureInfo c)

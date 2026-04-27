@@ -1,0 +1,270 @@
+<UserControl x:Class="MindForge.Views.LearningPlanView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:MindForge.Models"
+             xmlns:vm="clr-namespace:MindForge.ViewModels"
+             Background="{StaticResource BgBrush}">
+    <!-- DataContext injected via DI by ViewLocatorConverter -->
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource MfScrollViewer}">
+        <Grid MaxWidth="1280" Margin="32,28,32,80">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>  <!-- header + controls -->
+                <RowDefinition Height="Auto"/>  <!-- progress bar -->
+                <RowDefinition Height="Auto"/>  <!-- status -->
+                <RowDefinition Height="Auto"/>  <!-- list / calendar toggle -->
+                <RowDefinition Height="Auto"/>  <!-- content -->
+            </Grid.RowDefinitions>
+
+            <!-- ── Header ──────────────────────────────────────────── -->
+            <Grid Grid.Row="0" Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Lernplan" FontSize="22" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock Text="{Binding SelectedSubjectName}"
+                               FontSize="13" Foreground="{StaticResource Text3Brush}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <!-- Generate plan button + goal date -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <DatePicker SelectedDate="{Binding GoalDate}"
+                                Foreground="{StaticResource TextBrush}"
+                                Background="{StaticResource Bg2Brush}"
+                                BorderBrush="{StaticResource LineBrush}"
+                                Height="32" VerticalAlignment="Center"
+                                Margin="0,0,10,0"
+                                ToolTip="Zieldatum (optional)"/>
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Command="{Binding GeneratePlanCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚡ " FontSize="13"/>
+                            <TextBlock Text="Plan generieren"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- ── Progress bar ────────────────────────────────────── -->
+            <Grid Grid.Row="1" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ProgressBar Grid.Column="0"
+                             Value="{Binding ProgressRatio, Mode=OneWay}"
+                             Maximum="1" Minimum="0"
+                             Style="{StaticResource MfProgressBar}"
+                             Height="6" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding ProgressText, Mode=OneWay}"
+                           FontSize="12" Foreground="{StaticResource Text3Brush}"
+                           VerticalAlignment="Center" Margin="12,0,0,0"/>
+            </Grid>
+
+            <!-- ── Status / error ──────────────────────────────────── -->
+            <StackPanel Grid.Row="2" Margin="0,0,0,16">
+                <ProgressBar IsIndeterminate="True" Height="2"
+                             Style="{StaticResource MfProgressBar}"
+                             Visibility="{Binding IsGenerating, Converter={StaticResource BoolToVisibility}}"/>
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="12" Foreground="{StaticResource AccentBrush}"
+                           Margin="0,6,0,0"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}"/>
+            </StackPanel>
+
+            <!-- ── View toggle ─────────────────────────────────────── -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,20">
+                <Button Style="{StaticResource SecondaryButton}"
+                        Margin="0,0,8,0"
+                        Command="{Binding SwitchToListCommand}"
+                        Content="☰ Liste"/>
+                <Button Style="{StaticResource SecondaryButton}"
+                        Command="{Binding SwitchToCalendarCommand}"
+                        Content="📅 Kalender"/>
+            </StackPanel>
+
+            <!-- ── LIST VIEW ───────────────────────────────────────── -->
+            <StackPanel Grid.Row="4"
+                        Visibility="{Binding ViewMode, Converter={StaticResource StringToVisibility},
+                                             ConverterParameter=List}">
+
+                <!-- Loading -->
+                <TextBlock Text="Lädt…" FontSize="13" Foreground="{StaticResource Text3Brush}"
+                           Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
+                           Margin="0,0,0,16"/>
+
+                <!-- Empty state -->
+                <StackPanel HorizontalAlignment="Center" Margin="0,40"
+                            Visibility="{Binding HasTasks, Converter={StaticResource BoolToVisibility},
+                                                 ConverterParameter=invert}">
+                    <TextBlock Text="📋" FontSize="48" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Keine Aufgaben für heute"
+                               FontSize="16" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"
+                               HorizontalAlignment="Center" Margin="0,12,0,6"/>
+                    <TextBlock Text="Erstelle einen Lernplan — die Aufgaben erscheinen hier."
+                               FontSize="13" Foreground="{StaticResource Text3Brush}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Task list -->
+                <ItemsControl ItemsSource="{Binding TodaysTasks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:LearningTask}">
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>   <!-- checkbox -->
+                                        <ColumnDefinition Width="*"/>      <!-- info -->
+                                        <ColumnDefinition Width="Auto"/>   <!-- duration -->
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Done checkbox / button -->
+                                    <Button Grid.Column="0"
+                                            Width="32" Height="32"
+                                            Margin="0,0,14,0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource SecondaryButton}"
+                                            Command="{Binding DataContext.CompleteTaskCommand,
+                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <TextBlock>
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="○"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding CompletedAt}" Value="{x:Null}">
+                                                            <Setter Property="Text" Value="○"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Button>
+
+                                    <!-- Title + description -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontSize="13" FontWeight="Medium"
+                                                   Foreground="{StaticResource TextBrush}"/>
+                                        <TextBlock Text="{Binding Description}"
+                                                   FontSize="11" Foreground="{StaticResource Text3Brush}"
+                                                   TextWrapping="Wrap" MaxHeight="32"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Margin="0,3,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Duration -->
+                                    <TextBlock Grid.Column="2"
+                                               FontSize="12" Foreground="{StaticResource AccentBrush}"
+                                               VerticalAlignment="Center" Margin="12,0,0,0">
+                                        <Run Text="{Binding DurationMinutes, Mode=OneWay}"/>
+                                        <Run Text=" Min"/>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- ── CALENDAR VIEW ───────────────────────────────────── -->
+            <StackPanel Grid.Row="4"
+                        Visibility="{Binding ViewMode, Converter={StaticResource StringToVisibility},
+                                             ConverterParameter=Calendar}">
+
+                <!-- Month navigation -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Style="{StaticResource SecondaryButton}"
+                            Content="←" Width="32"
+                            Command="{Binding PreviousMonthCommand}"/>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding CalendarTitle, Mode=OneWay}"
+                               FontSize="15" FontWeight="Medium"
+                               Foreground="{StaticResource TextBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Button Grid.Column="2" Style="{StaticResource SecondaryButton}"
+                            Content="→" Width="32"
+                            Command="{Binding NextMonthCommand}"/>
+                </Grid>
+
+                <!-- Weekday headers -->
+                <UniformGrid Columns="7" Margin="0,0,0,6">
+                    <TextBlock Text="Mo" Style="{StaticResource SectionLabel}" TextAlignment="Center"/>
+                    <TextBlock Text="Di" Style="{StaticResource SectionLabel}" TextAlignment="Center"/>
+                    <TextBlock Text="Mi" Style="{StaticResource SectionLabel}" TextAlignment="Center"/>
+                    <TextBlock Text="Do" Style="{StaticResource SectionLabel}" TextAlignment="Center"/>
+                    <TextBlock Text="Fr" Style="{StaticResource SectionLabel}" TextAlignment="Center"/>
+                    <TextBlock Text="Sa" Style="{StaticResource SectionLabel}" TextAlignment="Center"/>
+                    <TextBlock Text="So" Style="{StaticResource SectionLabel}" TextAlignment="Center"/>
+                </UniformGrid>
+
+                <!-- Calendar grid -->
+                <ItemsControl ItemsSource="{Binding CalendarDays}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="7"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:CalendarDay}">
+                            <Border MinHeight="64" Margin="2"
+                                    BorderThickness="1" CornerRadius="6"
+                                    Padding="6">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="{StaticResource Bg1Brush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsBlank}" Value="True">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <TextBlock FontSize="12" FontWeight="Medium"
+                                               Margin="0,0,0,4">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="{Binding DayNumber}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource Text2Brush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBlank}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                                        <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding TaskCount, Mode=OneWay}"
+                                               FontSize="10" Foreground="{StaticResource AccentBrush}"
+                                               Visibility="{Binding HasTasks, Converter={StaticResource BoolToVisibility}}"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+        </Grid>
+    </ScrollViewer>
+</UserControl>

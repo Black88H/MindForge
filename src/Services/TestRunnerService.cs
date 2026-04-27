@@ -6,9 +6,9 @@ namespace MindForge.Services;
 public class TestRunnerService
 {
     private readonly MindForgeDbContext _db;
-    private readonly GamificationService _gamification;
+    private readonly IGamificationService _gamification;
 
-    public TestRunnerService(MindForgeDbContext db, GamificationService gamification)
+    public TestRunnerService(MindForgeDbContext db, IGamificationService gamification)
     {
         _db = db;
         _gamification = gamification;
@@ -79,9 +79,11 @@ public class TestRunnerService
         _db.UserTestHistory.Add(history);
         await _db.SaveChangesAsync();
 
-        var xpAction = score >= 100 ? XPAction.TestPerfect : XPAction.TestComplete;
+        var source = score >= 100 ? XPSource.TestCompleted : XPSource.TestCompleted;
         int customXp = (int)(score * 2);
-        int xpEarned = await _gamification.AddXPAsync(session.UserId, xpAction, customXp);
+        Guid userIdGuid = Guid.TryParse(session.UserId, out var g) ? g : Guid.Empty;
+        var xpEvent = await _gamification.AwardXPAsync(userIdGuid, customXp, source, "Test abgeschlossen");
+        int xpEarned = xpEvent.Amount;
 
         return new TestSessionResult
         {

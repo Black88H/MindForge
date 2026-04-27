@@ -1,200 +1,181 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MindForge.Models;
-using MindForge.Utils;
 
 namespace MindForge.Services;
 
-public class GamificationService
+public interface IGamificationService
+{
+    Task<XPEvent> AwardXPAsync(Guid userId, int amount, XPSource source, string description);
+    Task<(bool streakContinued, int currentStreak)> UpdateStreakAsync(Guid userId);
+    Task<List<Badge>> CheckBadgesAsync(Guid userId);
+    Task<GamificationStats> GetStatsAsync(Guid userId);
+    int GetLevelForXP(int totalXP);
+    int GetXPForLevel(int level);
+}
+
+public record GamificationStats(int Level, int TotalXP, int XPToNextLevel, int CurrentStreak, int LongestStreak, List<Badge> Badges, List<Achievement> Achievements);
+
+public class GamificationService : IGamificationService
 {
     private readonly MindForgeDbContext _db;
 
     public GamificationService(MindForgeDbContext db) => _db = db;
 
-    public async Task<int> AddXPAsync(string userId, XPAction action, int? customAmount = null)
+    public async Task<XPEvent> AwardXPAsync(Guid userId, int amount, XPSource source, string description)
     {
-        var progress = await GetOrCreateProgressAsync(userId);
-        int xp = customAmount ?? GetXPForAction(action, progress.Level);
-        progress.TotalXP += xp;
-        progress.Level = CalculateLevel(progress.TotalXP);
+        var user = await _db.Set<User>().FindAsync(userId)
+            ?? throw new ArgumentException("User nicht gefunden");
 
-        var notification = new Notification
+        var evt = new XPEvent
         {
             UserId = userId,
-            Message = $"+{xp} XP für {GetActionLabel(action)}",
-            Type = NotificationType.XPEarned,
-            XpAmount = xp
+            Amount = amount,
+            Source = source,
+            Description = description
         };
-        _db.Notifications.Add(notification);
-        await _db.SaveChangesAsync();
+        _db.XPEvents.Add(evt);
 
-        await CheckAchievementsAsync(userId, progress);
-        return xp;
+        user.TotalXP += amount;
+
+        // Level-Check
+        var newLevel = GetLevelForXP(user.TotalXP);
+        if (newLevel > user.Level)
+            user.Level = newLevel;
+
+        await _db.SaveChangesAsync();
+        return evt;
     }
 
-    public int CalculateLevel(int totalXp) => Math.Max(1, Math.Min(100, (int)Math.Sqrt(totalXp / 50.0) + 1));
-
-    public int GetXPForNextLevel(int level) => (int)Math.Pow(level, 2) * 50;
-
-    public async Task<int> UpdateStreakAsync(string userId)
+    public async Task<(bool streakContinued, int currentStreak)> UpdateStreakAsync(Guid userId)
     {
-        var progress = await GetOrCreateProgressAsync(userId);
+        var user = await _db.Set<User>().FindAsync(userId)
+            ?? throw new ArgumentException("User nicht gefunden");
+
+        var lastActivity = await _db.XPEvents
+            .Where(e => e.UserId == userId)
+            .OrderByDescending(e => e.CreatedAt)
+            .Select(e => e.CreatedAt.Date)
+            .FirstOrDefaultAsync();
+
         var today = DateTime.UtcNow.Date;
-        var yesterday = today.AddDays(-1);
 
-        if (progress.LastStreakDate.Date == today)
-            return progress.CurrentStreak;
+        if (lastActivity == today)
+            return (true, user.CurrentStreak); // Heute bereits aktiv
 
-        if (progress.LastStreakDate.Date == yesterday)
+        if (lastActivity == today.AddDays(-1))
         {
-            progress.CurrentStreak++;
+            user.CurrentStreak++;
+            if (user.CurrentStreak > user.LongestStreak)
+                user.LongestStreak = user.CurrentStreak;
+
+            // Streak-Bonus XP
+            if (user.CurrentStreak == 7)
+                await AwardXPAsync(userId, 50, XPSource.StreakBonus, "7-Tage-Streak!");
+            else if (user.CurrentStreak == 30)
+                await AwardXPAsync(userId, 200, XPSource.StreakBonus, "30-Tage-Streak!");
+            else if (user.CurrentStreak == 100)
+                await AwardXPAsync(userId, 500, XPSource.StreakBonus, "100-Tage-Streak!");
+
+            await _db.SaveChangesAsync();
+            return (true, user.CurrentStreak);
         }
         else
         {
-            progress.CurrentStreak = 1;
+            user.CurrentStreak = 1;
+            await _db.SaveChangesAsync();
+            return (false, 1);
         }
-
-        if (progress.CurrentStreak > progress.BestStreak)
-            progress.BestStreak = progress.CurrentStreak;
-
-        progress.LastStreakDate = today;
-        await _db.SaveChangesAsync();
-
-        if (progress.CurrentStreak is 7 or 30 or 100)
-            await AddXPAsync(userId, XPAction.StreakMilestone, progress.CurrentStreak * 10);
-
-        return progress.CurrentStreak;
     }
 
-    public async Task<List<Achievement>> CheckAchievementsAsync(string userId, UserProgress? progress = null)
+    public async Task<List<Badge>> CheckBadgesAsync(Guid userId)
     {
-        progress ??= await GetOrCreateProgressAsync(userId);
-        var unlocked = new List<Achievement>();
-        var allAchievements = await _db.Achievements.ToListAsync();
+        var user = await _db.Set<User>().FindAsync(userId);
+        if (user == null) return new();
 
-        foreach (var ach in allAchievements.Where(a => !a.IsUnlocked))
+        var existingBadgeIds = await _db.UserBadges
+            .Where(ub => ub.UserId == userId)
+            .Select(ub => ub.BadgeId)
+            .ToListAsync();
+
+        var allBadges = await _db.Badges.ToListAsync();
+        var newBadges = new List<Badge>();
+
+        foreach (var badge in allBadges.Where(b => !existingBadgeIds.Contains(b.Id)))
         {
-            bool shouldUnlock = ach.TriggerKey switch
+            try
             {
-                "questions_answered" => progress.QuestionsAnswered >= ach.TriggerValue,
-                "streak_days"        => progress.CurrentStreak >= ach.TriggerValue,
-                "study_hour"         => DateTime.Now.Hour >= ach.TriggerValue,
-                _                    => false
-            };
+                var req = JsonSerializer.Deserialize<BadgeRequirement>(badge.Requirement,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (req == null) continue;
 
-            if (shouldUnlock)
-            {
-                ach.IsUnlocked = true;
-                ach.UnlockedAt = DateTime.UtcNow;
-                unlocked.Add(ach);
-
-                _db.Notifications.Add(new Notification
+                var met = req.Type switch
                 {
-                    UserId = userId,
-                    Message = $"Achievement freigeschaltet: {ach.Name} {ach.Icon}",
-                    Type = NotificationType.Success,
-                    XpAmount = ach.XpReward
-                });
-                progress.TotalXP += ach.XpReward;
+                    "materials_uploaded" => await _db.Materials.CountAsync(m => m.UserId == userId) >= req.Count,
+                    "tests_completed" => await _db.Set<Test>().CountAsync(t => t.UserId == userId && t.CompletedAt != null) >= req.Count,
+                    "perfect_score" => await _db.Set<Test>().AnyAsync(t => t.UserId == userId && t.Score >= 1.0f),
+                    "feynman_passed" => await _db.FeynmanSessions.CountAsync(f => f.MasteryScore >= 0.7f) >= req.Count,
+                    "streak" => user.LongestStreak >= req.Count,
+                    "chat_messages" => await _db.ChatMessages.CountAsync(m => m.UserId == userId && m.Role == ChatRole.User) >= req.Count,
+                    "plans_created" => await _db.Set<LearningPlan>().CountAsync(p => p.UserId == userId) >= req.Count,
+                    "level" => user.Level >= req.Count,
+                    _ => false
+                };
+
+                if (met)
+                {
+                    _db.UserBadges.Add(new UserBadge { UserId = userId, BadgeId = badge.Id });
+                    await AwardXPAsync(userId, badge.XPReward, XPSource.AchievementUnlocked, $"Badge: {badge.Name}");
+                    newBadges.Add(badge);
+                }
             }
+            catch { /* Requirement-Format ungültig, überspringen */ }
         }
 
-        if (unlocked.Count > 0)
+        if (newBadges.Any())
             await _db.SaveChangesAsync();
 
-        return unlocked;
+        return newBadges;
     }
 
-    public async Task<Challenge> CreateDailyChallengeAsync()
+    public async Task<GamificationStats> GetStatsAsync(Guid userId)
     {
-        var templates = new[]
-        {
-            ("10 Fragen beantworten", "Beantworte heute 10 Fragen richtig", "🎯", 100, 10),
-            ("Streak halten", "Lerne heute und halte deinen Streak", "🔥", 50, 1),
-            ("Schnellläufer", "Beantworte 5 Fragen in unter 30 Sekunden", "⚡", 150, 5),
-            ("Perfekter Block", "Beantworte 5 Fragen in Folge richtig", "💯", 200, 5),
-            ("Material hochladen", "Lade ein Lernmaterial hoch", "📄", 75, 1),
-        };
-        var rnd = templates[Random.Shared.Next(templates.Length)];
-        var challenge = new Challenge
-        {
-            Title = rnd.Item1,
-            Description = rnd.Item2,
-            Icon = rnd.Item3,
-            XpReward = rnd.Item4,
-            Type = ChallengeType.Daily,
-            RequiredProgress = rnd.Item5,
-            ExpiresDate = DateTime.UtcNow.Date.AddDays(1)
-        };
-        _db.Challenges.Add(challenge);
-        await _db.SaveChangesAsync();
-        return challenge;
+        var user = await _db.Set<User>().FindAsync(userId);
+        if (user == null) return new(0, 0, 100, 0, 0, new(), new());
+
+        var badges = await _db.UserBadges
+            .Where(ub => ub.UserId == userId)
+            .Include(ub => ub.Badge)
+            .Select(ub => ub.Badge!)
+            .ToListAsync();
+
+        var achievements = await _db.Set<Achievement>().ToListAsync(); // TODO: filtern nach User
+
+        var nextLevelXP = GetXPForLevel(user.Level + 1);
+        var xpToNext = nextLevelXP - user.TotalXP;
+
+        return new GamificationStats(
+            user.Level, user.TotalXP, Math.Max(0, xpToNext),
+            user.CurrentStreak, user.LongestStreak,
+            badges, achievements);
     }
 
-    public async Task<bool> CompleteChallengeAsync(string userId, Guid challengeId)
+    public int GetLevelForXP(int totalXP)
     {
-        var uc = await _db.UserChallenges
-            .Include(u => u.Challenge)
-            .FirstOrDefaultAsync(u => u.UserId == userId && u.ChallengeId == challengeId);
-
-        if (uc == null || uc.Completed) return false;
-
-        uc.Completed = true;
-        uc.CompletedDate = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
-
-        if (uc.Challenge != null)
-            await AddXPAsync(userId, XPAction.ChallengeComplete, uc.Challenge.XpReward);
-
-        return true;
+        int level = 1;
+        while (GetXPForLevel(level + 1) <= totalXP)
+            level++;
+        return level;
     }
 
-    private async Task<UserProgress> GetOrCreateProgressAsync(string userId)
+    public int GetXPForLevel(int level)
     {
-        var progress = await _db.UserProgress.FirstOrDefaultAsync(p => p.UserId == userId);
-        if (progress == null)
-        {
-            progress = new UserProgress { UserId = userId };
-            _db.UserProgress.Add(progress);
-            await _db.SaveChangesAsync();
-        }
-        return progress;
+        return (int)Math.Round(100 * Math.Pow(level, 1.5));
     }
 
-    private static int GetXPForAction(XPAction action, int level) => action switch
-    {
-        XPAction.CorrectAnswer    => Constants.XP.CorrectAnswer,
-        XPAction.QuizComplete     => 5 + level / 2,
-        XPAction.TestComplete     => Constants.XP.TestCompleted,
-        XPAction.TestPerfect      => Constants.XP.TestPerfect,
-        XPAction.ChallengeComplete => Constants.XP.ChallengeMin,
-        XPAction.ContentGenerated  => Constants.XP.ContentGenerated,
-        XPAction.StreakMilestone   => Constants.XP.StreakBonus * 5,
-        XPAction.PlanCreated       => Constants.XP.LearningPlanCreated,
-        _ => 10
-    };
-
-    private static string GetActionLabel(XPAction action) => action switch
-    {
-        XPAction.CorrectAnswer     => "richtige Antwort",
-        XPAction.QuizComplete      => "Quiz abgeschlossen",
-        XPAction.TestComplete      => "Test abgeschlossen",
-        XPAction.TestPerfect       => "perfekten Test",
-        XPAction.ChallengeComplete => "Challenge abgeschlossen",
-        XPAction.ContentGenerated  => "Content erstellt",
-        XPAction.StreakMilestone   => "Streak-Meilenstein",
-        XPAction.PlanCreated       => "Lernplan erstellt",
-        _ => "Aktion"
-    };
-}
-
-public enum XPAction
-{
-    CorrectAnswer,
-    QuizComplete,
-    TestComplete,
-    TestPerfect,
-    ChallengeComplete,
-    ContentGenerated,
-    StreakMilestone,
-    PlanCreated
+    private record BadgeRequirement(string Type, int Count);
 }
