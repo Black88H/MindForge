@@ -113,18 +113,20 @@ public partial class App : Application
             }
         }
 
-        // Show login window; shutdown if user closes without logging in
-        using (var loginScope = _host.Services.CreateScope())
+        // Bypass login window for development
+        MindForge.Utils.UserSession.Login(new MindForge.Models.User
         {
-            var loginVm     = loginScope.ServiceProvider.GetRequiredService<LoginViewModel>();
-            var loginWindow = new LoginView(loginVm);
-            var loggedIn    = loginWindow.ShowDialog();
-            if (loggedIn != true)
-            {
-                Shutdown();
-                return;
-            }
-        }
+            Id = Guid.NewGuid(),
+            Username = "DevAdmin",
+            Email = "admin@mindforge.local",
+            Level = 1,
+            TotalXP = 0,
+            CurrentStreak = 0,
+            LongestStreak = 0,
+            PasswordHash = "dummy",
+            CreatedAt = DateTime.UtcNow,
+            LastLogin = DateTime.UtcNow
+        });
 
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
