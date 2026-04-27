@@ -9,12 +9,10 @@ namespace MindForge.ViewModels;
 
 public partial class ContentGeneratorViewModel : ObservableObject
 {
-    private readonly IAISelector? _aiSelector;
+    private readonly IAISelector _aiSelector;
     private string _rawFileContent = string.Empty;
 
-    public ContentGeneratorViewModel() : this(null) { }
-
-    public ContentGeneratorViewModel(IAISelector? aiSelector)
+    public ContentGeneratorViewModel(IAISelector aiSelector)
     {
         _aiSelector = aiSelector;
     }
@@ -71,29 +69,21 @@ public partial class ContentGeneratorViewModel : ObservableObject
         ProcessingStatus = "KI generiert Inhalte...";
         ProcessingProgress = 0.75;
 
-        if (_aiSelector != null)
-        {
-            var response = await _aiSelector.ExecuteAsync(
-                TaskType.ContentGeneration,
-                _rawFileContent,
-                ActiveTab);
+        var response = await _aiSelector.ExecuteAsync(
+            TaskType.ContentGeneration,
+            _rawFileContent,
+            ActiveTab);
 
-            if (response.IsSuccess)
-            {
-                PreviewContent  = response.Content;
-                AiProviderName  = response.ProviderName;
-                TokenInfo       = $"{response.TokensUsed} Tokens · {CostCalculator.FormatCost(response.CostUSD)}";
-            }
-            else
-            {
-                PreviewContent = GenerateFallback();
-                AiProviderName = $"Fehler: {response.Error}";
-            }
+        if (response.IsSuccess)
+        {
+            PreviewContent  = response.Content;
+            AiProviderName  = response.ProviderName;
+            TokenInfo       = $"{response.TokensUsed} Tokens · {CostCalculator.FormatCost(response.CostUSD)}";
         }
         else
         {
-            await Task.Delay(1200);
-            PreviewContent = GenerateFallback();
+            PreviewContent = $"## Fehler\n\n{response.Error}\n\nBitte prüfe die KI-Konfiguration unter Einstellungen → KI & Provider.";
+            AiProviderName = $"Fehler: {response.Error}";
         }
 
         ProcessingStatus   = "Fertig!";
@@ -121,10 +111,4 @@ public partial class ContentGeneratorViewModel : ObservableObject
             await File.WriteAllTextAsync(dialog.FileName, PreviewContent);
     }
 
-    private string GenerateFallback() => ActiveTab switch
-    {
-        "Fragen"          => "## Generierte Fragen\n\n**Frage 1:** Was ist das Leibniz-Kriterium?\n- A) ...\n- ✓ B) Alternierende Reihe\n\n**Frage 2:** ...",
-        "Zusammenfassung" => "## Zusammenfassung\n\nDer Text behandelt grundlegende Konzepte...",
-        _                 => "## Custom Output\n\n...",
-    };
 }

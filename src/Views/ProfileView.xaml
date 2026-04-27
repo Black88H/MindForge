@@ -3,10 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:MindForge.ViewModels"
              Background="{StaticResource BgBrush}">
-
-    <UserControl.DataContext>
-        <vm:ProfileViewModel/>
-    </UserControl.DataContext>
+    <!-- DataContext is injected via DI by ViewLocatorConverter -->
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid MaxWidth="900" Margin="40,32,40,40" HorizontalAlignment="Left">

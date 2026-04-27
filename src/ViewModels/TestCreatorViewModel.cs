@@ -1,10 +1,21 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.EntityFrameworkCore;
+using MindForge.Models;
+using MindForge.Services;
 
 namespace MindForge.ViewModels;
 
 public partial class TestCreatorViewModel : ObservableObject
 {
+    private readonly MindForgeDbContext _db;
+
+    public TestCreatorViewModel(MindForgeDbContext db)
+    {
+        _db = db;
+        _ = LoadQuestionsAsync();
+    }
+
     [ObservableProperty] private string _testType = "Quiz";
     [ObservableProperty] private string _selectedDifficulty = "Gemischt";
     [ObservableProperty] private int _durationMinutes = 30;
@@ -14,25 +25,48 @@ public partial class TestCreatorViewModel : ObservableObject
     [ObservableProperty] private int _currentQuestionIndex = 0;
     [ObservableProperty] private bool _isSubmitted = false;
     [ObservableProperty] private double _score = 0;
+    [ObservableProperty] private bool _isLoading = false;
 
-    [ObservableProperty] private List<TestQuestionItem> _availableQuestions = new()
-    {
-        new() { Text="Leibniz-Kriterium",    Subject="Analysis II",  IsSelected=true  },
-        new() { Text="Taylor-Reihen",         Subject="Analysis II",  IsSelected=true  },
-        new() { Text="Fourier-Transformation",Subject="Analysis II",  IsSelected=false },
-        new() { Text="Quantenverschränkung",  Subject="Quantenmechanik", IsSelected=false },
-        new() { Text="Schrödinger-Gleichung", Subject="Quantenmechanik", IsSelected=true  },
-        new() { Text="Present Perfect",       Subject="English C1",   IsSelected=false },
-        new() { Text="Conditionals",          Subject="English C1",   IsSelected=true  },
-        new() { Text="Dijkstra-Algorithmus",  Subject="Algorithmen",  IsSelected=true  },
-        new() { Text="Big-O Notation",        Subject="Algorithmen",  IsSelected=false },
-    };
+    [ObservableProperty] private List<TestQuestionItem> _availableQuestions = new();
 
     public List<string> TestTypes { get; } = ["Quiz", "Prüfungssimulation", "Schwachstellentraining"];
     public List<string> Difficulties { get; } = ["Leicht", "Mittel", "Schwer", "Gemischt"];
     public int SelectedCount => AvailableQuestions.Count(q => q.IsSelected);
     public string DurationText => $"{DurationMinutes} Minuten";
     public string TimeRemainingText => $"{TimeRemainingSeconds / 60:D2}:{TimeRemainingSeconds % 60:D2}";
+    public bool IsEmpty => !IsLoading && AvailableQuestions.Count == 0;
+
+    partial void OnAvailableQuestionsChanged(List<TestQuestionItem> value)
+    {
+        OnPropertyChanged(nameof(SelectedCount));
+        OnPropertyChanged(nameof(IsEmpty));
+    }
+    partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsEmpty));
+    partial void OnDurationMinutesChanged(int value) => OnPropertyChanged(nameof(DurationText));
+    partial void OnTimeRemainingSecondsChanged(int value) => OnPropertyChanged(nameof(TimeRemainingText));
+
+    private async Task LoadQuestionsAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            var rows = await _db.Questions
+                .Include(q => q.Subject)
+                .OrderBy(q => q.Subject!.Name)
+                .ThenBy(q => q.CreatedAt)
+                .Take(200)
+                .ToListAsync();
+
+            AvailableQuestions = rows.Select(q => new TestQuestionItem
+            {
+                Id = q.Id,
+                Text = q.Text,
+                Subject = q.Subject?.Name ?? "—",
+                IsSelected = false,
+            }).ToList();
+        }
+        finally { IsLoading = false; }
+    }
 
     [RelayCommand]
     private async Task StartTestAsync()
@@ -54,7 +88,8 @@ public partial class TestCreatorViewModel : ObservableObject
     {
         IsRunning = false;
         IsSubmitted = true;
-        Score = 78.5;
+        // Real scoring happens in Phase 1; for now record an empty result so the UI flow works
+        Score = 0;
         await Task.CompletedTask;
     }
 
@@ -78,6 +113,7 @@ public partial class TestCreatorViewModel : ObservableObject
 
 public partial class TestQuestionItem : ObservableObject
 {
+    public Guid Id { get; set; } = Guid.Empty;
     [ObservableProperty] private string _text = string.Empty;
     [ObservableProperty] private string _subject = string.Empty;
     [ObservableProperty] private bool _isSelected = false;

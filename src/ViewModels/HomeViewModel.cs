@@ -7,10 +7,9 @@ namespace MindForge.ViewModels;
 
 public partial class HomeViewModel : ObservableObject
 {
-    private readonly LearningPlanService? _planService;
+    private readonly LearningPlanService _planService;
 
-    public HomeViewModel() : this(null) { }
-    public HomeViewModel(LearningPlanService? planService) => _planService = planService;
+    public HomeViewModel(LearningPlanService planService) => _planService = planService;
 
     // Step tracking
     [ObservableProperty] private int _currentStep = 1;

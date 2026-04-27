@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using Microsoft.Extensions.DependencyInjection;
 using MindForge.Views;
 
 namespace MindForge;
@@ -132,29 +133,43 @@ public class EqualityConverter : IMultiValueConverter
 }
 
 /// <summary>
-/// Converts a CurrentView string to the matching UserControl instance.
-/// Fixes the XamlParseException caused by instantiating UIElements inside Style.Setter.Value.
+/// Converts a CurrentView string to the matching UserControl instance and
+/// wires its DataContext from DI. Each navigation creates a fresh DI scope
+/// (fresh DbContext + fresh repos + fresh ViewModel) tied to the view's
+/// lifetime via Unloaded.
 /// </summary>
 public class ViewLocatorConverter : IValueConverter
 {
-    public static readonly ViewLocatorConverter Instance = new();
-
-    public object? Convert(object value, Type t, object p, CultureInfo c) => value switch
+    private static readonly Dictionary<string, (Type View, Type? Vm)> Map = new()
     {
-        "Dashboard"        => new DashboardView(),
-        "Home"             => new HomeView(),
-        "QA"               => new QAView(),
-        "Learning"         => new LearningView(),
-        "Tests"            => new TestsView(),
-        "ContentGenerator" => new ContentGeneratorView(),
-        "KITools"          => new KIToolsView(),
-        "TestCreator"      => new TestCreatorView(),
-        "Analytics"        => new AnalyticsView(),
-        "Subjects"         => new SubjectsView(),
-        "Profile"          => new ProfileView(),
-        "Settings"         => new SettingsView(),
-        _                  => null
+        ["Dashboard"]        = (typeof(DashboardView),        typeof(MindForge.ViewModels.DashboardViewModel)),
+        ["Home"]             = (typeof(HomeView),             typeof(MindForge.ViewModels.HomeViewModel)),
+        ["QA"]               = (typeof(QAView),               typeof(MindForge.ViewModels.QAViewModel)),
+        ["Learning"]         = (typeof(LearningView),         typeof(MindForge.ViewModels.LearningViewModel)),
+        ["Tests"]            = (typeof(TestsView),            typeof(MindForge.ViewModels.TestsViewModel)),
+        ["ContentGenerator"] = (typeof(ContentGeneratorView), typeof(MindForge.ViewModels.ContentGeneratorViewModel)),
+        ["KITools"]          = (typeof(KIToolsView),          typeof(MindForge.ViewModels.KIToolsViewModel)),
+        ["TestCreator"]      = (typeof(TestCreatorView),      typeof(MindForge.ViewModels.TestCreatorViewModel)),
+        ["Analytics"]        = (typeof(AnalyticsView),        typeof(MindForge.ViewModels.AnalyticsViewModel)),
+        ["Subjects"]         = (typeof(SubjectsView),         typeof(MindForge.ViewModels.SubjectsViewModel)),
+        ["Profile"]          = (typeof(ProfileView),          typeof(MindForge.ViewModels.ProfileViewModel)),
+        ["Settings"]         = (typeof(SettingsView),         typeof(MindForge.ViewModels.SettingsViewModel)),
     };
+
+    public object? Convert(object value, Type t, object p, CultureInfo c)
+    {
+        if (value is not string key || !Map.TryGetValue(key, out var entry))
+            return null;
+
+        var view = (FrameworkElement)Activator.CreateInstance(entry.View)!;
+        if (entry.Vm != null && App.Services != null)
+        {
+            var scope = App.Services.CreateScope();
+            view.DataContext = scope.ServiceProvider.GetRequiredService(entry.Vm);
+            view.Unloaded += (_, _) => scope.Dispose();
+        }
+        return view;
+    }
 
     public object ConvertBack(object value, Type t, object p, CultureInfo c)
         => throw new NotImplementedException();

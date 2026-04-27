@@ -1,20 +1,24 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MindForge.Models;
+using MindForge.Services;
 using MindForge.Utils;
 
 namespace MindForge.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    public MainViewModel()
+    private readonly SubjectRepository _subjectRepo;
+
+    public MainViewModel(SubjectRepository subjectRepo)
     {
-        // Load real session data — no fake values
+        _subjectRepo = subjectRepo;
         _userName    = UserSession.Username;
         _level       = UserSession.Level;
         _currentXP   = UserSession.TotalXP;
-        _xpToNextLevel = Math.Max(1000, UserSession.Level * 1000);
+        _xpToNextLevel = (int)Math.Pow(Math.Max(1, UserSession.Level), 2) * 50;
         _streak      = UserSession.CurrentStreak;
+        _ = LoadSubjectsAsync();
     }
 
     [ObservableProperty] private string _currentView = "Dashboard";
@@ -28,13 +32,17 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _isSyncing = false;
     [ObservableProperty] private string _breadcrumb = "Dashboard";
 
-    // Empty subjects list — populated from DB
-    [ObservableProperty] private List<SubjectViewModel> _subjects = new();
+    [ObservableProperty] private ObservableCollection<SubjectViewModel> _subjects = new();
 
     [ObservableProperty] private SubjectViewModel? _activeSubject;
 
     public double XPProgress => XpToNextLevel > 0 ? (double)CurrentXP / XpToNextLevel : 0;
     public string XPProgressText => $"{CurrentXP} / {XpToNextLevel} XP";
+    public bool HasSubjects => Subjects.Count > 0;
+
+    partial void OnCurrentXPChanged(int value) => OnPropertyChanged(nameof(XPProgressText));
+    partial void OnXpToNextLevelChanged(int value) => OnPropertyChanged(nameof(XPProgressText));
+    partial void OnSubjectsChanged(ObservableCollection<SubjectViewModel> value) => OnPropertyChanged(nameof(HasSubjects));
 
     private static readonly Dictionary<string, string> ViewLabels = new()
     {
@@ -43,11 +51,30 @@ public partial class MainViewModel : ObservableObject
         ["Tests"]           = "Tests",
         ["Analytics"]       = "Analytics",
         ["ContentGenerator"]= "KI-Werkzeuge",
+        ["KITools"]         = "KI-Werkzeuge",
         ["Subjects"]        = "Fächer",
         ["Profile"]         = "Profil",
         ["Settings"]        = "Einstellungen",
         ["QA"]              = "Lernen",
     };
+
+    private async Task LoadSubjectsAsync()
+    {
+        var rows = await _subjectRepo.GetSubjectsAsync();
+        Subjects = new ObservableCollection<SubjectViewModel>(rows.Select(s => new SubjectViewModel
+        {
+            Id            = s.Id,
+            Name          = s.Name,
+            Icon          = s.Icon,
+            Color         = s.Color,
+            Progress      = s.Progress,
+            QuestionCount = s.QuestionCount,
+            SuccessRate   = s.SuccessRate,
+            Difficulty    = s.Difficulty.ToString(),
+            QuestionsToday= s.QuestionsToday,
+            LastStudied   = string.IsNullOrEmpty(s.LastStudied) ? "Noch nie" : s.LastStudied,
+        }));
+    }
 
     [RelayCommand]
     private void NavigateTo(string view)
@@ -72,7 +99,7 @@ public partial class MainViewModel : ObservableObject
     {
         IsSyncing = true;
         SyncStatus = "Synchronisiert...";
-        await Task.Delay(1500);
+        await LoadSubjectsAsync();
         IsSyncing = false;
         SyncStatus = "Synchronisiert";
     }
@@ -80,6 +107,7 @@ public partial class MainViewModel : ObservableObject
 
 public partial class SubjectViewModel : ObservableObject
 {
+    public Guid Id { get; set; } = Guid.Empty;
     [ObservableProperty] private string _name = string.Empty;
     [ObservableProperty] private string _icon = "∫";
     [ObservableProperty] private string _color = "#5B8CFF";

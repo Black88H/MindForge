@@ -1,18 +1,24 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.EntityFrameworkCore;
 using MindForge.Models;
 using MindForge.Services;
-using System.Collections.ObjectModel;
 
 namespace MindForge.ViewModels;
 
 public partial class TestsViewModel : ObservableObject
 {
-    private readonly TestRunnerService? _runner;
+    private readonly TestRunnerService _runner;
+    private readonly MindForgeDbContext _db;
     private System.Timers.Timer? _timer;
 
-    public TestsViewModel() : this(null) { }
-    public TestsViewModel(TestRunnerService? runner) => _runner = runner;
+    public TestsViewModel(TestRunnerService runner, MindForgeDbContext db)
+    {
+        _runner = runner;
+        _db = db;
+        _ = LoadHistoryAsync();
+    }
 
     // Creator tabs
     [ObservableProperty] private string _activeCreatorTab = "Neu";
@@ -66,13 +72,8 @@ public partial class TestsViewModel : ObservableObject
     [ObservableProperty] private string _ocrStatus = string.Empty;
     [ObservableProperty] private int _ocrProgress = 0;
 
-    // History
-    [ObservableProperty] private ObservableCollection<TestHistoryItem> _testHistory = new()
-    {
-        new() { Name="Analysis Klausur 1", Subject="Analysis II", Score=87, Date="23.04.2026", Questions=20 },
-        new() { Name="Quantum Quiz",       Subject="Quantenmechanik", Score=72, Date="21.04.2026", Questions=15 },
-        new() { Name="English C1 Mock",    Subject="Englisch C1", Score=95, Date="19.04.2026", Questions=30 },
-    };
+    // History — populated from UserTestHistory
+    [ObservableProperty] private ObservableCollection<TestHistoryItem> _testHistory = new();
 
     // Prüfungsvorbereitung
     [ObservableProperty] private string _examSubject = string.Empty;
@@ -87,6 +88,25 @@ public partial class TestsViewModel : ObservableObject
     public bool IsLastQuestion => TotalQuestions > 0 && CurrentQuestionIndex >= TotalQuestions - 1;
     public bool HasNoHistory => TestHistory.Count == 0;
 
+    private async Task LoadHistoryAsync()
+    {
+        var rows = await _db.UserTestHistory
+            .Include(h => h.Test)
+            .OrderByDescending(h => h.LastAttempt)
+            .Take(20)
+            .ToListAsync();
+
+        TestHistory = new ObservableCollection<TestHistoryItem>(rows.Select(h => new TestHistoryItem
+        {
+            Name      = h.Test?.Name ?? "Unbenannter Test",
+            Subject   = h.Test?.Subject?.Name ?? "—",
+            Score     = (int)Math.Round(h.Score),
+            Date      = h.LastAttempt.ToString("dd.MM.yyyy"),
+            Questions = h.TotalQuestions,
+        }));
+        OnPropertyChanged(nameof(HasNoHistory));
+    }
+
     [RelayCommand]
     private void SetCreatorTab(string tab) => ActiveCreatorTab = tab;
 
@@ -99,7 +119,7 @@ public partial class TestsViewModel : ObservableObject
         TotalQuestions = QuestionCount;
         TimeRemainingSeconds = TimerEnabled ? TimerMinutes * 60 : 0;
 
-        LoadMockQuestion(0);
+        await LoadQuestionAsync(0);
 
         if (TimerEnabled)
             StartTimer();
@@ -118,7 +138,8 @@ public partial class TestsViewModel : ObservableObject
     {
         if (SelectedOption == null || CurrentAnswered) return;
         CurrentAnswered = true;
-        CurrentIsCorrect = SelectedOption.Label == "A"; // placeholder
+        CurrentIsCorrect = SelectedOption.Label == "A"; // placeholder until real test engine
+        await Task.CompletedTask;
 
         foreach (var o in CurrentOptions)
         {
@@ -129,7 +150,7 @@ public partial class TestsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void NextTestQuestion()
+    private async Task NextTestQuestionAsync()
     {
         if (CurrentQuestionIndex >= TotalQuestions - 1)
         {
@@ -140,7 +161,7 @@ public partial class TestsViewModel : ObservableObject
         OnPropertyChanged(nameof(IsLastQuestion));
         CurrentAnswered = false;
         SelectedOption = null;
-        LoadMockQuestion(CurrentQuestionIndex);
+        await LoadQuestionAsync(CurrentQuestionIndex);
     }
 
     [RelayCommand]
@@ -153,10 +174,9 @@ public partial class TestsViewModel : ObservableObject
         FinalScore = FinalTotal > 0 ? Math.Round((double)FinalCorrect / FinalTotal * 100, 1) : 0;
         FinalTime = $"{(TimerMinutes * 60 - TimeRemainingSeconds) / 60:D2}:{(TimerMinutes * 60 - TimeRemainingSeconds) % 60:D2}";
         XpEarned = (int)(FinalScore * 2);
-        ErrorAnalysis = FinalCorrect < FinalTotal ? "Fehler in: Theorie, Berechnungen" : "Perfekt!";
-        SmartSuggestions = new(["Wiederhole Kapitel 3", "Übe Berechnungsaufgaben"]);
+        ErrorAnalysis = FinalCorrect < FinalTotal ? "Schwächen identifiziert" : "Perfekter Test!";
+        SmartSuggestions = new(["Wiederhole falsch beantwortete Themen", "Erstelle Karteikarten zu Schwachstellen"]);
 
-        OnPropertyChanged(nameof(HasNoHistory));
         TestHistory.Insert(0, new TestHistoryItem
         {
             Name = string.IsNullOrEmpty(TestName) ? "Unbenannter Test" : TestName,
@@ -165,6 +185,7 @@ public partial class TestsViewModel : ObservableObject
             Date = DateTime.Today.ToString("dd.MM.yyyy"),
             Questions = FinalTotal
         });
+        OnPropertyChanged(nameof(HasNoHistory));
     }
 
     [RelayCommand]
@@ -186,22 +207,51 @@ public partial class TestsViewModel : ObservableObject
         if (dialog.ShowDialog() == true)
         {
             OcrUploadPath = dialog.FileName;
-            OcrStatus = "Verarbeitung...";
+            OcrStatus = "OCR wird in einer späteren Phase implementiert.";
             OcrProgress = 0;
-            SimulateOCRProgress();
         }
     }
 
-    private void LoadMockQuestion(int index)
+    private async Task LoadQuestionAsync(int index)
     {
-        CurrentQuestionText = $"Frage {index + 1}: Was ist das Ergebnis von 2 + 2?";
-        CurrentOptions = new ObservableCollection<AnswerOption>
+        // Pull a real question from the selected subject if available; fall back to placeholder
+        Question? q = null;
+        var subjects = await _db.Subjects
+            .Where(s => SelectedSubject == "Alle Fächer" || s.Name == SelectedSubject)
+            .ToListAsync();
+        if (subjects.Count > 0)
         {
-            new() { Label = "A", Text = "4" },
-            new() { Label = "B", Text = "3" },
-            new() { Label = "C", Text = "5" },
-            new() { Label = "D", Text = "22" },
-        };
+            var subjectIds = subjects.Select(s => s.Id).ToList();
+            q = await _db.Questions
+                .Where(x => subjectIds.Contains(x.SubjectId))
+                .OrderBy(x => x.SuccessRate)
+                .ThenBy(x => x.TimesAnswered)
+                .Skip(index)
+                .FirstOrDefaultAsync();
+        }
+
+        if (q != null)
+        {
+            CurrentQuestionText = q.Text;
+            var labels = new[] { "A", "B", "C", "D" };
+            CurrentOptions = new ObservableCollection<AnswerOption>(
+                q.Options.Take(4).Select((opt, i) => new AnswerOption
+                {
+                    Label = labels[i],
+                    Text  = opt,
+                }));
+        }
+        else
+        {
+            CurrentQuestionText = $"Frage {index + 1}: (keine Fragen für dieses Fach in der Datenbank — Phase 1 generiert sie)";
+            CurrentOptions = new ObservableCollection<AnswerOption>
+            {
+                new() { Label = "A", Text = "—" },
+                new() { Label = "B", Text = "—" },
+                new() { Label = "C", Text = "—" },
+                new() { Label = "D", Text = "—" },
+            };
+        }
         CurrentExplanation = string.Empty;
     }
 
@@ -223,16 +273,6 @@ public partial class TestsViewModel : ObservableObject
             }
         };
         _timer.Start();
-    }
-
-    private async void SimulateOCRProgress()
-    {
-        for (int i = 0; i <= 100; i += 10)
-        {
-            await Task.Delay(200);
-            OcrProgress = i;
-            OcrStatus = i < 100 ? $"Verarbeitung... {i}%" : "✓ OCR abgeschlossen";
-        }
     }
 }
 

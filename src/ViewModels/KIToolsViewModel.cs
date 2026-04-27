@@ -1,17 +1,21 @@
+using System.Collections.ObjectModel;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MindForge.Services.AI.Interfaces;
 using MindForge.Services.AI.Models;
-using System.Collections.ObjectModel;
+using MindForge.Services.AI.Utilities;
 
 namespace MindForge.ViewModels;
 
 public partial class KIToolsViewModel : ObservableObject
 {
-    private readonly IAISelector? _ai;
+    private readonly IAISelector _ai;
 
-    public KIToolsViewModel() : this(null) { }
-    public KIToolsViewModel(IAISelector? ai) => _ai = ai;
+    public KIToolsViewModel(IAISelector ai)
+    {
+        _ai = ai;
+    }
 
     // Upload
     [ObservableProperty] private string _uploadedFilePath = string.Empty;
@@ -19,7 +23,6 @@ public partial class KIToolsViewModel : ObservableObject
     [ObservableProperty] private bool _hasUploadedFile = false;
     [ObservableProperty] private bool _isDragging = false;
 
-    // View-facing upload alias
     public string FileName => UploadedFileName;
     partial void OnUploadedFileNameChanged(string value) => OnPropertyChanged(nameof(FileName));
 
@@ -45,7 +48,6 @@ public partial class KIToolsViewModel : ObservableObject
     [ObservableProperty] private string _processingStatus = string.Empty;
     [ObservableProperty] private string _estimatedTimeText = string.Empty;
 
-    // View-facing processing aliases
     public bool IsGenerating => IsProcessing;
     partial void OnIsProcessingChanged(bool value) => OnPropertyChanged(nameof(IsGenerating));
 
@@ -83,10 +85,12 @@ public partial class KIToolsViewModel : ObservableObject
     [ObservableProperty] private int _tokenCount = 0;
     [ObservableProperty] private decimal _estimatedCost = 0m;
     public string CostText => $"Tokens: {TokenCount} · Geschätzte Kosten: ${EstimatedCost:F3}";
+    partial void OnTokenCountChanged(int value) => OnPropertyChanged(nameof(CostText));
+    partial void OnEstimatedCostChanged(decimal value) => OnPropertyChanged(nameof(CostText));
 
-    // XP toast
-    [ObservableProperty] private bool _showXPToast = false;
-    [ObservableProperty] private int _toastXP = 0;
+    // Errors
+    [ObservableProperty] private string _errorMessage = string.Empty;
+    [ObservableProperty] private string _aiProviderName = string.Empty;
 
     [RelayCommand]
     private void SelectTab(string tab) => SelectedTab = tab;
@@ -113,70 +117,122 @@ public partial class KIToolsViewModel : ObservableObject
         UploadedFilePath = path;
         UploadedFileName = System.IO.Path.GetFileName(path);
         HasUploadedFile = true;
+        if (System.IO.Path.GetExtension(path).ToLowerInvariant() is ".txt" or ".md")
+        {
+            try { InputText = System.IO.File.ReadAllText(path); }
+            catch { /* ignore */ }
+        }
     }
 
     [RelayCommand]
-    private void Generate() => _ = ProcessAsync();
-
-    [RelayCommand]
-    private void RunCustom() => _ = ProcessAsync();
-
-    [RelayCommand]
-    private async Task ProcessAsync()
+    private async Task GenerateAsync()
     {
-        if (!HasUploadedFile && string.IsNullOrWhiteSpace(InputText) && string.IsNullOrWhiteSpace(CustomPrompt)) return;
+        var source = !string.IsNullOrWhiteSpace(InputText) ? InputText
+                   : HasUploadedFile ? $"(Material: {UploadedFileName})" : string.Empty;
+        if (string.IsNullOrWhiteSpace(source)) { ErrorMessage = "Bitte zuerst Material hochladen oder Text eingeben."; return; }
 
+        ErrorMessage = string.Empty;
         IsProcessing = true;
-        ProcessingProgress = 0;
+        ProcessingProgress = 10;
+        ProcessingStatus = "KI wird angefragt...";
         GeneratedQuestions.Clear();
 
-        for (int i = 0; i <= 100; i += 10)
+        try
         {
-            await Task.Delay(150);
-            ProcessingProgress = i;
-            ProcessingStatus = i < 100 ? $"Verarbeitung... {i}%" : "✓ Abgeschlossen";
-        }
-
-        var count = GenerateCount > 0 ? GenerateCount : QuestionCount;
-
-        if (IsFlashcardMode || IsMcMode || IsOpenMode || SelectedTab.StartsWith("Fragen"))
-        {
-            for (int i = 1; i <= Math.Min(count, 10); i++)
+            if (SelectedTab.StartsWith("Fragen") || IsFlashcardMode || IsMcMode || IsOpenMode)
             {
-                GeneratedQuestions.Add(new GeneratedQuestion
-                {
-                    Number = i,
-                    Text = $"Frage {i} aus dem hochgeladenen Dokument",
-                    Type = IsMcMode ? "Multiple Choice" : IsFlashcardMode ? "Karteikarte" : "Offen",
-                    Difficulty = i % 3 == 0 ? "Schwer" : i % 2 == 0 ? "Mittel" : "Leicht"
-                });
-            }
-            PreviewContent = $"## Generierte Fragen ({GeneratedQuestions.Count})\n\n" +
-                string.Join("\n", GeneratedQuestions.Select(q => $"{q.Number}. {q.Text}"));
-            OutputTab = 0;
-        }
-        else if (SelectedTab.StartsWith("Zusammenfassung"))
-        {
-            SummaryContent = "**Zusammenfassung**\n\n• Wichtigster Punkt 1\n• Wichtigster Punkt 2\n• Wichtigster Punkt 3";
-            PreviewContent = SummaryContent;
-            OutputTab = 1;
-        }
-        else
-        {
-            CustomResult = "KI-Antwort auf deine Anfrage...";
-            PreviewContent = CustomResult;
-            OutputTab = 2;
-        }
+                var modeLabel = IsMcMode ? "Multiple Choice" : IsFlashcardMode ? "Karteikarten" : "Offene Fragen";
+                var prompt = $@"Erstelle {GenerateCount} {modeLabel}-Fragen basierend auf diesem Inhalt.
+Antworte ausschließlich als JSON-Array. Jedes Element:
+{{ ""question"": ""..."", ""answer"": ""..."", ""difficulty"": ""Leicht|Mittel|Schwer"" }}
 
-        TokenCount = Random.Shared.Next(200, 800);
-        EstimatedCost = TokenCount * 0.000015m;
-        HasOutput = true;
-        IsProcessing = false;
-        ShowXPToast = true;
-        ToastXP = 150;
-        await Task.Delay(3000);
-        ShowXPToast = false;
+Inhalt:
+{source}";
+
+                ProcessingProgress = 40;
+                var resp = await _ai.ExecuteAsync(TaskType.ContentGeneration, prompt);
+                ProcessingProgress = 80;
+                if (!resp.IsSuccess) { ErrorMessage = $"KI-Fehler: {resp.Error}"; ProcessingStatus = "✗ Fehler"; return; }
+
+                AiProviderName = resp.ProviderName;
+                TokenCount     = resp.TokensUsed;
+                EstimatedCost  = (decimal)resp.CostUSD;
+
+                var parsed = TryParseQuestions(resp.Content);
+                int n = 1;
+                foreach (var q in parsed)
+                    GeneratedQuestions.Add(new GeneratedQuestion
+                    {
+                        Number = n++,
+                        Text = q.Question,
+                        Type = modeLabel,
+                        Difficulty = q.Difficulty,
+                        Answer = q.Answer,
+                    });
+
+                if (GeneratedQuestions.Count == 0)
+                {
+                    // Model didn't return JSON — surface raw content
+                    PreviewContent = resp.Content;
+                }
+                else
+                {
+                    PreviewContent = $"## Generierte Fragen ({GeneratedQuestions.Count})\n\n" +
+                        string.Join("\n", GeneratedQuestions.Select(q => $"{q.Number}. {q.Text}\n   ✓ {q.Answer}"));
+                }
+                OutputTab = 0;
+            }
+            else if (SelectedTab.StartsWith("Zusammenfassung"))
+            {
+                var lengthHint = SummaryLength switch
+                {
+                    "Kurz" => "in 3-5 Bullet Points",
+                    "Lang" => "in 8-12 detaillierten Absätzen",
+                    _      => "in 5-7 strukturierten Bullet Points"
+                };
+                var prompt = $"Fasse den folgenden Inhalt {lengthHint} auf Deutsch zusammen.\n\n{source}";
+                ProcessingProgress = 50;
+                var resp = await _ai.ExecuteAsync(TaskType.ContentGeneration, prompt);
+                if (!resp.IsSuccess) { ErrorMessage = $"KI-Fehler: {resp.Error}"; ProcessingStatus = "✗ Fehler"; return; }
+                AiProviderName = resp.ProviderName;
+                TokenCount     = resp.TokensUsed;
+                EstimatedCost  = (decimal)resp.CostUSD;
+                SummaryContent = resp.Content;
+                PreviewContent = SummaryContent;
+                OutputTab = 1;
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(CustomPrompt)) { ErrorMessage = "Bitte einen Prompt eingeben."; return; }
+                var prompt = $"{CustomPrompt}\n\nKontext:\n{source}";
+                ProcessingProgress = 50;
+                var resp = await _ai.ExecuteAsync(TaskType.QAExplanation, prompt);
+                if (!resp.IsSuccess) { ErrorMessage = $"KI-Fehler: {resp.Error}"; ProcessingStatus = "✗ Fehler"; return; }
+                AiProviderName = resp.ProviderName;
+                TokenCount     = resp.TokensUsed;
+                EstimatedCost  = (decimal)resp.CostUSD;
+                CustomResult   = resp.Content;
+                PreviewContent = CustomResult;
+                OutputTab = 2;
+            }
+
+            ProcessingProgress = 100;
+            ProcessingStatus = $"✓ Erstellt mit {AiProviderName} · {CostCalculator.FormatCost((double)EstimatedCost)}";
+            HasOutput = true;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Unerwarteter Fehler: {ex.Message}";
+            ProcessingStatus = "✗ Fehler";
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
     }
+
+    [RelayCommand]
+    private async Task RunCustomAsync() => await GenerateAsync();
 
     [RelayCommand]
     private void CancelProcessing()
@@ -202,7 +258,7 @@ public partial class KIToolsViewModel : ObservableObject
     [RelayCommand]
     private void SaveToLibrary()
     {
-        // Would open plan selector dialog
+        // Library persistence is part of Phase 1 (MaterialLibrary table will be wired then)
     }
 
     [RelayCommand]
@@ -210,6 +266,50 @@ public partial class KIToolsViewModel : ObservableObject
 
     [RelayCommand]
     private void AddToLearningPlan() { }
+
+    private static List<ParsedQuestion> TryParseQuestions(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return new();
+
+        // Strip code fences if model wrapped output
+        var cleaned = raw.Trim();
+        if (cleaned.StartsWith("```"))
+        {
+            var firstNl = cleaned.IndexOf('\n');
+            if (firstNl > 0) cleaned = cleaned[(firstNl + 1)..];
+            var lastFence = cleaned.LastIndexOf("```", StringComparison.Ordinal);
+            if (lastFence > 0) cleaned = cleaned[..lastFence];
+            cleaned = cleaned.Trim();
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(cleaned);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array) return new();
+            var result = new List<ParsedQuestion>();
+            foreach (var el in doc.RootElement.EnumerateArray())
+            {
+                result.Add(new ParsedQuestion
+                {
+                    Question = el.TryGetProperty("question", out var qv) ? qv.GetString() ?? "" : "",
+                    Answer   = el.TryGetProperty("answer",   out var av) ? av.GetString() ?? "" : "",
+                    Difficulty = el.TryGetProperty("difficulty", out var dv) ? dv.GetString() ?? "Mittel" : "Mittel",
+                });
+            }
+            return result;
+        }
+        catch
+        {
+            return new();
+        }
+    }
+
+    private record ParsedQuestion
+    {
+        public string Question { get; init; } = string.Empty;
+        public string Answer { get; init; } = string.Empty;
+        public string Difficulty { get; init; } = "Mittel";
+    }
 }
 
 public class GeneratedQuestion
@@ -219,6 +319,6 @@ public class GeneratedQuestion
     public string Type { get; set; } = "Multiple Choice";
     public string Difficulty { get; set; } = "Mittel";
     public bool IsSelected { get; set; } = true;
+    public string Answer { get; set; } = string.Empty;
     public string Question => Text;
-    public string Answer => $"Antwort {Number}";
 }

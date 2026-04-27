@@ -1,26 +1,43 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.EntityFrameworkCore;
 using MindForge.Models;
 using MindForge.Services;
 using MindForge.Services.AI.Interfaces;
 using MindForge.Services.AI.Models;
 using MindForge.Services.AI.Utilities;
-using System.Collections.ObjectModel;
+using MindForge.Utils;
 
 namespace MindForge.ViewModels;
 
 public partial class LearningViewModel : ObservableObject
 {
-    private readonly IAISelector? _ai;
-    private readonly SpacedRepetitionService? _sr;
-    private readonly GamificationService? _gamification;
+    private readonly IAISelector _ai;
+    private readonly SpacedRepetitionService _sr;
+    private readonly GamificationService _gamification;
+    private readonly QuestionRepository _questions;
+    private readonly UserProgressRepository _progress;
+    private readonly MindForgeDbContext _db;
 
-    public LearningViewModel() : this(null, null, null) { }
-    public LearningViewModel(IAISelector? ai, SpacedRepetitionService? sr, GamificationService? gamification)
+    private readonly Queue<Question> _queue = new();
+    private Question? _current;
+
+    public LearningViewModel(
+        IAISelector ai,
+        SpacedRepetitionService sr,
+        GamificationService gamification,
+        QuestionRepository questions,
+        UserProgressRepository progress,
+        MindForgeDbContext db)
     {
         _ai = ai;
         _sr = sr;
         _gamification = gamification;
+        _questions = questions;
+        _progress = progress;
+        _db = db;
+        _ = LoadAsync();
     }
 
     // Subject & Filter
@@ -29,19 +46,14 @@ public partial class LearningViewModel : ObservableObject
     public List<string> DifficultyOptions { get; } = ["Alle", "Leicht", "Mittel", "Schwer"];
 
     // Current Question
-    [ObservableProperty] private string _subjectName = "Analysis II";
+    [ObservableProperty] private string _subjectName = string.Empty;
     [ObservableProperty] private string _subjectColor = "#5B8CFF";
-    [ObservableProperty] private string _questionTag = "Reihen";
-    [ObservableProperty] private string _difficultyTag = "Mittel";
-    [ObservableProperty] private string _questionNumber = "#047";
-    [ObservableProperty] private string _questionText = "Welche Reihe konvergiert nach dem Leibniz-Kriterium, aber nicht absolut?";
-    [ObservableProperty] private ObservableCollection<AnswerOption> _options = new()
-    {
-        new() { Label = "A", Text = "∑ 1/n²" },
-        new() { Label = "B", Text = "∑ (-1)ⁿ / n" },
-        new() { Label = "C", Text = "∑ (-1)ⁿ / n²" },
-        new() { Label = "D", Text = "∑ 1/√n" },
-    };
+    [ObservableProperty] private string _questionTag = string.Empty;
+    [ObservableProperty] private string _difficultyTag = string.Empty;
+    [ObservableProperty] private string _questionNumber = string.Empty;
+    [ObservableProperty] private string _questionText = string.Empty;
+    [ObservableProperty] private bool _hasQuestion = false;
+    [ObservableProperty] private ObservableCollection<AnswerOption> _options = new();
 
     [ObservableProperty] private AnswerOption? _selectedOption;
     [ObservableProperty] private bool _isAnswered = false;
@@ -52,14 +64,14 @@ public partial class LearningViewModel : ObservableObject
 
     // Session stats
     [ObservableProperty] private int _questionProgress = 0;
-    [ObservableProperty] private int _questionTotal = 20;
+    [ObservableProperty] private int _questionTotal = 0;
     [ObservableProperty] private int _correctToday = 0;
     [ObservableProperty] private int _totalToday = 0;
-    [ObservableProperty] private int _streakDays = 0;
+    [ObservableProperty] private int _streakDays = UserSession.CurrentStreak;
     [ObservableProperty] private bool _streakInDanger = false;
-    [ObservableProperty] private int _currentXP = 0;
-    [ObservableProperty] private int _xpToNextLevel = 500;
-    [ObservableProperty] private int _level = 1;
+    [ObservableProperty] private int _currentXP = UserSession.TotalXP;
+    [ObservableProperty] private int _xpToNextLevel = 100;
+    [ObservableProperty] private int _level = UserSession.Level;
     [ObservableProperty] private DateTime _nextReviewDate = DateTime.Today.AddDays(1);
 
     // AI info
@@ -72,14 +84,7 @@ public partial class LearningViewModel : ObservableObject
     [ObservableProperty] private string _planTitle = string.Empty;
     [ObservableProperty] private int _planDays = 14;
     [ObservableProperty] private int _planMinutesPerDay = 60;
-    [ObservableProperty] private ObservableCollection<LearningMethodItem> _availableMethods = new()
-    {
-        new() { Name = "Active Recall",      Icon = "🧠", IsSelected = true },
-        new() { Name = "Spaced Repetition",  Icon = "🔄", IsSelected = true },
-        new() { Name = "Pomodoro",           Icon = "🍅", IsSelected = false },
-        new() { Name = "Interleaving",       Icon = "🔀", IsSelected = false },
-        new() { Name = "Practice Test",      Icon = "📝", IsSelected = false },
-    };
+    [ObservableProperty] private ObservableCollection<LearningMethodItem> _availableMethods = new();
 
     // Material library
     [ObservableProperty] private ObservableCollection<MaterialItem> _materials = new();
@@ -94,6 +99,82 @@ public partial class LearningViewModel : ObservableObject
     public string SessionProgressText => $"{QuestionProgress} / {QuestionTotal}";
     public string TodayStatsText => $"{CorrectToday}/{TotalToday}";
     public double XPProgress => XpToNextLevel > 0 ? Math.Clamp((double)CurrentXP / XpToNextLevel, 0, 1) : 0;
+    public bool IsEmpty => !HasQuestion;
+
+    partial void OnHasQuestionChanged(bool value) => OnPropertyChanged(nameof(IsEmpty));
+    partial void OnQuestionProgressChanged(int value) => OnPropertyChanged(nameof(SessionProgressText));
+    partial void OnQuestionTotalChanged(int value) => OnPropertyChanged(nameof(SessionProgressText));
+    partial void OnCorrectTodayChanged(int value) => OnPropertyChanged(nameof(TodayStatsText));
+    partial void OnTotalTodayChanged(int value) => OnPropertyChanged(nameof(TodayStatsText));
+
+    private async Task LoadAsync()
+    {
+        // XP budget for next level — match GamificationService.GetXPForNextLevel
+        XpToNextLevel = (int)Math.Pow(Math.Max(1, Level), 2) * 50;
+
+        // Available methods from DB
+        var methods = await _db.LearningMethods.OrderBy(m => m.Type).ToListAsync();
+        AvailableMethods = new ObservableCollection<LearningMethodItem>(methods.Select(m => new LearningMethodItem
+        {
+            Name = m.Name,
+            Icon = m.Icon,
+            IsSelected = m.Type is LearningMethodType.ActiveRecall or LearningMethodType.SpacedRepetition,
+        }));
+
+        // Today's progress (global, default user)
+        var global = await _progress.GetGlobalProgressAsync();
+        CorrectToday = global.CorrectToday;
+        TotalToday   = global.TotalToday;
+        StreakDays   = global.CurrentStreak;
+        StreakInDanger = global.LastStreakDate.Date < DateTime.UtcNow.Date.AddDays(-1);
+
+        // Question queue: prefer due reviews, fall back to weakest questions
+        var due = await _db.SpacedRepetitionItems
+            .Include(s => s.UserProgress)
+            .Where(s => s.NextReviewDate <= DateTime.UtcNow.Date)
+            .OrderBy(s => s.NextReviewDate)
+            .Take(10)
+            .ToListAsync();
+        // SpacedRepetitionItem references UserProgress (subject), not directly Question — fall back to weakest
+        var rows = due.Count > 0
+            ? new List<Question>()
+            : await _db.Questions
+                .Include(q => q.Subject)
+                .OrderBy(q => q.SuccessRate)
+                .ThenBy(q => q.TimesAnswered)
+                .Take(20)
+                .ToListAsync();
+
+        _queue.Clear();
+        foreach (var q in rows) _queue.Enqueue(q);
+        QuestionTotal = _queue.Count;
+        QuestionProgress = 0;
+        LoadNextFromQueue();
+    }
+
+    private void LoadNextFromQueue()
+    {
+        if (_queue.Count == 0)
+        {
+            HasQuestion = false;
+            QuestionText = string.Empty;
+            Options = new ObservableCollection<AnswerOption>();
+            return;
+        }
+
+        _current = _queue.Dequeue();
+        QuestionText  = _current.Text;
+        SubjectName   = _current.Subject?.Name ?? "—";
+        SubjectColor  = _current.Subject?.Color ?? "#5B8CFF";
+        QuestionTag   = _current.Tags.FirstOrDefault() ?? string.Empty;
+        DifficultyTag = _current.Difficulty.ToString();
+        QuestionNumber = $"#{(QuestionProgress + 1):D3}";
+
+        var labels = new[] { "A", "B", "C", "D" };
+        Options = new ObservableCollection<AnswerOption>(
+            _current.Options.Take(4).Select((opt, i) => new AnswerOption { Label = labels[i], Text = opt }));
+        HasQuestion = true;
+    }
 
     [RelayCommand]
     private void SelectOption(AnswerOption option)
@@ -106,45 +187,55 @@ public partial class LearningViewModel : ObservableObject
     [RelayCommand]
     private async Task SubmitAnswerAsync()
     {
-        if (SelectedOption == null || IsAnswered) return;
+        if (SelectedOption == null || IsAnswered || _current == null) return;
         IsAnswered = true;
-        IsCorrect = SelectedOption.Label == "B";
+        IsCorrect = string.Equals(SelectedOption.Text.Trim(), _current.CorrectAnswer.Trim(),
+                                  StringComparison.OrdinalIgnoreCase);
+
+        foreach (var o in Options)
+        {
+            o.IsCorrect = string.Equals(o.Text.Trim(), _current.CorrectAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
+            o.IsWrong = o == SelectedOption && !IsCorrect;
+        }
+
         QuestionProgress++;
         TotalToday++;
         if (IsCorrect) CorrectToday++;
 
-        foreach (var o in Options)
+        await _questions.SaveAnswerAsync(new Answer
         {
-            o.IsCorrect = o.Label == "B";
-            o.IsWrong = o == SelectedOption && !IsCorrect;
-        }
+            QuestionId = _current.Id,
+            UserAnswer = SelectedOption.Text,
+            IsCorrect  = IsCorrect,
+        });
 
-        if (_gamification != null && IsCorrect)
+        if (IsCorrect)
         {
+            await _progress.RecordCorrectAnswerAsync(_current.SubjectId);
             var xp = await _gamification.AddXPAsync("default", XPAction.CorrectAnswer);
             CurrentXP += xp;
+        }
+        else
+        {
+            await _progress.RecordWrongAnswerAsync(_current.SubjectId);
         }
     }
 
     [RelayCommand]
     private async Task ShowAIExplanationAsync()
     {
+        if (_current == null) return;
         IsLoadingExplanation = true;
-        if (_ai != null)
+        var resp = await _ai.ExecuteAsync(TaskType.QAExplanation, _current.Text);
+        if (resp.IsSuccess)
         {
-            var resp = await _ai.ExecuteAsync(TaskType.QAExplanation, QuestionText);
-            if (resp.IsSuccess)
-            {
-                Explanation = resp.Content;
-                AiProviderName = resp.ProviderName;
-                LastCostText = CostCalculator.FormatCost(resp.CostUSD);
-            }
-            else Explanation = $"KI-Fehler: {resp.Error}";
+            Explanation = resp.Content;
+            AiProviderName = resp.ProviderName;
+            LastCostText = CostCalculator.FormatCost(resp.CostUSD);
         }
         else
         {
-            await Task.Delay(500);
-            Explanation = "Die Reihe ∑ (-1)ⁿ / n konvergiert bedingt nach dem Leibniz-Kriterium.";
+            Explanation = $"KI-Fehler: {resp.Error}";
         }
         IsLoadingExplanation = false;
         ShowExplanation = true;
@@ -156,8 +247,9 @@ public partial class LearningViewModel : ObservableObject
         IsAnswered = false;
         SelectedOption = null;
         ShowExplanation = false;
+        Explanation = string.Empty;
         AiProviderName = string.Empty;
-        foreach (var o in Options) { o.IsSelected = false; o.IsCorrect = false; o.IsWrong = false; }
+        LoadNextFromQueue();
     }
 
     [RelayCommand]

@@ -8,10 +8,9 @@ namespace MindForge.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private readonly UpdateService? _updateService;
+    private readonly UpdateService _updateService;
 
-    public SettingsViewModel() : this(null) { }
-    public SettingsViewModel(UpdateService? updateService) => _updateService = updateService;
+    public SettingsViewModel(UpdateService updateService) => _updateService = updateService;
 
     [ObservableProperty] private string _activeSection = "Darstellung";
     public List<string> Sections { get; } = [
@@ -184,7 +183,6 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task CheckUpdatesAsync()
     {
-        if (_updateService == null) { UpdateStatus = "Update-Service nicht verfügbar."; return; }
         IsCheckingUpdates = true;
         UpdateStatus = "Prüfe auf Updates...";
         var info = await _updateService.CheckForUpdatesAsync();

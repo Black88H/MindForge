@@ -1,29 +1,31 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
+using MindForge.Models;
+using MindForge.Services;
 
 namespace MindForge.ViewModels;
 
 public partial class SubjectsViewModel : ObservableObject
 {
-    [ObservableProperty] private ObservableCollection<SubjectViewModel> _subjects = new()
+    private readonly SubjectRepository _repo;
+
+    public SubjectsViewModel(SubjectRepository repo)
     {
-        new() { Name="Analysis II",     Icon="∫",    Color="#5B8CFF", Progress=0.68, QuestionCount=342, SuccessRate=0.81, Difficulty="Mittel", QuestionsToday=18, LastStudied="vor 12 Min" },
-        new() { Name="Quantenmechanik", Icon="ψ",    Color="#BD93F9", Progress=0.42, QuestionCount=187, SuccessRate=0.73, Difficulty="Schwer", QuestionsToday=0,  LastStudied="Gestern"    },
-        new() { Name="English C1",      Icon="En",   Color="#3fcf8e", Progress=0.91, QuestionCount=512, SuccessRate=0.94, Difficulty="Leicht", QuestionsToday=12, LastStudied="vor 2 Std"  },
-        new() { Name="Organ. Chemie",   Icon="⌬",    Color="#ffb547", Progress=0.34, QuestionCount=124, SuccessRate=0.67, Difficulty="Schwer", QuestionsToday=0,  LastStudied="vor 3 Tagen"},
-        new() { Name="Algorithmen",     Icon="{ }",  Color="#ff6b9d", Progress=0.57, QuestionCount=268, SuccessRate=0.79, Difficulty="Mittel", QuestionsToday=17, LastStudied="vor 25 Min" },
-        new() { Name="Genetik",         Icon="◐",    Color="#5eead4", Progress=0.22, QuestionCount=88,  SuccessRate=0.71, Difficulty="Mittel", QuestionsToday=0,  LastStudied="vor 5 Tagen"},
-    };
+        _repo = repo;
+        _ = LoadAsync();
+    }
+
+    [ObservableProperty] private ObservableCollection<SubjectViewModel> _subjects = new();
 
     [ObservableProperty] private SubjectViewModel? _selectedSubject;
     [ObservableProperty] private bool _showAddDialog = false;
     [ObservableProperty] private bool _showEditDialog = false;
+    [ObservableProperty] private bool _isLoading = false;
 
-    // Unified dialog state (view-facing)
     public bool IsDialogOpen => ShowAddDialog || ShowEditDialog;
     public string DialogTitle => ShowAddDialog ? "Fach hinzufügen" : "Fach bearbeiten";
-    public bool IsEmpty => Subjects.Count == 0;
+    public bool IsEmpty => !IsLoading && Subjects.Count == 0;
 
     partial void OnShowAddDialogChanged(bool value)
     {
@@ -35,39 +37,62 @@ public partial class SubjectsViewModel : ObservableObject
         OnPropertyChanged(nameof(IsDialogOpen));
         OnPropertyChanged(nameof(DialogTitle));
     }
+    partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsEmpty));
 
-    // Edit form (unified)
+    // Edit form
     [ObservableProperty] private string _newName = string.Empty;
     [ObservableProperty] private string _newIcon = "∫";
     [ObservableProperty] private string _newColor = "#5B8CFF";
     [ObservableProperty] private string _newDifficulty = "Mittel";
     [ObservableProperty] private string _newDescription = string.Empty;
 
-    // View alias for edit form name
     public string EditName { get => NewName; set => NewName = value; }
     partial void OnNewNameChanged(string value) => OnPropertyChanged(nameof(EditName));
 
-    // Icon picker
     public ObservableCollection<SelectableItem> AvailableIcons { get; } = new(
         new[] { "∫", "ψ", "En", "⌬", "{ }", "◐", "∑", "π", "∞", "α", "🧬", "📈", "⚛", "🔬" }
         .Select(i => new SelectableItem { Value = i }));
 
-    // Color picker
     public ObservableCollection<SelectableItem> AvailableColors { get; } = new(
         new[] { "#5B8CFF", "#BD93F9", "#3fcf8e", "#ffb547", "#ff6b9d", "#5eead4", "#4CAF50", "#FF6B35" }
         .Select(c => new SelectableItem { Value = c }));
 
-    // Legacy lists
     public List<string> PresetColors { get; } = ["#5B8CFF","#BD93F9","#3fcf8e","#ffb547","#ff6b9d","#5eead4","#4CAF50","#FF6B35"];
     public List<string> PresetIcons  { get; } = ["∫","ψ","En","⌬","{ }","◐","∑","π","∞","α","🧬","📈","⚛","🔬"];
     public List<string> Difficulties { get; } = ["Leicht","Mittel","Schwer"];
 
     public string TotalStats => $"{Subjects.Count} Fächer · {Subjects.Sum(s => s.QuestionCount)} Fragen";
 
+    private async Task LoadAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            var subjects = await _repo.GetSubjectsAsync();
+            Subjects = new ObservableCollection<SubjectViewModel>(subjects.Select(MapToVm));
+            OnPropertyChanged(nameof(IsEmpty));
+            OnPropertyChanged(nameof(TotalStats));
+        }
+        finally { IsLoading = false; }
+    }
+
+    private static SubjectViewModel MapToVm(Subject s) => new()
+    {
+        Id            = s.Id,
+        Name          = s.Name,
+        Icon          = s.Icon,
+        Color         = s.Color,
+        Progress      = s.Progress,
+        QuestionCount = s.QuestionCount,
+        SuccessRate   = s.SuccessRate,
+        Difficulty    = s.Difficulty.ToString(),
+        QuestionsToday= s.QuestionsToday,
+        LastStudied   = string.IsNullOrEmpty(s.LastStudied) ? "Noch nie" : s.LastStudied,
+    };
+
     [RelayCommand]
     private void SelectSubject(SubjectViewModel s) => SelectedSubject = s;
 
-    // Unified add button (view-facing)
     [RelayCommand]
     private void AddSubject()
     {
@@ -84,16 +109,22 @@ public partial class SubjectsViewModel : ObservableObject
     private void OpenAddDialog() => AddSubjectCommand.Execute(null);
 
     [RelayCommand]
-    private void ConfirmAdd()
+    private async Task ConfirmAddAsync()
     {
         if (string.IsNullOrWhiteSpace(NewName)) return;
-        Subjects.Add(new SubjectViewModel
+        var subject = new Subject
         {
-            Name = NewName, Icon = NewIcon, Color = NewColor, Difficulty = NewDifficulty,
-            Progress = 0, QuestionCount = 0, SuccessRate = 0, LastStudied = "Noch nie"
-        });
+            Name = NewName,
+            Icon = NewIcon,
+            Color = NewColor,
+            Difficulty = ParseDifficulty(NewDifficulty),
+            Description = NewDescription,
+        };
+        await _repo.SaveSubjectAsync(subject);
+        Subjects.Add(MapToVm(subject));
         ShowAddDialog = false;
         OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(TotalStats));
     }
 
     [RelayCommand]
@@ -113,20 +144,33 @@ public partial class SubjectsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ConfirmEdit()
+    private async Task ConfirmEditAsync()
     {
         if (SelectedSubject == null || string.IsNullOrWhiteSpace(NewName)) return;
         SelectedSubject.Name = NewName;
         SelectedSubject.Icon = NewIcon;
         SelectedSubject.Color = NewColor;
         SelectedSubject.Difficulty = NewDifficulty;
+        await _repo.SaveSubjectAsync(new Subject
+        {
+            Id = SelectedSubject.Id,
+            Name = NewName,
+            Icon = NewIcon,
+            Color = NewColor,
+            Difficulty = ParseDifficulty(NewDifficulty),
+            Description = NewDescription,
+            Progress = SelectedSubject.Progress,
+            QuestionCount = SelectedSubject.QuestionCount,
+            SuccessRate = SelectedSubject.SuccessRate,
+            QuestionsToday = SelectedSubject.QuestionsToday,
+            LastStudied = SelectedSubject.LastStudied,
+        });
         ShowEditDialog = false;
     }
 
     [RelayCommand]
     private void CancelEdit() => ShowEditDialog = false;
 
-    // Unified save/cancel (view-facing)
     [RelayCommand]
     private void SaveSubject()
     {
@@ -142,14 +186,15 @@ public partial class SubjectsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeleteSubject(SubjectViewModel s)
+    private async Task DeleteSubjectAsync(SubjectViewModel s)
     {
+        await _repo.DeleteSubjectAsync(s.Id);
         Subjects.Remove(s);
         if (SelectedSubject == s) SelectedSubject = null;
         OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(TotalStats));
     }
 
-    // Icon / color selection with IsSelected tracking
     [RelayCommand]
     private void SelectIcon(SelectableItem item)
     {
@@ -164,12 +209,18 @@ public partial class SubjectsViewModel : ObservableObject
         NewColor = item.Value;
     }
 
-    // Legacy commands (kept for compatibility)
     [RelayCommand]
     private void SetColor(string color) => NewColor = color;
 
     [RelayCommand]
     private void SetIcon(string icon) => NewIcon = icon;
+
+    private static DifficultyLevel ParseDifficulty(string s) => s switch
+    {
+        "Leicht" => DifficultyLevel.Leicht,
+        "Schwer" => DifficultyLevel.Schwer,
+        _        => DifficultyLevel.Mittel,
+    };
 }
 
 public partial class SelectableItem : ObservableObject

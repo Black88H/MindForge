@@ -10,9 +10,7 @@
         FontFamily="Segoe UI" FontSize="13.5"
         Foreground="{StaticResource TextBrush}">
 
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
+    <!-- DataContext is injected via DI in MainWindow.xaml.cs -->
 
     <Border Background="{StaticResource BgBrush}"
             BorderBrush="{StaticResource LineBrush}"

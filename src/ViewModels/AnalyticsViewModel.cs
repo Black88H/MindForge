@@ -1,120 +1,185 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
+using MindForge.Services;
+using MindForge.Utils;
 
 namespace MindForge.ViewModels;
 
 public partial class AnalyticsViewModel : ObservableObject
 {
+    private readonly AnalyticsRepository _analytics;
+    private readonly UserProgressRepository _progress;
+    private readonly AchievementRepository _achievementsRepo;
+
+    public AnalyticsViewModel(
+        AnalyticsRepository analytics,
+        UserProgressRepository progress,
+        AchievementRepository achievements)
+    {
+        _analytics = analytics;
+        _progress = progress;
+        _achievementsRepo = achievements;
+        _ = LoadAsync();
+    }
+
     [ObservableProperty] private string _activeTab = "XP";
     public List<string> Tabs { get; } = ["XP", "Streaks", "Fächer", "Zeit", "Achievements"];
 
     // Summary
-    [ObservableProperty] private int _totalXP = 12450;
-    [ObservableProperty] private int _level = 12;
-    [ObservableProperty] private int _currentStreak = 12;
-    [ObservableProperty] private double _overallSuccess = 0.82;
-    [ObservableProperty] private int _achievementsUnlocked = 8;
-    [ObservableProperty] private int _achievementsTotal = 14;
+    [ObservableProperty] private int _totalXP = UserSession.TotalXP;
+    [ObservableProperty] private int _level = UserSession.Level;
+    [ObservableProperty] private int _currentStreak = UserSession.CurrentStreak;
+    [ObservableProperty] private double _overallSuccess = 0;
+    [ObservableProperty] private int _achievementsUnlocked = 0;
+    [ObservableProperty] private int _achievementsTotal = 0;
 
     public string OverallSuccessText => $"{OverallSuccess * 100:F0}%";
     public string AchievementText => $"{AchievementsUnlocked}/{AchievementsTotal}";
 
-    // XP History (30 days)
-    [ObservableProperty] private ObservableCollection<ChartPoint> _xpHistory = new(
-        Enumerable.Range(0, 30).Select(i => new ChartPoint
-        {
-            Label = DateTime.Today.AddDays(i - 29).ToString("dd.MM"),
-            Value = Random.Shared.Next(50, 500)
-        }));
+    partial void OnOverallSuccessChanged(double value) => OnPropertyChanged(nameof(OverallSuccessText));
+    partial void OnAchievementsUnlockedChanged(int value) => OnPropertyChanged(nameof(AchievementText));
+    partial void OnAchievementsTotalChanged(int value) => OnPropertyChanged(nameof(AchievementText));
 
-    // Streaks (14 days)
-    [ObservableProperty] private ObservableCollection<ChartPoint> _streakHistory = new(
-        Enumerable.Range(0, 14).Select(i => new ChartPoint
-        {
-            Label = DateTime.Today.AddDays(i - 13).ToString("dd.MM"),
-            Value = Random.Shared.Next(0, 15)
-        }));
+    // Time-series
+    [ObservableProperty] private ObservableCollection<ChartPoint> _xpHistory = new();
+    [ObservableProperty] private ObservableCollection<ChartPoint> _streakHistory = new();
+    [ObservableProperty] private ObservableCollection<SubjectStatItem> _subjectStats = new();
+    [ObservableProperty] private ObservableCollection<TimeItem> _timeTracking = new();
+    [ObservableProperty] private ObservableCollection<AchievementBadge> _achievements = new();
+    [ObservableProperty] private ObservableCollection<string> _recommendations = new();
 
-    // Subjects
-    [ObservableProperty] private ObservableCollection<SubjectStatItem> _subjectStats = new()
+    public bool HasXpHistory   => XpHistory.Count > 0;
+    public bool HasStreakHistory => StreakHistory.Count > 0;
+    public bool HasSubjectStats => SubjectStats.Count > 0;
+    public bool HasTimeTracking => TimeTracking.Count > 0;
+    public bool HasAchievements => Achievements.Count > 0;
+
+    partial void OnXpHistoryChanged(ObservableCollection<ChartPoint> value) => OnPropertyChanged(nameof(HasXpHistory));
+    partial void OnStreakHistoryChanged(ObservableCollection<ChartPoint> value) => OnPropertyChanged(nameof(HasStreakHistory));
+    partial void OnSubjectStatsChanged(ObservableCollection<SubjectStatItem> value) => OnPropertyChanged(nameof(HasSubjectStats));
+    partial void OnTimeTrackingChanged(ObservableCollection<TimeItem> value)
     {
-        new() { Rank = "#1", Icon = "∫",   Name = "Analysis II",     SuccessRate = 0.81, Questions = 342, Level = 7  },
-        new() { Rank = "#2", Icon = "En",  Name = "English C1",      SuccessRate = 0.94, Questions = 512, Level = 10 },
-        new() { Rank = "#3", Icon = "{ }", Name = "Algorithmen",     SuccessRate = 0.79, Questions = 268, Level = 6  },
-        new() { Rank = "#4", Icon = "ψ",   Name = "Quantenmechanik", SuccessRate = 0.73, Questions = 187, Level = 5  },
-        new() { Rank = "#5", Icon = "◐",   Name = "Genetik",         SuccessRate = 0.71, Questions = 88,  Level = 3  },
-        new() { Rank = "#6", Icon = "⌬",   Name = "Organ. Chemie",   SuccessRate = 0.67, Questions = 124, Level = 4  },
-    };
-
-    // Time tracking (pie)
-    [ObservableProperty] private ObservableCollection<TimeItem> _timeTracking = new()
-    {
-        new() { SubjectName = "Analysis II",     Hours = 22.5, Color = "#5B8CFF" },
-        new() { SubjectName = "English C1",      Hours = 18.2, Color = "#3fcf8e" },
-        new() { SubjectName = "Algorithmen",     Hours = 14.7, Color = "#ff6b9d" },
-        new() { SubjectName = "Quantenmechanik", Hours = 10.3, Color = "#BD93F9" },
-        new() { SubjectName = "Organ. Chemie",   Hours = 6.8,  Color = "#ffb547" },
-        new() { SubjectName = "Genetik",         Hours = 4.1,  Color = "#5eead4" },
-    };
+        OnPropertyChanged(nameof(HasTimeTracking));
+        OnPropertyChanged(nameof(TotalHours));
+        OnPropertyChanged(nameof(TotalHoursText));
+    }
+    partial void OnAchievementsChanged(ObservableCollection<AchievementBadge> value) => OnPropertyChanged(nameof(HasAchievements));
 
     public double TotalHours => TimeTracking.Sum(t => t.Hours);
     public string TotalHoursText => $"{TotalHours:F1} Std. gesamt";
 
-    // Achievements
-    [ObservableProperty] private ObservableCollection<AchievementBadge> _achievements = new()
-    {
-        new() { Name = "Erster Schritt",  Icon = "🥾", Rarity = "Häufig",   IsUnlocked = true  },
-        new() { Name = "Wochenkrieger",   Icon = "⚔️",  Rarity = "Häufig",   IsUnlocked = true  },
-        new() { Name = "Perfekte Zehn",   Icon = "💜",  Rarity = "Selten",   IsUnlocked = true  },
-        new() { Name = "Nachteule",       Icon = "🦉",  Rarity = "Häufig",   IsUnlocked = true  },
-        new() { Name = "Marathonläufer",  Icon = "🏃",  Rarity = "Selten",   IsUnlocked = false },
-        new() { Name = "Meisterstudent",  Icon = "🎓",  Rarity = "Episch",   IsUnlocked = false },
-        new() { Name = "Unsterblich",     Icon = "🔥",  Rarity = "Legendär", IsUnlocked = false },
-        new() { Name = "Tausend Fragen",  Icon = "💯",  Rarity = "Episch",   IsUnlocked = false },
-        new() { Name = "Schnelldenker",   Icon = "⚡",  Rarity = "Selten",   IsUnlocked = true  },
-        new() { Name = "Analyse-Ass",     Icon = "📊",  Rarity = "Selten",   IsUnlocked = true  },
-        new() { Name = "Planer",          Icon = "📅",  Rarity = "Häufig",   IsUnlocked = false },
-        new() { Name = "OCR-Meister",     Icon = "🔍",  Rarity = "Selten",   IsUnlocked = false },
-        new() { Name = "Challenger",      Icon = "🏆",  Rarity = "Häufig",   IsUnlocked = false },
-        new() { Name = "Lernmaschine",    Icon = "🤖",  Rarity = "Episch",   IsUnlocked = false },
-    };
-
-    // Recommendations
-    [ObservableProperty] private ObservableCollection<string> _recommendations = new()
-    {
-        "Du lernst Analysis am besten mit Active Recall — nutze mehr MC Tests!",
-        "Dein Streak ist in Gefahr — lerne heute noch 10 Minuten.",
-        "Du hast 13 Karten zur Wiederholung heute fällig.",
-        "Erstelle einen Lernplan für Quantenmechanik — dein schwächstes Fach."
-    };
-
-    // Streak tab extras
-    public int LongestStreak => 18;
-    public int TotalActiveDays => 94;
-
-    // Time tab extras
-    public int TotalMinutesThisWeek => 347;
-    public int AvgMinutesPerDay => 50;
-    public string BestDay => "Mo";
+    public int LongestStreak => UserSession.LongestStreak;
+    public int TotalActiveDays { get; private set; }
+    public int TotalMinutesThisWeek { get; private set; }
+    public int AvgMinutesPerDay { get; private set; }
+    public string BestDay { get; private set; } = "—";
     public ObservableCollection<TimeItem> TimeData => TimeTracking;
-
-    // Achievement tab extras
     public int UnlockedCount => AchievementsUnlocked;
+
+    private async Task LoadAsync()
+    {
+        OverallSuccess = await _analytics.GetOverallSuccessRateAsync();
+        var allAchievements = (await _achievementsRepo.GetAchievementsAsync()).ToList();
+        AchievementsTotal    = allAchievements.Count;
+        AchievementsUnlocked = allAchievements.Count(a => a.IsUnlocked);
+
+        Achievements = new ObservableCollection<AchievementBadge>(allAchievements.Select(a => new AchievementBadge
+        {
+            Name = a.Name,
+            Icon = a.Icon,
+            Rarity = a.Rarity.ToString(),
+            Description = a.Description,
+            IsUnlocked = a.IsUnlocked,
+        }));
+
+        // 30-day XP history
+        var xp = (await _analytics.GetXPHistoryAsync(30)).ToList();
+        var xpDict = xp.ToDictionary(x => x.Date.Date, x => x.XP);
+        var maxXp = xpDict.Values.DefaultIfEmpty(0).Max();
+        var maxXpScale = Math.Max(50, maxXp);
+        var xpPoints = new List<ChartPoint>();
+        for (int i = 29; i >= 0; i--)
+        {
+            var d = DateTime.UtcNow.Date.AddDays(-i);
+            xpPoints.Add(new ChartPoint
+            {
+                Label = d.ToString("dd.MM"),
+                Value = xpDict.TryGetValue(d, out var v) ? v : 0,
+                MaxValue = maxXpScale,
+            });
+        }
+        XpHistory = new ObservableCollection<ChartPoint>(xpPoints);
+
+        // 14-day streak history (running streak per day, derived from daily activity)
+        var activity = (await _analytics.GetDailyActivityAsync(14)).ToList();
+        var actDict = activity.ToDictionary(a => a.Date.Date, a => a.Questions);
+        var streakPoints = new List<ChartPoint>();
+        int running = 0;
+        for (int i = 13; i >= 0; i--)
+        {
+            var d = DateTime.UtcNow.Date.AddDays(-i);
+            running = actDict.GetValueOrDefault(d, 0) > 0 ? running + 1 : 0;
+            streakPoints.Add(new ChartPoint { Label = d.ToString("dd.MM"), Value = running, MaxValue = 14 });
+        }
+        StreakHistory = new ObservableCollection<ChartPoint>(streakPoints);
+
+        // Subject stats (ranked)
+        var stats = (await _analytics.GetSubjectStatsAsync()).ToList();
+        SubjectStats = new ObservableCollection<SubjectStatItem>(stats.Select((tuple, idx) => new SubjectStatItem
+        {
+            Rank = $"#{idx + 1}",
+            Icon = tuple.Subject.Icon,
+            Name = tuple.Subject.Name,
+            SuccessRate = tuple.SuccessRate,
+            Questions = tuple.Subject.QuestionCount,
+            Level = Math.Max(1, (int)Math.Round(tuple.Subject.Progress * 10)),
+        }));
+
+        // Time tracking (per subject)
+        var times = (await _analytics.GetTimePerSubjectAsync()).ToList();
+        var palette = new[] { "#5B8CFF", "#3fcf8e", "#ff6b9d", "#BD93F9", "#ffb547", "#5eead4", "#FF6B35", "#4CAF50" };
+        TimeTracking = new ObservableCollection<TimeItem>(times.Select((t, i) => new TimeItem
+        {
+            SubjectName = t.Subject,
+            Hours = t.Minutes / 60.0,
+            Color = palette[i % palette.Length],
+        }));
+
+        // Time-tab summary
+        var weekActivity = activity.Where(a => a.Date >= DateTime.UtcNow.Date.AddDays(-7)).ToList();
+        TotalMinutesThisWeek = weekActivity.Sum(a => a.Questions); // 1 question ≈ 1 minute approximation
+        AvgMinutesPerDay     = weekActivity.Count > 0 ? TotalMinutesThisWeek / 7 : 0;
+        BestDay              = weekActivity.OrderByDescending(a => a.Questions)
+                                           .Select(a => a.Date.ToString("ddd",
+                                               new System.Globalization.CultureInfo("de-DE")))
+                                           .FirstOrDefault() ?? "—";
+        TotalActiveDays      = activity.Count(a => a.Questions > 0);
+
+        OnPropertyChanged(nameof(LongestStreak));
+        OnPropertyChanged(nameof(TotalActiveDays));
+        OnPropertyChanged(nameof(TotalMinutesThisWeek));
+        OnPropertyChanged(nameof(AvgMinutesPerDay));
+        OnPropertyChanged(nameof(BestDay));
+        OnPropertyChanged(nameof(UnlockedCount));
+
+        // Recommendations from weak areas
+        var weak = await _analytics.GetWeaknessAreasAsync();
+        var recs = new List<string>();
+        foreach (var (subject, count) in weak.OrderByDescending(kv => kv.Value).Take(3))
+            recs.Add($"{subject}: {count} schwache Fragen — wiederholen lohnt sich.");
+        if (UserSession.CurrentStreak == 0)
+            recs.Add("Dein Streak ist gerissen — eine kurze Session heute startet ihn neu.");
+        if (recs.Count == 0)
+            recs.Add("Keine Auffälligkeiten — weiter so!");
+        Recommendations = new ObservableCollection<string>(recs);
+    }
 
     [RelayCommand]
     private void SelectTab(string tab) => ActiveTab = tab;
 
     [RelayCommand]
-    private void RefreshCharts()
-    {
-        XpHistory = new ObservableCollection<ChartPoint>(
-            Enumerable.Range(0, 30).Select(i => new ChartPoint
-            {
-                Label = DateTime.Today.AddDays(i - 29).ToString("dd.MM"),
-                Value = Random.Shared.Next(50, 500)
-            }));
-    }
+    private async Task RefreshChartsAsync() => await LoadAsync();
 }
 
 public class ChartPoint

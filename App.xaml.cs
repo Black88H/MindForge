@@ -16,6 +16,9 @@ public partial class App : Application
 {
     private IHost? _host;
 
+    /// <summary>Root DI container, exposed for XAML-driven view construction (ViewLocatorConverter).</summary>
+    public static IServiceProvider Services { get; private set; } = default!;
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -23,11 +26,11 @@ public partial class App : Application
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
-                // Database
+                // ── Database ──────────────────────────────────────────────────
                 services.AddDbContext<MindForgeDbContext>(options =>
                     options.UseSqlite($"Data Source={MindForgeDbContext.GetDbPath()}"));
 
-                // Repositories
+                // ── Repositories ──────────────────────────────────────────────
                 services.AddScoped<UserProgressRepository>();
                 services.AddScoped<SubjectRepository>();
                 services.AddScoped<QuestionRepository>();
@@ -35,32 +38,41 @@ public partial class App : Application
                 services.AddScoped<AnalyticsRepository>();
                 services.AddScoped<AchievementRepository>();
 
-                // AI — Detection & Selection
+                // ── Domain Services ───────────────────────────────────────────
+                services.AddScoped<AuthService>();
+                services.AddScoped<GamificationService>();
+                services.AddScoped<SpacedRepetitionService>();
+                services.AddScoped<LearningPlanService>();
+                services.AddScoped<OCRDocumentService>();
+                services.AddScoped<TestRunnerService>();
+                services.AddScoped<AnalyticsService>();
+                services.AddSingleton<UpdateService>();
+
+                // ── AI Stack ──────────────────────────────────────────────────
                 services.AddSingleton<InternetDetector>();
                 services.AddSingleton<MindForge.Services.AI.Selection.HardwareDetector>();
                 services.AddSingleton<TaskAnalyzer>();
                 services.AddScoped<ITokenTracker, TokenTrackerService>();
-
-                // AI — Providers
                 services.AddSingleton<ClaudeAIProvider>();
                 services.AddSingleton<OpenAIProvider>();
                 services.AddSingleton<GeminiProvider>();
                 services.AddSingleton<OllamaProvider>();
-
-                // AI — Selector (scoped: depends on scoped ITokenTracker)
                 services.AddScoped<IAISelector, AISelector>();
 
-                // ViewModels
-                services.AddTransient<MainViewModel>();
-                services.AddTransient<DashboardViewModel>();
-                services.AddTransient<QAViewModel>();
-                services.AddTransient<ContentGeneratorViewModel>();
-                services.AddTransient<TestCreatorViewModel>();
-                services.AddTransient<AnalyticsViewModel>();
-                services.AddTransient<SettingsViewModel>();
-
-                // Auth
-                services.AddScoped<AuthService>();
+                // ── ViewModels (Scoped: ViewLocator creates one DI scope per view nav) ─
+                services.AddScoped<MainViewModel>();
+                services.AddScoped<DashboardViewModel>();
+                services.AddScoped<HomeViewModel>();
+                services.AddScoped<QAViewModel>();
+                services.AddScoped<ContentGeneratorViewModel>();
+                services.AddScoped<TestCreatorViewModel>();
+                services.AddScoped<AnalyticsViewModel>();
+                services.AddScoped<SettingsViewModel>();
+                services.AddScoped<LearningViewModel>();
+                services.AddScoped<TestsViewModel>();
+                services.AddScoped<KIToolsViewModel>();
+                services.AddScoped<SubjectsViewModel>();
+                services.AddScoped<ProfileViewModel>();
                 services.AddTransient<LoginViewModel>();
 
                 services.AddSingleton<MainWindow>();
@@ -68,6 +80,7 @@ public partial class App : Application
             .Build();
 
         await _host.StartAsync();
+        Services = _host.Services;
 
         DispatcherUnhandledException += (_, args) =>
         {
@@ -94,10 +107,9 @@ public partial class App : Application
         // Show login window; shutdown if user closes without logging in
         using (var loginScope = _host.Services.CreateScope())
         {
-            var authService  = loginScope.ServiceProvider.GetRequiredService<AuthService>();
-            var loginVm      = loginScope.ServiceProvider.GetRequiredService<LoginViewModel>();
-            var loginWindow  = new LoginView(loginVm);
-            var loggedIn     = loginWindow.ShowDialog();
+            var loginVm     = loginScope.ServiceProvider.GetRequiredService<LoginViewModel>();
+            var loginWindow = new LoginView(loginVm);
+            var loggedIn    = loginWindow.ShowDialog();
             if (loggedIn != true)
             {
                 Shutdown();
