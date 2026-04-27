@@ -129,6 +129,7 @@ public partial class App : Application
         });
 
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+        MainWindow = mainWindow;          // tell WPF this is the main window
         mainWindow.Show();
 
         Logger.Info("MindForge v1.0.0 gestartet");

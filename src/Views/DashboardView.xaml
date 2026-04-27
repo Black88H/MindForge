@@ -3,628 +3,393 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:MindForge.ViewModels"
              Background="{StaticResource BgBrush}">
-    <!-- DataContext is injected via DI by ViewLocatorConverter -->
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource MfScrollViewer}">
         <Grid MaxWidth="1280" Margin="32,28,32,80" HorizontalAlignment="Left">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <!-- Greeting -->
-                <RowDefinition Height="Auto"/>
-                <!-- Hero + Stats -->
-                <RowDefinition Height="Auto"/>
-                <!-- Streak / XP / Achievements -->
-                <RowDefinition Height="Auto"/>
-                <!-- Quick Actions -->
-                <RowDefinition Height="Auto"/>
-                <!-- Subjects Title -->
-                <RowDefinition Height="Auto"/>
-                <!-- Subjects Grid -->
-                <RowDefinition Height="Auto"/>
-                <!-- Recent + Reviews -->
+                <RowDefinition Height="Auto"/> <!-- Header -->
+                <RowDefinition Height="Auto"/> <!-- Modul 6: System Status (Top Bar) -->
+                <RowDefinition Height="Auto"/> <!-- Modul 1: Gamification -->
+                <RowDefinition Height="Auto"/> <!-- Grid for Modules 2, 3 & 5 -->
+                <RowDefinition Height="Auto"/> <!-- Modul 4: Fächer -->
             </Grid.RowDefinitions>
 
-            <!-- ══════════ GREETING ══════════ -->
-            <Grid Grid.Row="0" Margin="0,0,0,24">
+            <!-- ══════════ HEADER ══════════ -->
+            <Grid Grid.Row="0" Margin="0,0,0,16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="{Binding DateLine}"
-                               FontSize="11" Foreground="{StaticResource Text3Brush}"
-                               FontFamily="Consolas" Margin="0,0,0,4"/>
-                    <TextBlock FontFamily="Georgia" FontSize="30" FontWeight="Normal"
-                               Foreground="{StaticResource TextBrush}">
+                    <TextBlock Text="{Binding DateLine}" FontSize="11" Foreground="{StaticResource Text3Brush}" FontFamily="Consolas" Margin="0,0,0,4"/>
+                    <TextBlock FontFamily="Georgia" FontSize="30" FontWeight="Normal" Foreground="{StaticResource TextBrush}">
                         <Run Text="Willkommen zurück, "/>
-                        <Run Text="Jonas" Foreground="{StaticResource AccentBrush}" FontStyle="Italic"/>
+                        <Run Text="{Binding UserName, Mode=OneWay}" Foreground="{StaticResource AccentBrush}" FontStyle="Italic"/>
                         <Run Text="."/>
                     </TextBlock>
-                    <TextBlock Text="{Binding StatsSubline}" FontSize="13"
-                               Foreground="{StaticResource Text2Brush}" Margin="0,6,0,0"/>
+                    <TextBlock Text="{Binding StatsSubline}" FontSize="13" Foreground="{StaticResource Text2Brush}" Margin="0,6,0,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,4">
-                    <Button Style="{StaticResource SecondaryButton}" Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="↩ " FontSize="13"/>
-                            <TextBlock Text="Verlauf"/>
-                        </StackPanel>
-                    </Button>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
                     <Button Style="{StaticResource PrimaryButton}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="⚡ " FontSize="13"/>
-                            <TextBlock Text="Weiterlernen"/>
+                            <TextBlock Text="Lern-Session starten"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
 
-            <!-- ══════════ HERO: Heute Lernen + Stats ══════════ -->
-            <Grid Grid.Row="1" Margin="0,0,0,12">
+            <!-- ══════════ MODUL 6: SYSTEM STATUS & SYNC ══════════ -->
+            <Grid Grid.Row="1" Margin="0,0,0,24">
+                <Border Style="{StaticResource Card}" Padding="12,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <TextBlock Text="🔄" Foreground="{StaticResource AccentBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="System bereit" FontSize="12" Foreground="{StaticResource Text2Brush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <!-- API Monitor -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,24,0">
+                            <TextBlock Text="OpenAI: " FontSize="11" Foreground="{StaticResource Text3Brush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding OpenAIStatus}" FontSize="11" Foreground="{StaticResource Text2Brush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,24,0">
+                            <TextBlock Text="Anthropic: " FontSize="11" Foreground="{StaticResource Text3Brush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding AnthropicStatus}" FontSize="11" Foreground="{StaticResource Text2Brush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="4" Orientation="Horizontal">
+                            <TextBlock Text="Ollama: " FontSize="11" Foreground="{StaticResource Text3Brush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding OllamaStatus}" FontSize="11" Foreground="{StaticResource Text2Brush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ══════════ MODUL 1: GAMIFICATION ZENTRALE ══════════ -->
+            <Grid Grid.Row="2" Margin="0,0,0,24">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.8*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="12"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Today Learn Card -->
-                <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
-                    <Grid>
-                        <!-- Accent glow -->
-                        <Ellipse Width="280" Height="280" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                 Margin="0,-40,-40,0" Opacity="0.07">
-                            <Ellipse.Fill>
-                                <RadialGradientBrush>
-                                    <GradientStop Color="#FF5B8CFF" Offset="0"/>
-                                    <GradientStop Color="Transparent" Offset="1"/>
-                                </RadialGradientBrush>
-                            </Ellipse.Fill>
-                        </Ellipse>
-
-                        <StackPanel Margin="24,22,24,20">
-                            <!-- Tags row -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                                <Border Style="{StaticResource BadgeAccent}" Margin="0,0,6,0">
-                                    <TextBlock Text="{Binding CurrentSubjectTag}"
-                                               Foreground="{StaticResource AccentBrush}"
-                                               FontSize="11.5" FontWeight="Medium"/>
-                                </Border>
-                                <Border Style="{StaticResource BadgeNeutral}" Margin="0,0,6,0">
-                                    <TextBlock Text="{Binding CurrentQuestionTag}"
-                                               Foreground="{StaticResource Text2Brush}" FontSize="11.5"/>
-                                </Border>
-                                <Border Style="{StaticResource BadgeNeutral}">
-                                    <TextBlock Text="{Binding CurrentDifficultyTag}"
-                                               Foreground="{StaticResource Text2Brush}" FontSize="11.5"/>
-                                </Border>
-                                <TextBlock HorizontalAlignment="Right" Margin="12,0,0,0" VerticalAlignment="Center"
-                                           Text="{Binding QuestionNumber}" FontSize="11"
-                                           Foreground="{StaticResource Text3Brush}" FontFamily="Consolas"/>
-                            </StackPanel>
-
-                            <TextBlock Text="HEUTE LERNEN" FontSize="10.5" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Text3Brush}" Margin="0,0,0,8"
-                                       FontFamily="Consolas"/>
-
-                            <!-- Question -->
-                            <TextBlock Text="{Binding QuestionText}"
-                                       FontFamily="Georgia" FontSize="22" LineHeight="30"
-                                       Foreground="{StaticResource TextBrush}"
-                                       TextWrapping="Wrap" Margin="0,0,0,20" MaxWidth="580"/>
-
-                            <!-- Answer Options -->
-                            <UniformGrid Rows="2" Columns="2" Margin="0,0,0,18">
-                                <Button Style="{StaticResource AnswerOptionButton}" Margin="0,0,4,4">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Background="{StaticResource Bg3Brush}" CornerRadius="4" Padding="5,2" Margin="0,0,10,0">
-                                            <TextBlock Text="A" FontSize="11" Foreground="{StaticResource Text2Brush}" FontFamily="Consolas"/>
-                                        </Border>
-                                        <TextBlock Text="∑ 1/n²" FontFamily="Consolas" FontSize="13" Foreground="{StaticResource Text2Brush}"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Style="{StaticResource AnswerOptionButton}" Margin="4,0,0,4">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Background="{StaticResource Bg3Brush}" CornerRadius="4" Padding="5,2" Margin="0,0,10,0">
-                                            <TextBlock Text="B" FontSize="11" Foreground="{StaticResource Text2Brush}" FontFamily="Consolas"/>
-                                        </Border>
-                                        <TextBlock Text="∑ (-1)ⁿ / n" FontFamily="Consolas" FontSize="13" Foreground="{StaticResource Text2Brush}"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Style="{StaticResource AnswerOptionButton}" Margin="0,4,4,0">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Background="{StaticResource Bg3Brush}" CornerRadius="4" Padding="5,2" Margin="0,0,10,0">
-                                            <TextBlock Text="C" FontSize="11" Foreground="{StaticResource Text2Brush}" FontFamily="Consolas"/>
-                                        </Border>
-                                        <TextBlock Text="∑ (-1)ⁿ / n²" FontFamily="Consolas" FontSize="13" Foreground="{StaticResource Text2Brush}"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Style="{StaticResource AnswerOptionButton}" Margin="4,4,0,0">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Background="{StaticResource Bg3Brush}" CornerRadius="4" Padding="5,2" Margin="0,0,10,0">
-                                            <TextBlock Text="D" FontSize="11" Foreground="{StaticResource Text2Brush}" FontFamily="Consolas"/>
-                                        </Border>
-                                        <TextBlock Text="∑ 1/√n" FontFamily="Consolas" FontSize="13" Foreground="{StaticResource Text2Brush}"/>
-                                    </StackPanel>
-                                </Button>
-                            </UniformGrid>
-
-                            <!-- Action Buttons -->
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="8"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Style="{StaticResource PrimaryButton}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="✨ " FontSize="13"/>
-                                        <TextBlock Text="KI-Erklärung"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Grid.Column="2" Style="{StaticResource SecondaryButton}">
-                                    <TextBlock Text="Beantworten"/>
-                                </Button>
-                                <Button Grid.Column="4" Style="{StaticResource GhostButton}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⇄ " FontSize="12"/>
-                                        <TextBlock Text="Andere Frage"/>
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Stats Card -->
-                <Border Grid.Column="2" Style="{StaticResource Card}">
+                <!-- Level & Progress -->
+                <Border Grid.Column="0" Style="{StaticResource Card}">
                     <StackPanel>
-                        <!-- Today -->
-                        <Grid Margin="0,0,0,16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="HEUTE" FontSize="10.5" FontWeight="SemiBold"
-                                           Foreground="{StaticResource Text3Brush}" Margin="0,0,0,4"/>
-                                <TextBlock FontFamily="Georgia" FontSize="34" FontWeight="Normal"
-                                           Foreground="{StaticResource TextBrush}">
-                                    <Run Text="{Binding CorrectToday}"/>
-                                    <Run Text="/" FontSize="20" Foreground="{StaticResource Text3Brush}"/>
-                                    <Run Text="{Binding TotalToday}" FontSize="20" Foreground="{StaticResource Text3Brush}"/>
-                                </TextBlock>
-                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                    <TextBlock Text="▲ " FontSize="11" Foreground="{StaticResource SuccessBrush}"/>
-                                    <TextBlock Text="14% vs. gestern" FontSize="11" Foreground="{StaticResource Text3Brush}"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <!-- Circular Progress (simplified) -->
-                            <Border Grid.Column="1" Width="56" Height="56">
-                                <Grid>
-                                    <Ellipse Stroke="{StaticResource Bg3Brush}" StrokeThickness="4" Width="52" Height="52"/>
-                                    <Ellipse Stroke="{StaticResource AccentBrush}" StrokeThickness="4" Width="52" Height="52"
-                                             StrokeDashArray="32.7" StrokeDashOffset="8.2"
-                                             RenderTransformOrigin="0.5,0.5">
-                                        <Ellipse.RenderTransform>
-                                            <RotateTransform Angle="-90"/>
-                                        </Ellipse.RenderTransform>
-                                    </Ellipse>
-                                    <TextBlock Text="{Binding TodayPercentText}"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextBrush}"/>
-                                </Grid>
-                            </Border>
-                        </Grid>
-
-                        <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                        <!-- Zeit gelernt -->
-                        <StackPanel Margin="0,0,0,12">
-                            <TextBlock Text="ZEIT GELERNT" FontSize="10.5" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Text3Brush}" Margin="0,0,0,4"/>
-                            <TextBlock Text="{Binding TimeLearnedText}"
-                                       FontFamily="Georgia" FontSize="24"
-                                       Foreground="{StaticResource TextBrush}"/>
-                            <TextBlock Text="↑ 18min vs. gestern" FontSize="11" Foreground="{StaticResource Text3Brush}" Margin="0,2,0,0"/>
-                        </StackPanel>
-
-                        <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,0,0,12"/>
-
-                        <!-- Serie -->
-                        <StackPanel>
-                            <TextBlock Text="SERIE" FontSize="10.5" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Text3Brush}" Margin="0,0,0,4"/>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="🔥 " FontSize="20" VerticalAlignment="Center"/>
-                                <TextBlock FontFamily="Georgia" FontSize="24" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center">
-                                    <Run Text="{Binding Streak}"/>
-                                    <Run Text=" Tage" FontSize="16" Foreground="{StaticResource Text3Brush}"/>
-                                </TextBlock>
-                            </StackPanel>
-                            <TextBlock FontSize="11" Foreground="{StaticResource Text3Brush}" Margin="0,2,0,0">
-                                <Run Text="Rekord: "/>
-                                <Run Text="{Binding BestStreak}"/>
-                                <Run Text=" Tage"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- ══════════ GAMIFICATION ROW: Streak + XP + Achievements ══════════ -->
-            <Grid Grid.Row="2" Margin="0,0,0,12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="1.3*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Streak Box -->
-                <Border Grid.Column="0" CornerRadius="10" ClipToBounds="True">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#FF1A120A" Offset="0"/>
-                            <GradientStop Color="#FF1F150C" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <Border BorderBrush="#33FF6B35" BorderThickness="1" CornerRadius="10" Padding="20">
-                        <StackPanel>
-                            <TextBlock Text="🔥" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                            <TextBlock HorizontalAlignment="Center" FontFamily="Georgia" FontSize="28"
-                                       Foreground="{StaticResource StreakBrush}" FontWeight="Normal">
-                                <Run Text="{Binding Streak}"/>
-                                <Run Text=" Tage" FontSize="18" Foreground="#FFFF9A5C"/>
-                            </TextBlock>
-                            <TextBlock Text="Streak" HorizontalAlignment="Center" FontSize="12"
-                                       Foreground="#FFFF9A5C" Margin="0,2,0,8"/>
-                            <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="#CCFF9A5C">
-                                <Run Text="Rekord: "/>
-                                <Run Text="{Binding BestStreak}"/>
-                                <Run Text=" Tage"/>
-                            </TextBlock>
-                            <Border Background="#22FF6B35" CornerRadius="6" Padding="8,4" Margin="0,10,0,0">
-                                <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="{StaticResource WarnBrush}">
-                                    <Run Text="⏱ "/>
-                                    <Run Text="{Binding HoursUntilStreakEnd}"/>
-                                    <Run Text=" Std. bis Streak endet"/>
-                                </TextBlock>
-                            </Border>
-                        </StackPanel>
-                    </Border>
-                </Border>
-
-                <!-- XP Card -->
-                <Border Grid.Column="2" Style="{StaticResource Card}">
-                    <StackPanel>
-                        <TextBlock Text="XP &amp; LEVEL" FontSize="10.5" FontWeight="SemiBold"
-                                   Foreground="{StaticResource Text3Brush}" Margin="0,0,0,12"/>
-
+                        <TextBlock Text="LEVEL &amp; FORTSCHRITT" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Text3Brush}" Margin="0,0,0,12"/>
+                        
                         <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Text2Brush}">
-                                <Run Text="Level "/>
-                                <Run Text="{Binding Level}"/>
-                            </TextBlock>
-                            <TextBlock Grid.Column="2" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Text2Brush}">
-                                <Run Text="Level "/>
-                                <Run Text="{Binding Level, Converter={StaticResource PlusOne}}"/>
-                            </TextBlock>
+                            <Border Grid.Column="0" Background="{StaticResource Bg3Brush}" CornerRadius="6" Padding="8,4">
+                                <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}">
+                                    <Run Text="Lvl "/>
+                                    <Run Text="{Binding Level}"/>
+                                </TextBlock>
+                            </Border>
+                            <Border Grid.Column="2" Background="{StaticResource Bg3Brush}" CornerRadius="6" Padding="8,4">
+                                <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource Text2Brush}">
+                                    <Run Text="Lvl "/>
+                                    <Run Text="{Binding Level, Converter={StaticResource PlusOne}}"/>
+                                </TextBlock>
+                            </Border>
                         </Grid>
 
-                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding XPProgress, Mode=OneWay}"
-                                     Style="{StaticResource SuccessProgressBar}"
-                                     Height="8" Margin="0,0,0,8"/>
+                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding LevelProgress, Mode=OneWay}" 
+                                     Style="{StaticResource SuccessProgressBar}" Height="12" Margin="0,0,0,8"
+                                     ToolTip="{Binding LevelProgressTooltip}"/>
 
-                        <TextBlock Text="{Binding XPProgressText}" FontSize="12"
-                                   Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Center"/>
-
-                        <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" FontSize="12">
-                            <Run Text="+" Foreground="{StaticResource SuccessBrush}"/>
-                            <Run Text="{Binding XpGainedToday}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold"/>
-                            <Run Text=" XP heute" Foreground="{StaticResource Text3Brush}"/>
-                        </TextBlock>
+                        <Grid>
+                            <TextBlock Text="{Binding XPProgressText}" FontSize="12" Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Left"/>
+                            <TextBlock HorizontalAlignment="Right" FontSize="12">
+                                <Run Text="+" Foreground="{StaticResource SuccessBrush}"/>
+                                <Run Text="{Binding XpGainedToday}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold"/>
+                                <Run Text=" XP heute" Foreground="{StaticResource Text3Brush}"/>
+                            </TextBlock>
+                        </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- Recent Achievements -->
+                <!-- Streak 7-Tage-Übersicht -->
+                <Border Grid.Column="2" Style="{StaticResource CardElevated}">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#FF1A120A" Offset="0"/>
+                            <GradientStop Color="#FF1F150C" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border BorderBrush="#33FF6B35" BorderThickness="1" CornerRadius="10" Padding="16">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <TextBlock Text="LERN-STREAK" FontSize="10.5" FontWeight="SemiBold" Foreground="#CCFF9A5C"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <TextBlock Text="🔥" FontSize="14" Margin="0,0,4,0"/>
+                                    <TextBlock Text="{Binding Streak}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource StreakBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                            
+                            <ItemsControl ItemsSource="{Binding StreakDays}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Rows="1" Columns="7"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <Border Width="24" Height="24" CornerRadius="12" Margin="0,0,0,4">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#22FFFFFF"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                <Setter Property="Background" Value="{StaticResource StreakBrush}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                                                <Setter Property="BorderThickness" Value="1"/>
+                                                                <Setter Property="BorderBrush" Value="#FFFFFFFF"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="✓" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#AA000000">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                            <TextBlock Text="{Binding DayName}" FontSize="9" Foreground="#99FF9A5C" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </Border>
+
+                <!-- XP Log -->
                 <Border Grid.Column="4" Style="{StaticResource Card}">
                     <StackPanel>
-                        <Grid Margin="0,0,0,12">
-                            <TextBlock Text="LETZTE ACHIEVEMENTS" FontSize="10.5" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Text3Brush}"/>
-                            <TextBlock Text="Alle anzeigen →" HorizontalAlignment="Right" FontSize="11"
-                                       Foreground="{StaticResource AccentBrush}" Cursor="Hand"/>
-                        </Grid>
-
-                        <ItemsControl ItemsSource="{Binding RecentAchievements}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <UniformGrid Rows="1" Columns="4"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel HorizontalAlignment="Center" Margin="4,0">
-                                        <Border Width="44" Height="44" CornerRadius="10"
-                                                Background="{StaticResource Bg2Brush}"
-                                                BorderBrush="{StaticResource LineBrush}"
-                                                BorderThickness="1" Margin="0,0,0,6">
-                                            <TextBlock Text="{Binding Icon}" FontSize="20"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <TextBlock Text="{Binding Name}" FontSize="10" TextAlignment="Center"
-                                                   Foreground="{StaticResource Text2Brush}" TextWrapping="Wrap"/>
-                                        <TextBlock Text="{Binding Rarity}" FontSize="9.5" TextAlignment="Center"
-                                                   Foreground="{StaticResource Text3Brush}"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <TextBlock Text="LETZTE BELOHNUNGEN" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Text3Brush}" Margin="0,0,0,8"/>
+                        
+                        <ScrollViewer MaxHeight="80" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding XpLog}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding AmountText}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}" Width="40"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Description}" FontSize="11" Foreground="{StaticResource Text2Brush}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Time}" FontSize="10" Foreground="{StaticResource Text3Brush}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <!-- ══════════ QUICK ACTIONS ══════════ -->
-            <UniformGrid Grid.Row="3" Columns="3" Margin="0,0,0,24">
-                <Border Style="{StaticResource Card}" Margin="0,0,6,0" Cursor="Hand">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,10">
-                            <Border Width="32" Height="32" CornerRadius="8"
-                                    Background="{StaticResource AccentSoftBrush}" HorizontalAlignment="Left">
-                                <TextBlock Text="✨" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <Border Background="{StaticResource Bg3Brush}" CornerRadius="4" Padding="6,2"
-                                    HorizontalAlignment="Right" VerticalAlignment="Top">
-                                <TextBlock Text="⌘2" FontSize="10.5" Foreground="{StaticResource Text3Brush}" FontFamily="Consolas"/>
-                            </Border>
-                        </Grid>
-                        <TextBlock Text="KI Content generieren" FontSize="14" FontWeight="Medium"
-                                   Foreground="{StaticResource TextBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="PDF hochladen · automatisch Karten, MCQs oder Zusammenfassungen erzeugen"
-                                   FontSize="12" Foreground="{StaticResource Text3Brush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                        <TextBlock Text="Öffnen →" FontSize="12" Foreground="{StaticResource AccentBrush}"/>
-                    </StackPanel>
-                </Border>
-                <Border Style="{StaticResource Card}" Margin="6,0,6,0" Cursor="Hand">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,10">
-                            <Border Width="32" Height="32" CornerRadius="8"
-                                    Background="{StaticResource AccentSoftBrush}" HorizontalAlignment="Left">
-                                <TextBlock Text="📝" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <Border Background="{StaticResource Bg3Brush}" CornerRadius="4" Padding="6,2"
-                                    HorizontalAlignment="Right" VerticalAlignment="Top">
-                                <TextBlock Text="⌘3" FontSize="10.5" Foreground="{StaticResource Text3Brush}" FontFamily="Consolas"/>
-                            </Border>
-                        </Grid>
-                        <TextBlock Text="Test erstellen" FontSize="14" FontWeight="Medium"
-                                   Foreground="{StaticResource TextBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="Prüfungssimulation · Quick Check · Schwachstellen-Training"
-                                   FontSize="12" Foreground="{StaticResource Text3Brush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                        <TextBlock Text="Öffnen →" FontSize="12" Foreground="{StaticResource AccentBrush}"/>
-                    </StackPanel>
-                </Border>
-                <Border Style="{StaticResource Card}" Margin="6,0,0,0" Cursor="Hand">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,10">
-                            <Border Width="32" Height="32" CornerRadius="8"
-                                    Background="{StaticResource AccentSoftBrush}" HorizontalAlignment="Left">
-                                <TextBlock Text="📊" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <Border Background="{StaticResource Bg3Brush}" CornerRadius="4" Padding="6,2"
-                                    HorizontalAlignment="Right" VerticalAlignment="Top">
-                                <TextBlock Text="⌘4" FontSize="10.5" Foreground="{StaticResource Text3Brush}" FontFamily="Consolas"/>
-                            </Border>
-                        </Grid>
-                        <TextBlock Text="Analytics" FontSize="14" FontWeight="Medium"
-                                   Foreground="{StaticResource TextBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="Fortschritt, Heatmap und Schwächen im Überblick"
-                                   FontSize="12" Foreground="{StaticResource Text3Brush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                        <TextBlock Text="Öffnen →" FontSize="12" Foreground="{StaticResource AccentBrush}"/>
-                    </StackPanel>
-                </Border>
-            </UniformGrid>
-
-            <!-- ══════════ SUBJECTS TITLE ══════════ -->
-            <Grid Grid.Row="4" Margin="0,0,0,12">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock FontFamily="Georgia" FontSize="22" FontWeight="Normal"
-                               Foreground="{StaticResource TextBrush}" VerticalAlignment="Center">
-                        Deine Fächer
-                    </TextBlock>
-                    <TextBlock Text="6 aktiv" FontSize="12" Foreground="{StaticResource Text3Brush}"
-                               FontFamily="Consolas" Margin="10,0,0,0" VerticalAlignment="Bottom"/>
-                </StackPanel>
-                <Button HorizontalAlignment="Right" Style="{StaticResource GhostButton}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="+ " FontSize="14"/>
-                        <TextBlock Text="Fach hinzufügen"/>
-                    </StackPanel>
-                </Button>
-            </Grid>
-
-            <!-- ══════════ SUBJECTS GRID ══════════ -->
-            <ItemsControl Grid.Row="5" Margin="0,0,0,28"
-                          ItemsSource="{Binding Subjects}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Style="{StaticResource Card}" Width="300" Margin="0,0,12,12" Cursor="Hand">
-                            <StackPanel>
-                                <!-- Subject header -->
-                                <Grid Margin="0,0,0,12">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Width="36" Height="36" CornerRadius="9" Margin="0,0,12,0">
-                                            <Border.Background>
-                                                <SolidColorBrush Color="#225B8CFF"/>
-                                            </Border.Background>
-                                            <TextBlock Text="{Binding Icon}" FontSize="18"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       FontFamily="Georgia" FontWeight="SemiBold"/>
-                                        </Border>
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Medium"
-                                                       Foreground="{StaticResource TextBrush}"/>
-                                            <TextBlock FontSize="11.5" Foreground="{StaticResource Text3Brush}">
-                                                <Run Text="{Binding LastStudied}"/>
-                                                <Run Text=" · "/>
-                                                <Run Text="{Binding Difficulty}"/>
-                                            </TextBlock>
-                                        </StackPanel>
-                                    </StackPanel>
-                                    <Border HorizontalAlignment="Right" VerticalAlignment="Top"
-                                            Visibility="{Binding HasQuestionsToday, Converter={StaticResource BoolToVisibility}}">
-                                        <Border Style="{StaticResource BadgeAccent}">
-                                            <TextBlock FontSize="11" FontWeight="Medium"
-                                                       Foreground="{StaticResource AccentBrush}">
-                                                <Run Text="{Binding QuestionsToday}"/>
-                                                <Run Text=" heute"/>
-                                            </TextBlock>
-                                        </Border>
-                                    </Border>
-                                </Grid>
-
-                                <!-- Progress -->
-                                <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress, Mode=OneWay}"
-                                             Style="{StaticResource MfProgressBar}"
-                                             Height="3" Margin="0,0,0,10"/>
-
-                                <!-- Stats -->
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="FRAGEN" FontSize="9.5" Foreground="{StaticResource Text3Brush}" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding QuestionCount}" FontSize="14" FontWeight="Medium"
-                                                   Foreground="{StaticResource TextBrush}"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="ERFOLG" FontSize="9.5" Foreground="{StaticResource Text3Brush}" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding SuccessRatePercent}" FontSize="14" FontWeight="Medium"
-                                                   Foreground="{StaticResource SuccessBrush}"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Text="NIVEAU" FontSize="9.5" Foreground="{StaticResource Text3Brush}" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding Difficulty}" FontSize="14" FontWeight="Medium"
-                                                   Foreground="{StaticResource TextBrush}"/>
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-            <!-- ══════════ RECENT ACTIVITY + UPCOMING REVIEWS ══════════ -->
-            <Grid Grid.Row="6">
+            <!-- ══════════ MID SECTION ══════════ -->
+            <Grid Grid.Row="3" Margin="0,0,0,24">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="12"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Recent Activity -->
+                <!-- MODUL 2: TAGES-LERNPLAN -->
                 <Border Grid.Column="0" Style="{StaticResource Card}">
                     <StackPanel>
-                        <Grid Margin="0,0,0,14">
-                            <TextBlock Text="Letzte Aktivität" FontSize="14" FontWeight="Medium"
-                                       Foreground="{StaticResource TextBrush}"/>
-                            <TextBlock Text="Verlauf →" HorizontalAlignment="Right" FontSize="11"
-                                       Foreground="{StaticResource AccentBrush}" Cursor="Hand"/>
+                        <Grid Margin="0,0,0,16">
+                            <TextBlock Text="HEUTIGER LERNPLAN" FontSize="14" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="{Binding TaskSummary}" FontSize="11" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
                         </Grid>
 
-                        <ItemsControl ItemsSource="{Binding RecentActivity}">
+                        <ItemsControl ItemsSource="{Binding TodayTasks}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="0,0,0,10">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Grid.Column="0" Width="28" Height="28" CornerRadius="6"
-                                                Background="{StaticResource Bg2Brush}" Margin="0,0,10,0">
-                                            <TextBlock Text="✓" FontSize="12" HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{StaticResource SuccessBrush}"/>
-                                        </Border>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Action}" FontSize="12"
-                                                       Foreground="{StaticResource TextBrush}"
-                                                       TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Text="{Binding Subject}" FontSize="11"
-                                                       Foreground="{StaticResource Text3Brush}"/>
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="{Binding Time}" FontSize="11"
-                                                   Foreground="{StaticResource Text3Brush}" VerticalAlignment="Center"/>
-                                    </Grid>
+                                    <Border Background="{StaticResource Bg2Brush}" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <CheckBox Grid.Column="0" IsChecked="{Binding IsCompleted}" 
+                                                      Command="{Binding DataContext.CompleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      CommandParameter="{Binding}"
+                                                      VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                      
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                    <TextBlock Text="{Binding TypeIcon}" FontSize="12" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                                        <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                                                        <Setter Property="Foreground" Value="{StaticResource Text3Brush}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource Text3Brush}" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            
+                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="4" Padding="6,2" Margin="0,0,0,4" HorizontalAlignment="Right">
+                                                    <TextBlock Text="{Binding PriorityTag}" FontSize="10" Foreground="{StaticResource AccentBrush}" FontWeight="Medium"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding DurationText}" FontSize="11" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
                 </Border>
 
-                <!-- Upcoming Reviews -->
-                <Border Grid.Column="2" Style="{StaticResource Card}">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,14">
-                            <TextBlock Text="Anstehende Wiederholungen" FontSize="14" FontWeight="Medium"
-                                       Foreground="{StaticResource TextBrush}"/>
-                        </Grid>
-                        <TextBlock FontSize="11" Foreground="{StaticResource Text3Brush}" Margin="0,0,0,10">
-                            <Run Text="Spaced Repetition · nächste 7 Tage"/>
-                        </TextBlock>
-
-                        <ItemsControl ItemsSource="{Binding UpcomingReviews}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,0,0,8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="90"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="30"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding Day}" FontSize="12"
-                                                   Foreground="{StaticResource Text2Brush}" VerticalAlignment="Center"/>
-                                        <ProgressBar Grid.Column="1" Minimum="0" Maximum="50" Value="{Binding Count, Mode=OneWay}"
-                                                     Style="{StaticResource MfProgressBar}"
-                                                     Height="4" VerticalAlignment="Center" Margin="8,0"/>
-                                        <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="12"
-                                                   Foreground="{StaticResource TextBrush}"
-                                                   FontWeight="Medium" VerticalAlignment="Center"
-                                                   HorizontalAlignment="Right"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch"
-                                Margin="0,12,0,0" Height="36">
-                            <TextBlock Text="Heute starten"/>
-                        </Button>
-                    </StackPanel>
-                </Border>
+                <StackPanel Grid.Column="2">
+                    <!-- MODUL 3: SPACED REPETITION -->
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <TextBlock Text="SPACED REPETITION" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Text3Brush}"/>
+                                <TextBlock Text="Graph →" FontSize="10" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Right" Cursor="Hand"/>
+                            </Grid>
+                            
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,16">
+                                <TextBlock Text="{Binding DueReviewCount}" FontFamily="Georgia" FontSize="36" Foreground="{StaticResource TextBrush}"/>
+                                <TextBlock Text="Karten" FontSize="14" Foreground="{StaticResource Text2Brush}" VerticalAlignment="Bottom" Margin="6,0,0,6"/>
+                            </StackPanel>
+                            
+                            <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch"
+                                    Command="{Binding DataContext.NavigateToCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                    CommandParameter="QA">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔄 "/>
+                                    <TextBlock Text="Jetzt Wiederholen"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- MODUL 5: KI-TUTOR SCHNELLZUGRIFF -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="KI-TUTOR" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource Text3Brush}" Margin="0,0,0,8"/>
+                            
+                            <Border Background="{StaticResource Bg2Brush}" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                                <TextBlock Text="💡 Vorschlag: Soll ich dir die Maxwell-Gleichungen für deine heutige Aufgabe zusammenfassen?" 
+                                           FontSize="11" Foreground="{StaticResource Text2Brush}" TextWrapping="Wrap"/>
+                            </Border>
+                            
+                            <Grid>
+                                <TextBox Style="{StaticResource MfTextBox}" Padding="10,6,36,6" FontSize="12" 
+                                         Tag="Frage etwas..."/>
+                                <Button Style="{StaticResource IconButton}" HorizontalAlignment="Right" Margin="4">
+                                    <TextBlock Text="➤" FontSize="10"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
             </Grid>
+
+            <!-- ══════════ MODUL 4: FÄCHER & KURSÜBERSICHT ══════════ -->
+            <Grid Grid.Row="4" Margin="0,0,0,12">
+                <StackPanel>
+                    <Grid Margin="0,0,0,16">
+                        <TextBlock FontFamily="Georgia" FontSize="20" Foreground="{StaticResource TextBrush}">Deine Fächer</TextBlock>
+                        <Button Style="{StaticResource GhostButton}" HorizontalAlignment="Right"
+                                Command="{Binding DataContext.NavigateToCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                CommandParameter="Subjects">
+                            <TextBlock Text="Alle anzeigen →" FontSize="12"/>
+                        </Button>
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding Subjects}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Width="300" Margin="0,0,12,12">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,12">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="36" Height="36" CornerRadius="9" Margin="0,0,12,0" Background="{StaticResource AccentSoftBrush}">
+                                                    <TextBlock Text="{Binding Icon}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Medium" Foreground="{StaticResource TextBrush}"/>
+                                                    <TextBlock FontSize="11.5" Foreground="{StaticResource Text3Brush}">
+                                                        <Run Text="{Binding QuestionCount}"/>
+                                                        <Run Text=" Elemente"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            
+                                            <!-- Quick Actions -->
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                                <Button Style="{StaticResource IconButton}" Margin="0,0,4,0" ToolTip="Lernen">
+                                                    <TextBlock Text="▶" FontSize="10"/>
+                                                </Button>
+                                                <Button Style="{StaticResource IconButton}" ToolTip="Upload">
+                                                    <TextBlock Text="+" FontSize="14" Margin="0,-2,0,0"/>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress, Mode=OneWay}" 
+                                                     Style="{StaticResource MfProgressBar}" Height="3" Margin="0,0,0,8"/>
+                                                     
+                                        <TextBlock HorizontalAlignment="Right" FontSize="10" Foreground="{StaticResource Text3Brush}">
+                                            <Run Text="Fortschritt: "/>
+                                            <Run Text="{Binding ProgressPercent}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Grid>
+
         </Grid>
     </ScrollViewer>
 </UserControl>
