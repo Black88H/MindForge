@@ -1,7 +1,6 @@
 <Window x:Class="MindForge.Views.LoginView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:MindForge.ViewModels"
         Title="MindForge"
         Width="440" Height="580"
         MinWidth="400" MinHeight="520"
@@ -9,29 +8,48 @@
         ResizeMode="NoResize"
         WindowStyle="None"
         ShowActivated="True"
-        FocusManager.FocusedElement="{Binding ElementName=LoginIdentifierBox}"
         Background="{StaticResource Bg1Brush}">
 
     <!--
-        WindowChrome was previously used here but caused silent keyboard input
-        loss on Win11 22H2+ in combination with WindowStyle=None: WM_KEYDOWN
-        wasn't being routed to the WPF input system reliably. The manual drag
-        bar (DragBar_MouseDown -> DragMove) covers what WindowChrome offered.
-        FocusManager.FocusedElement above is a layout-time fallback in case
-        Loaded fires before the visibility-bound login panel is realized.
+        FIX 1 – WindowChrome (GlassFrameThickness=0, AllowsTransparency=False):
+            WindowStyle=None without WindowChrome leaves the HWND without standard
+            Win32 message hooks.  On Win11 22H2+ that silently drops WM_KEYDOWN.
+            GlassFrameThickness=0 gives us the HWND setup without any glass/Aero.
+            AllowsTransparency MUST stay False – the combination AllowsTransparency=True
+            + WindowChrome is the originally-broken combo; this fix avoids it.
+
+        FIX 2 – Focusable="False" on PART_ContentHost ScrollViewers:
+            WPF's standard TextBox/PasswordBox template always sets Focusable=False on
+            the inner ScrollViewer.  Without it the ScrollViewer can absorb keyboard
+            focus: IsFocused (logical) stays True on the TextBox (blue ring visible)
+            but Keyboard.FocusedElement becomes the ScrollViewer → typing is swallowed.
+
+        FIX 3 – FocusManager.FocusedElement removed:
+            That attribute relies on the named element being realised before Loaded fires.
+            Because LoginIdentifierBox lives inside a Visibility-bound StackPanel the
+            binding timing is fragile.  Initial focus is now set reliably in code-behind.
     -->
 
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32"
+                      GlassFrameThickness="0"
+                      ResizeBorderThickness="0,0,0,0"
+                      UseAeroCaptionButtons="False"
+                      CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
+
     <Window.Resources>
-        <!-- Tab button style -->
+
+        <!-- ── Tab button ───────────────────────────────────────────────── -->
         <Style x:Key="TabBtn" TargetType="Button">
-            <Setter Property="Background"   Value="Transparent"/>
-            <Setter Property="Foreground"   Value="{StaticResource Text3Brush}"/>
-            <Setter Property="BorderBrush"  Value="Transparent"/>
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Foreground"      Value="{StaticResource Text3Brush}"/>
+            <Setter Property="BorderBrush"     Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize"     Value="14"/>
-            <Setter Property="FontFamily"   Value="Segoe UI"/>
-            <Setter Property="Cursor"       Value="Hand"/>
-            <Setter Property="Padding"      Value="0,8"/>
+            <Setter Property="FontSize"        Value="14"/>
+            <Setter Property="FontFamily"      Value="Segoe UI"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Padding"         Value="0,8"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -50,18 +68,24 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Input field style -->
+        <!-- ── Input field (TextBox) ────────────────────────────────────── -->
+        <!--  Focusable="False" on PART_ContentHost is mandatory: prevents the
+              inner ScrollViewer from stealing Keyboard.FocusedElement away from
+              the TextBox, which would make typing silently disappear.          -->
         <Style x:Key="InputBox" TargetType="TextBox">
-            <Setter Property="Background"    Value="{StaticResource Bg3Brush}"/>
-            <Setter Property="Foreground"    Value="{StaticResource TextBrush}"/>
-            <Setter Property="CaretBrush"    Value="{StaticResource AccentBrush}"/>
-            <Setter Property="BorderBrush"   Value="{StaticResource LineBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding"       Value="12,10"/>
-            <Setter Property="FontSize"      Value="13"/>
-            <Setter Property="FontFamily"    Value="Segoe UI"/>
-            <Setter Property="Height"        Value="42"/>
+            <Setter Property="Background"              Value="{StaticResource Bg3Brush}"/>
+            <Setter Property="Foreground"              Value="{StaticResource TextBrush}"/>
+            <Setter Property="CaretBrush"              Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush"             Value="{StaticResource LineBrush}"/>
+            <Setter Property="BorderThickness"         Value="1"/>
+            <Setter Property="Padding"                 Value="12,10"/>
+            <Setter Property="FontSize"                Value="13"/>
+            <Setter Property="FontFamily"              Value="Segoe UI"/>
+            <Setter Property="Height"                  Value="42"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="IsReadOnly"              Value="False"/>
+            <Setter Property="IsHitTestVisible"        Value="True"/>
+            <Setter Property="Focusable"               Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
@@ -69,7 +93,10 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="8">
+                            <!-- Focusable="False": ScrollViewer must NOT grab
+                                 Keyboard.FocusedElement – the TextBox owns that. -->
                             <ScrollViewer x:Name="PART_ContentHost"
+                                          Focusable="False"
                                           Margin="{TemplateBinding Padding}"
                                           VerticalAlignment="Center"/>
                         </Border>
@@ -83,18 +110,20 @@
             </Setter>
         </Style>
 
-        <!-- Password field style -->
+        <!-- ── Password field ───────────────────────────────────────────── -->
         <Style x:Key="PwdBox" TargetType="PasswordBox">
-            <Setter Property="Background"    Value="{StaticResource Bg3Brush}"/>
-            <Setter Property="Foreground"    Value="{StaticResource TextBrush}"/>
-            <Setter Property="CaretBrush"    Value="{StaticResource AccentBrush}"/>
-            <Setter Property="BorderBrush"   Value="{StaticResource LineBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding"       Value="12,10"/>
-            <Setter Property="FontSize"      Value="13"/>
-            <Setter Property="FontFamily"    Value="Segoe UI"/>
-            <Setter Property="Height"        Value="42"/>
+            <Setter Property="Background"              Value="{StaticResource Bg3Brush}"/>
+            <Setter Property="Foreground"              Value="{StaticResource TextBrush}"/>
+            <Setter Property="CaretBrush"              Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush"             Value="{StaticResource LineBrush}"/>
+            <Setter Property="BorderThickness"         Value="1"/>
+            <Setter Property="Padding"                 Value="12,10"/>
+            <Setter Property="FontSize"                Value="13"/>
+            <Setter Property="FontFamily"              Value="Segoe UI"/>
+            <Setter Property="Height"                  Value="42"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="IsHitTestVisible"        Value="True"/>
+            <Setter Property="Focusable"               Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="PasswordBox">
@@ -103,6 +132,7 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="8">
                             <ScrollViewer x:Name="PART_ContentHost"
+                                          Focusable="False"
                                           Margin="{TemplateBinding Padding}"
                                           VerticalAlignment="Center"/>
                         </Border>
@@ -116,7 +146,7 @@
             </Setter>
         </Style>
 
-        <!-- Primary action button -->
+        <!-- ── Primary action button ────────────────────────────────────── -->
         <Style x:Key="PrimaryBtn" TargetType="Button">
             <Setter Property="Background"    Value="{StaticResource AccentBrush}"/>
             <Setter Property="Foreground"    Value="White"/>
@@ -148,24 +178,33 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
     </Window.Resources>
 
-    <!-- Outer card -->
+    <!-- ── Outer card ─────────────────────────────────────────────────────── -->
     <Border Background="{StaticResource Bg1Brush}"
             CornerRadius="16"
             BorderBrush="{StaticResource LineBrush}"
             BorderThickness="1">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>  <!-- drag bar -->
+                <!-- Row 0: 32 px drag area – matches WindowChrome.CaptionHeight.
+                     WindowChrome handles DragMove for this row automatically. -->
+                <RowDefinition Height="32"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Drag handle -->
-            <Border Grid.Row="0" Height="32" Background="Transparent"
-                    MouseDown="DragBar_MouseDown" Cursor="SizeAll"/>
+            <!-- Drag handle: WindowChrome.IsHitTestVisibleInChrome="False" (default)
+                 lets the caption-area hit-test handle dragging natively.
+                 The explicit MouseDown handler is kept as a belt-and-suspenders
+                 fallback; calling DragMove() from inside a left-button-down event
+                 is safe and the OS ignores it if a drag is already in progress.  -->
+            <Border Grid.Row="0" Height="32"
+                    Background="Transparent"
+                    MouseDown="DragBar_MouseDown"
+                    Cursor="SizeAll"/>
 
-            <!-- Content -->
+            <!-- ── Main content ──────────────────────────────────────────── -->
             <StackPanel Grid.Row="1" Margin="40,0,40,36">
 
                 <!-- Logo + headline -->
@@ -180,7 +219,8 @@
                         </Border.Background>
                         <TextBlock Text="M" FontSize="24" FontWeight="Bold"
                                    Foreground="White"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
                     </Border>
                     <TextBlock Text="MindForge"
                                FontSize="22" FontWeight="Bold"
@@ -215,6 +255,7 @@
                             </Style>
                         </Button.Style>
                     </Button>
+
                     <Button Grid.Column="1" Grid.Row="0" Content="Registrieren"
                             Command="{Binding ShowRegisterCommand}">
                         <Button.Style>
@@ -229,7 +270,7 @@
                         </Button.Style>
                     </Button>
 
-                    <!-- underline for Login tab -->
+                    <!-- underline – Login tab -->
                     <Border Grid.Column="0" Grid.Row="1" Height="2" CornerRadius="1"
                             HorizontalAlignment="Stretch">
                         <Border.Style>
@@ -243,7 +284,8 @@
                             </Style>
                         </Border.Style>
                     </Border>
-                    <!-- underline for Register tab -->
+
+                    <!-- underline – Register tab -->
                     <Border Grid.Column="1" Grid.Row="1" Height="2" CornerRadius="1"
                             HorizontalAlignment="Stretch">
                         <Border.Style>
@@ -259,19 +301,25 @@
                     </Border>
                 </Grid>
 
-                <!-- ── LOGIN PANEL ── -->
+                <!-- ── LOGIN PANEL ────────────────────────────────────────── -->
                 <StackPanel Visibility="{Binding IsLoginTab, Converter={StaticResource BoolToVisibility}}">
+
                     <TextBlock Text="Benutzername oder E-Mail"
-                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                               FontSize="12" Foreground="{StaticResource Text2Brush}"
+                               Margin="0,0,0,6"/>
                     <TextBox x:Name="LoginIdentifierBox"
                              Style="{StaticResource InputBox}"
+                             IsReadOnly="False"
+                             IsHitTestVisible="True"
                              Text="{Binding LoginIdentifier, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,14"/>
 
                     <TextBlock Text="Passwort"
-                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                               FontSize="12" Foreground="{StaticResource Text2Brush}"
+                               Margin="0,0,0,6"/>
                     <PasswordBox x:Name="LoginPasswordBox"
                                  Style="{StaticResource PwdBox}"
+                                 IsHitTestVisible="True"
                                  PasswordChanged="LoginPasswordBox_PasswordChanged"
                                  Margin="0,0,0,20"/>
 
@@ -281,31 +329,42 @@
                             IsDefault="True"/>
                 </StackPanel>
 
-                <!-- ── REGISTER PANEL ── -->
+                <!-- ── REGISTER PANEL ─────────────────────────────────────── -->
                 <StackPanel Visibility="{Binding IsRegisterTab, Converter={StaticResource BoolToVisibility}}">
+
                     <TextBlock Text="Benutzername"
-                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                               FontSize="12" Foreground="{StaticResource Text2Brush}"
+                               Margin="0,0,0,6"/>
                     <TextBox Style="{StaticResource InputBox}"
+                             IsReadOnly="False"
+                             IsHitTestVisible="True"
                              Text="{Binding RegisterUsername, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,14"/>
 
                     <TextBlock Text="E-Mail"
-                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                               FontSize="12" Foreground="{StaticResource Text2Brush}"
+                               Margin="0,0,0,6"/>
                     <TextBox Style="{StaticResource InputBox}"
+                             IsReadOnly="False"
+                             IsHitTestVisible="True"
                              Text="{Binding RegisterEmail, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,14"/>
 
                     <TextBlock Text="Passwort"
-                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                               FontSize="12" Foreground="{StaticResource Text2Brush}"
+                               Margin="0,0,0,6"/>
                     <PasswordBox x:Name="RegisterPasswordBox"
                                  Style="{StaticResource PwdBox}"
+                                 IsHitTestVisible="True"
                                  PasswordChanged="RegisterPasswordBox_PasswordChanged"
                                  Margin="0,0,0,14"/>
 
                     <TextBlock Text="Passwort bestätigen"
-                               FontSize="12" Foreground="{StaticResource Text2Brush}" Margin="0,0,0,6"/>
+                               FontSize="12" Foreground="{StaticResource Text2Brush}"
+                               Margin="0,0,0,6"/>
                     <PasswordBox x:Name="RegisterConfirmBox"
                                  Style="{StaticResource PwdBox}"
+                                 IsHitTestVisible="True"
                                  PasswordChanged="RegisterConfirmBox_PasswordChanged"
                                  Margin="0,0,0,20"/>
 
@@ -330,6 +389,7 @@
                              BorderThickness="0"
                              Margin="0,12,0,0"
                              Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"/>
+
             </StackPanel>
         </Grid>
     </Border>
