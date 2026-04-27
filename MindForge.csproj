@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -8,13 +7,13 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>MindForge</AssemblyName>
     <RootNamespace>MindForge</RootNamespace>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.0.3</Version>
+    <AssemblyVersion>1.0.3.0</AssemblyVersion>
+    <FileVersion>1.0.3.0</FileVersion>
     <LangVersion>latest</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NoWarn>$(NoWarn);CA1416;CS8602</NoWarn>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Remove="tests\**" />
     <Content Remove="tests\**" />
@@ -22,7 +21,6 @@
     <None Remove="tests\**" />
     <Page Remove="tests\**" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
@@ -41,5 +39,4 @@
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
   </ItemGroup>
-
 </Project>
