@@ -8,15 +8,18 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         WindowStyle="None"
+        ShowActivated="True"
+        FocusManager.FocusedElement="{Binding ElementName=LoginIdentifierBox}"
         Background="{StaticResource Bg1Brush}">
 
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0"
-                      ResizeBorderThickness="4,4,4,4"
-                      CornerRadius="0"
-                      GlassFrameThickness="0"
-                      UseAeroCaptionButtons="False"/>
-    </WindowChrome.WindowChrome>
+    <!--
+        WindowChrome was previously used here but caused silent keyboard input
+        loss on Win11 22H2+ in combination with WindowStyle=None: WM_KEYDOWN
+        wasn't being routed to the WPF input system reliably. The manual drag
+        bar (DragBar_MouseDown -> DragMove) covers what WindowChrome offered.
+        FocusManager.FocusedElement above is a layout-time fallback in case
+        Loaded fires before the visibility-bound login panel is realized.
+    -->
 
     <Window.Resources>
         <!-- Tab button style -->

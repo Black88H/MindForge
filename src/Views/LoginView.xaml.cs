@@ -18,14 +18,21 @@ public partial class LoginView : Window
             DialogResult = true;
             Close();
         };
-        // WindowChrome + WindowStyle=None: queue keyboard focus at Input priority
-        // so WPF's focus-restore pass has finished before we steal focus.
-        Loaded += (_, _) =>
+
+        // Win11 + WindowStyle=None: focus must be reasserted after the window
+        // is fully shown, otherwise the first keystroke is dropped. We do it
+        // on ContentRendered (fires once after first layout pass) at Input
+        // priority so the WPF input system has finished initializing.
+        ContentRendered += (_, _) =>
         {
             Activate();
             Dispatcher.BeginInvoke(
                 System.Windows.Threading.DispatcherPriority.Input,
-                new Action(() => Keyboard.Focus(LoginIdentifierBox)));
+                new Action(() =>
+                {
+                    LoginIdentifierBox.Focus();
+                    Keyboard.Focus(LoginIdentifierBox);
+                }));
         };
     }
 
