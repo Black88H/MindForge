@@ -194,7 +194,7 @@
 
                                 <!-- AI Explanation button -->
                                 <Button Grid.Column="0" Style="{StaticResource PrimaryButton}" Height="36"
-                                        Command="{Binding ShowAIExplanationAsyncCommand}">
+                                        Command="{Binding ShowAIExplanationCommand}">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="✨ " FontSize="13"/>
                                         <TextBlock Text="{Binding IsLoadingExplanation, Converter={StaticResource BoolToSavingText}, ConverterParameter=Lädt|KI-Erklärung}"/>
@@ -203,7 +203,7 @@
 
                                 <!-- Submit button -->
                                 <Button Grid.Column="2" Style="{StaticResource SecondaryButton}" Height="36"
-                                        Command="{Binding SubmitAnswerAsyncCommand}"
+                                        Command="{Binding SubmitAnswerCommand}"
                                         Visibility="{Binding IsAnswered, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
                                     <TextBlock Text="Beantworten"/>
                                 </Button>

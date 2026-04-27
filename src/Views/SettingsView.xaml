@@ -491,7 +491,7 @@
                     <Grid Margin="0,0,0,0">
                         <TextBlock Text="Daten exportieren" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
                         <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Padding="16,6"
-                                Command="{Binding ExportDataAsyncCommand}">
+                                Command="{Binding ExportDataCommand}">
                             <TextBlock Text="Als JSON exportieren" FontSize="12"/>
                         </Button>
                     </Grid>
@@ -568,7 +568,7 @@
                                            Visibility="{Binding UpdateAvailable, Converter={StaticResource BoolToVisibility}}"/>
                             </Grid>
                             <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
-                                    Padding="16,8" Command="{Binding CheckUpdatesAsyncCommand}">
+                                    Padding="16,8" Command="{Binding CheckUpdatesCommand}">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🔄  " FontSize="13"/>
                                     <TextBlock Text="Auf Updates prüfen" FontSize="13"/>
@@ -586,7 +586,7 @@
                 <Border Height="1" Background="{StaticResource LineBrush}" Margin="0,24,0,16"/>
                 <Grid>
                     <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"
-                            Height="38" Padding="20,0" Command="{Binding SaveAsyncCommand}">
+                            Height="38" Padding="20,0" Command="{Binding SaveCommand}">
                         <TextBlock Text="{Binding SaveButtonText}"/>
                     </Button>
                     <TextBlock Text="{Binding SaveStatus}" HorizontalAlignment="Right" VerticalAlignment="Center"

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using MindForge.Views;
 
 namespace MindForge;
 
@@ -127,5 +128,34 @@ public class EqualityConverter : IMultiValueConverter
     public object Convert(object[] values, Type t, object p, CultureInfo c)
         => values.Length == 2 && Equals(values[0], values[1]);
     public object[] ConvertBack(object value, Type[] types, object p, CultureInfo c)
+        => throw new NotImplementedException();
+}
+
+/// <summary>
+/// Converts a CurrentView string to the matching UserControl instance.
+/// Fixes the XamlParseException caused by instantiating UIElements inside Style.Setter.Value.
+/// </summary>
+public class ViewLocatorConverter : IValueConverter
+{
+    public static readonly ViewLocatorConverter Instance = new();
+
+    public object? Convert(object value, Type t, object p, CultureInfo c) => value switch
+    {
+        "Dashboard"        => new DashboardView(),
+        "Home"             => new HomeView(),
+        "QA"               => new QAView(),
+        "Learning"         => new LearningView(),
+        "Tests"            => new TestsView(),
+        "ContentGenerator" => new ContentGeneratorView(),
+        "KITools"          => new KIToolsView(),
+        "TestCreator"      => new TestCreatorView(),
+        "Analytics"        => new AnalyticsView(),
+        "Subjects"         => new SubjectsView(),
+        "Profile"          => new ProfileView(),
+        "Settings"         => new SettingsView(),
+        _                  => null
+    };
+
+    public object ConvertBack(object value, Type t, object p, CultureInfo c)
         => throw new NotImplementedException();
 }

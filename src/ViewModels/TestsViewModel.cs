@@ -9,7 +9,6 @@ namespace MindForge.ViewModels;
 public partial class TestsViewModel : ObservableObject
 {
     private readonly TestRunnerService? _runner;
-    private TestSession? _activeSession;
     private System.Timers.Timer? _timer;
 
     public TestsViewModel() : this(null) { }
