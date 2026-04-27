@@ -7,9 +7,9 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>MindForge</AssemblyName>
     <RootNamespace>MindForge</RootNamespace>
-    <Version>1.0.5</Version>
-    <AssemblyVersion>1.0.5.0</AssemblyVersion>
-    <FileVersion>1.0.5.0</FileVersion>
+    <Version>1.0.6</Version>
+    <AssemblyVersion>1.0.6.0</AssemblyVersion>
+    <FileVersion>1.0.6.0</FileVersion>
     <LangVersion>latest</LangVersion>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <NoWarn>$(NoWarn);CA1416;CS8602</NoWarn>
