@@ -5,22 +5,10 @@
         xmlns:views="clr-namespace:MindForge.Views"
         Title="MindForge" Height="900" Width="1440"
         MinHeight="700" MinWidth="1100"
-        WindowStyle="None" AllowsTransparency="True"
-        Background="Transparent"
+        WindowStyle="None"
+        Background="{StaticResource BgBrush}"
         FontFamily="Segoe UI" FontSize="13.5"
         Foreground="{StaticResource TextBrush}">
-
-    <WindowChrome.WindowChrome>
-        <!-- GlassFrameThickness="0" keeps the custom transparent look.
-             CaptionHeight=48 matches header height so DragMove() and
-             double-click-to-maximize still work via the XAML handler.
-             ResizeBorderThickness enables corner/edge resize. -->
-        <WindowChrome CaptionHeight="48"
-                      GlassFrameThickness="0"
-                      ResizeBorderThickness="6"
-                      UseAeroCaptionButtons="False"
-                      CornerRadius="0"/>
-    </WindowChrome.WindowChrome>
 
     <!-- DataContext is injected via DI in MainWindow.xaml.cs -->
 
