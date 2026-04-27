@@ -90,4 +90,25 @@ public partial class LoginView : Window
 
     private void RegisterConfirmBox_PasswordChanged(object sender, RoutedEventArgs e)
         => _vm.RegisterConfirm = RegisterConfirmBox.Password;
+
+    // ── Tab focus ───────────────────────────────────────────────────────────
+    private void RegisterPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is true)
+        {
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
+            {
+                RegisterUsernameBox.Focus();
+                Keyboard.Focus(RegisterUsernameBox);
+            }));
+        }
+        else
+        {
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
+            {
+                LoginIdentifierBox.Focus();
+                Keyboard.Focus(LoginIdentifierBox);
+            }));
+        }
+    }
 }

@@ -330,12 +330,14 @@
                 </StackPanel>
 
                 <!-- ── REGISTER PANEL ─────────────────────────────────────── -->
-                <StackPanel Visibility="{Binding IsRegisterTab, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Visibility="{Binding IsRegisterTab, Converter={StaticResource BoolToVisibility}}"
+                            IsVisibleChanged="RegisterPanel_IsVisibleChanged">
 
                     <TextBlock Text="Benutzername"
                                FontSize="12" Foreground="{StaticResource Text2Brush}"
                                Margin="0,0,0,6"/>
-                    <TextBox Style="{StaticResource InputBox}"
+                    <TextBox x:Name="RegisterUsernameBox"
+                             Style="{StaticResource InputBox}"
                              IsReadOnly="False"
                              IsHitTestVisible="True"
                              Text="{Binding RegisterUsername, UpdateSourceTrigger=PropertyChanged}"
@@ -344,7 +346,8 @@
                     <TextBlock Text="E-Mail"
                                FontSize="12" Foreground="{StaticResource Text2Brush}"
                                Margin="0,0,0,6"/>
-                    <TextBox Style="{StaticResource InputBox}"
+                    <TextBox x:Name="RegisterEmailBox"
+                             Style="{StaticResource InputBox}"
                              IsReadOnly="False"
                              IsHitTestVisible="True"
                              Text="{Binding RegisterEmail, UpdateSourceTrigger=PropertyChanged}"
