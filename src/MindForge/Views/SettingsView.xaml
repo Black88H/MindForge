@@ -35,10 +35,12 @@
                         <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Content="Auf Updates prüfen" Click="OnCheckUpdatesClick" Background="#6C63FF" Foreground="White" BorderThickness="0" Height="40" Padding="16,0"/>
-                            <TextBlock x:Name="TxtUpdateStatus" Grid.Column="1" Text="" Foreground="Lime" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                            <Button x:Name="BtnCheckUpdates" Grid.Column="0" Content="Auf Updates prüfen" Click="OnCheckUpdatesClick" Background="#6C63FF" Foreground="White" BorderThickness="0" Height="40" Padding="16,0"/>
+                            <Button x:Name="BtnDownloadUpdate" Grid.Column="1" Content="Jetzt aktualisieren" Click="OnDownloadUpdateClick" Visibility="Collapsed" Background="Lime" Foreground="#0D1117" FontWeight="Bold" BorderThickness="0" Height="40" Padding="16,0" Margin="16,0,0,0"/>
+                            <TextBlock x:Name="TxtUpdateStatus" Grid.Column="2" Text="" Foreground="Lime" VerticalAlignment="Center" Margin="16,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
                 </Border>
