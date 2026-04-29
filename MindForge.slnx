@@ -1,2 +1,8 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MindForge/MindForge.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MindForge.Tests/MindForge.Tests.csproj" />
+  </Folder>
 </Solution>

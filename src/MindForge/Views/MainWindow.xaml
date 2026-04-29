@@ -1,0 +1,162 @@
+<Window x:Class="MindForge.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="MindForge" Height="768" Width="1280"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent"
+        MinWidth="1100" MinHeight="650">
+
+    <Border CornerRadius="12" ClipToBounds="True">
+        <Grid>
+            <Grid.Background>
+                <SolidColorBrush Color="#0D1117"/>
+            </Grid.Background>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar -->
+            <Border Grid.Column="0" Background="#161B2E">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Logo -->
+                    <StackPanel Grid.Row="0" Margin="20,24,20,20">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🧠" FontSize="28"/>
+                            <TextBlock Text="MindForge" FontSize="20" FontWeight="Bold"
+                                       Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </StackPanel>
+                        <Separator Margin="0,16,0,0" Background="#252D45"/>
+                    </StackPanel>
+
+                    <!-- Nav Items -->
+                    <StackPanel Grid.Row="1" Margin="12,0,12,0">
+                        <Button x:Name="BtnDashboard" Tag="Dashboard" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Dashboard" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnSubjects" Tag="Subjects" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📚" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Fächer" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnMaterials" Tag="Materials" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📄" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Materialien" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnGraph" Tag="Graph" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🌐" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Wissensgraph" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnLearning" Tag="Learning" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔄" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Lernen (SR)" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnTests" Tag="Tests" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📝" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Tests" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnChat" Tag="Chat" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🤖" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="KI-Tutor" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnAnalytics" Tag="Analytics" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📈" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Statistiken" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Bottom: User & Settings -->
+                    <StackPanel Grid.Row="2" Margin="12,0,12,20">
+                        <Separator Background="#252D45" Margin="0,0,0,12"/>
+                        <Button x:Name="BtnSettings" Tag="Settings" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Einstellungen" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <!-- User Info -->
+                        <Border Background="#1E2640" CornerRadius="8" Padding="12,10" Margin="0,8,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="36" Height="36" CornerRadius="18" Background="#6C63FF">
+                                    <TextBlock x:Name="TxtUserInitial" Text="U" Foreground="White"
+                                               FontWeight="Bold" FontSize="16"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="TxtUsername" Text="Benutzer"
+                                               Foreground="White" FontSize="13" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="TxtUserLevel" Text="Level 1"
+                                               Foreground="#6C63FF" FontSize="11"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Main Content Area -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="48"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Titlebar -->
+                <Border Grid.Row="0" Background="#0D1117" MouseLeftButtonDown="OnDragWindow">
+                    <Grid Margin="16,0">
+                        <TextBlock x:Name="TxtPageTitle" Text="Dashboard"
+                                   Foreground="White" FontSize="15" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="—" Click="OnMinimize" Width="40" Height="30"
+                                    Background="Transparent" Foreground="#8892B0" BorderThickness="0"
+                                    FontSize="16"/>
+                            <Button Content="✕" Click="OnClose" Width="40" Height="30"
+                                    Background="Transparent" Foreground="#8892B0" BorderThickness="0"
+                                    FontSize="14"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Content Frame -->
+                <Frame x:Name="MainFrame" Grid.Row="1"
+                       NavigationUIVisibility="Hidden"
+                       Background="#0D1117"/>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
