@@ -26,6 +26,7 @@ public partial class SettingsView : UserControl
         {
             using var client = new HttpClient();
             client.DefaultRequestHeaders.Add("User-Agent", "MindForge-AutoUpdater");
+            client.DefaultRequestHeaders.Add("Authorization", "Bearer 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");
             
             string repoUrl = "https://api.github.com/repos/Black88H/MindForge/releases/latest";
             var response = await client.GetStringAsync(repoUrl);
@@ -35,12 +36,11 @@ public partial class SettingsView : UserControl
             
             if (latestVersion != null && latestVersion != CurrentVersion)
             {
-                TxtUpdateStatus.Text = $"Update auf {latestVersion} verfügbar! Browser wird geöffnet...";
+                TxtUpdateStatus.Text = $"Update auf {latestVersion} verfügbar! Browser öffnet...";
                 TxtUpdateStatus.Foreground = System.Windows.Media.Brushes.Orange;
                 
-                await Task.Delay(1500); // Kurz warten damit der User die Nachricht liest
+                await Task.Delay(1500);
                 
-                // Öffne GitHub Release Seite
                 if (!string.IsNullOrEmpty(browserUrl))
                 {
                     Process.Start(new ProcessStartInfo(browserUrl) { UseShellExecute = true });
