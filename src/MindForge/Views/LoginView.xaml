@@ -118,10 +118,12 @@
                                          materialDesign:HintAssist.Foreground="#B0B8D1"
                                          Margin="0,0,0,8" Height="48"/>
 
+                            <CheckBox x:Name="ChkRememberMe" Content="Angemeldet bleiben" Foreground="#8892B0" Margin="0,0,0,16"/>
+
                             <TextBlock x:Name="TxtError" Foreground="#FF4C61" FontSize="12"
                                        Margin="0,4,0,16" TextWrapping="Wrap" Visibility="Collapsed"/>
 
-                            <Button x:Name="BtnLogin" Content="Anmelden"
+                            <Button x:Name="BtnLogin" Content="Anmelden" IsDefault="True"
                                     Click="OnLoginClick"
                                     Height="48" FontSize="16" FontWeight="Bold"
                                     Background="#6C63FF" Foreground="White"
