@@ -11,7 +11,7 @@ namespace MindForge.Views;
 
 public partial class SettingsView : UserControl
 {
-    private const string CurrentVersion = "v2.1.0";
+    private const string CurrentVersion = "v2.2.0";
     private const string GitHubToken = "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";
     private const string RepoUrl = "https://api.github.com/repos/Black88H/MindForge/releases/latest";
 
@@ -90,24 +90,34 @@ public partial class SettingsView : UserControl
         BtnModalInstall.IsEnabled = false;
         PrgDownload.Visibility = Visibility.Visible;
         TxtDownloadProgress.Visibility = Visibility.Visible;
-        TxtDownloadProgress.Text = "Lade Update herunter...";
+        TxtDownloadProgress.Text = "Verbinde mit GitHub...";
 
         try
         {
-            using var client = CreateGitHubClient();
-            client.DefaultRequestHeaders.Remove("Accept");
-            client.DefaultRequestHeaders.Add("Accept", "application/octet-stream");
+            // ── Richtiger EXE-Pfad (funktioniert auch bei SingleFile Publish) ──
+            string exePath = Environment.ProcessPath
+                ?? Process.GetCurrentProcess().MainModule?.FileName
+                ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MindForge.exe");
+            string installDir = Path.GetDirectoryName(exePath)!;
+            string tempZipPath = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.zip");
 
-            using var response = await client.GetAsync(_downloadAssetUrl, HttpCompletionOption.ResponseHeadersRead);
+            // ── Download via separatem HttpClient (kein Header-Konflikt) ──
+            using var downloadClient = new HttpClient();
+            downloadClient.DefaultRequestHeaders.Add("User-Agent", "MindForge-AutoUpdater/2.2");
+            downloadClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {GitHubToken}");
+            downloadClient.DefaultRequestHeaders.Add("Accept", "application/octet-stream");
+            downloadClient.Timeout = TimeSpan.FromMinutes(10);
+
+            TxtDownloadProgress.Text = "Lade Update herunter...";
+            using var response = await downloadClient.GetAsync(_downloadAssetUrl, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
 
             var totalBytes = response.Content.Headers.ContentLength ?? -1L;
-            var tempZipPath = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.zip");
 
-            using (var fs = new FileStream(tempZipPath, FileMode.Create))
+            using (var fs = new FileStream(tempZipPath, FileMode.Create, FileAccess.Write, FileShare.None))
             using (var stream = await response.Content.ReadAsStreamAsync())
             {
-                var buffer = new byte[65536];
+                var buffer = new byte[81920];
                 long downloaded = 0;
                 int bytesRead;
 
@@ -118,44 +128,61 @@ public partial class SettingsView : UserControl
                     if (totalBytes > 0)
                     {
                         var pct = (int)((double)downloaded / totalBytes * 100);
+                        var dlMb = downloaded / 1024.0 / 1024.0;
+                        var totMb = totalBytes / 1024.0 / 1024.0;
                         Dispatcher.Invoke(() =>
                         {
                             PrgDownload.Value = pct;
-                            TxtDownloadProgress.Text = $"{pct}% heruntergeladen ({downloaded / 1024 / 1024} MB / {totalBytes / 1024 / 1024} MB)";
+                            TxtDownloadProgress.Text = $"{pct}% — {dlMb:F1} MB / {totMb:F1} MB";
                         });
                     }
                 }
             }
 
-            TxtDownloadProgress.Text = "✅ Download abgeschlossen. App wird neugestartet...";
-            await Task.Delay(1200);
+            Dispatcher.Invoke(() =>
+            {
+                PrgDownload.Value = 100;
+                TxtDownloadProgress.Text = "✅ Download fertig. Installiere Update...";
+            });
 
-            string installDir = AppDomain.CurrentDomain.BaseDirectory;
-            string batPath = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.bat");
-            string exePath = Path.Combine(installDir, "MindForge.exe");
+            await Task.Delay(800);
 
-            File.WriteAllText(batPath,
-                $"@echo off\r\n" +
-                $"timeout /t 2 /nobreak > NUL\r\n" +
-                $"powershell -Command \"Expand-Archive -Path '{tempZipPath}' -DestinationPath '{installDir}' -Force\"\r\n" +
-                $"start \"\" \"{exePath}\"\r\n" +
-                $"del \"%~f0\"\r\n");
+            // ── PowerShell-Skript statt BAT (kein Anführungszeichen-Problem) ──
+            string ps1Path = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.ps1");
 
+            // Pfade mit einfachen Anführungszeichen escapen (PS1 LiteralPath)
+            string safeZip    = tempZipPath.Replace("'", "''");
+            string safeDir    = installDir.Replace("'", "''");
+            string safeExe    = exePath.Replace("'", "''");
+            string ps1Script  = $@"
+Start-Sleep -Seconds 2
+Expand-Archive -LiteralPath '{safeZip}' -DestinationPath '{safeDir}' -Force
+Start-Process -FilePath '{safeExe}'
+Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force
+";
+            await File.WriteAllTextAsync(ps1Path, ps1Script);
+
+            // Starte PowerShell-Skript im Hintergrund
             Process.Start(new ProcessStartInfo
             {
-                FileName = batPath,
-                WindowStyle = ProcessWindowStyle.Hidden,
+                FileName = "powershell.exe",
+                Arguments = $"-ExecutionPolicy Bypass -WindowStyle Hidden -NonInteractive -File \"{ps1Path}\"",
+                UseShellExecute = false,
                 CreateNoWindow = true
             });
 
+            await Task.Delay(500);
             Application.Current.Shutdown();
         }
-        catch
+        catch (Exception ex)
         {
-            TxtDownloadProgress.Text = "❌ Fehler beim Herunterladen.";
-            TxtDownloadProgress.Foreground = System.Windows.Media.Brushes.Red;
-            BtnDownloadUpdate.IsEnabled = true;
-            BtnModalInstall.IsEnabled = true;
+            Dispatcher.Invoke(() =>
+            {
+                TxtDownloadProgress.Text = $"❌ Fehler: {ex.Message}";
+                TxtDownloadProgress.Foreground = System.Windows.Media.Brushes.Red;
+                BtnDownloadUpdate.IsEnabled = true;
+                BtnModalInstall.IsEnabled = true;
+            });
         }
     }
 
