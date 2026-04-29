@@ -22,7 +22,15 @@ public partial class MainWindow : Window
         TxtUserInitial.Text = UserSession.Username.Length > 0 
             ? UserSession.Username[0].ToString().ToUpper() 
             : "U";
-        TxtUserLevel.Text = $"Level {UserSession.Level} · {UserSession.TotalXP} XP";
+        TxtUserLevel.Text = $"Level {UserSession.Level}";
+        
+        // Mock XP logic for the Activity Tracker
+        int maxXP = UserSession.Level * 1000;
+        int currentXP = UserSession.TotalXP % 1000;
+        if (currentXP == 0 && UserSession.TotalXP > 0) currentXP = 1000;
+        
+        TxtXP.Text = $"XP Fortschritt ({currentXP} / 1000)";
+        PrgXP.Value = currentXP;
         
         // Navigate to Dashboard by default
         NavigateTo("Dashboard", BtnDashboard);

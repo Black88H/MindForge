@@ -96,17 +96,39 @@
                 </StackPanel>
             </Border>
             
-            <!-- Recent Activity -->
-            <Border Grid.Column="1" Background="#161B2E" CornerRadius="12" Padding="24">
-                <StackPanel>
-                    <TextBlock Text="Letzte Aktivitäten" Foreground="White" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
-                    
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                        <TextBlock Text="👋" Margin="0,0,8,0"/>
-                        <TextBlock Text="Erfolgreich eingeloggt" Foreground="White"/>
+            <StackPanel Grid.Column="1">
+                <!-- Kalender Widget -->
+                <Border Background="#161B2E" CornerRadius="12" Padding="24" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Kalender &amp; Fristen" Foreground="White" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <TextBlock Text="🗓️ Heute:" Foreground="#8892B0" Width="80"/>
+                            <TextBlock Text="Info Übungsblatt 4" Foreground="White"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <TextBlock Text="🗓️ Morgen:" Foreground="#8892B0" Width="80"/>
+                            <TextBlock Text="Bio Essay Abgabe" Foreground="White"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-            </Border>
+                </Border>
+                
+                <!-- Quick Access -->
+                <Border Background="#161B2E" CornerRadius="12" Padding="24">
+                    <StackPanel>
+                        <TextBlock Text="Zuletzt geöffnet" Foreground="White" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12" Cursor="Hand">
+                            <TextBlock Text="📄" Margin="0,0,8,0"/>
+                            <TextBlock Text="Skript_Info_1.pdf" Foreground="White" TextDecorations="Underline"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12" Cursor="Hand">
+                            <TextBlock Text="📄" Margin="0,0,8,0"/>
+                            <TextBlock Text="Zellbiologie.pdf" Foreground="White" TextDecorations="Underline"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>
