@@ -11,30 +11,7 @@ namespace MindForge.Views;
 
 public partial class SettingsView : UserControl
 {
-    private string CurrentVersion
-    {
-        get
-        {
-            try
-            {
-                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MindForge", "version.txt");
-                if (File.Exists(path)) return File.ReadAllText(path).Trim();
-                return "v2.2.0";
-            }
-            catch { return "v2.2.0"; }
-        }
-        set
-        {
-            try
-            {
-                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MindForge");
-                Directory.CreateDirectory(dir);
-                File.WriteAllText(Path.Combine(dir, "version.txt"), value);
-            }
-            catch { }
-        }
-    }
-
+    private const string CurrentVersion = "v3.0.1";
     private const string GitHubToken = "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";
     private const string RepoUrl = "https://api.github.com/repos/Black88H/MindForge/releases/latest";
 
@@ -54,38 +31,41 @@ public partial class SettingsView : UserControl
     private async void OnCheckUpdatesClick(object sender, RoutedEventArgs e)
     {
         BtnDownloadUpdate.Visibility = Visibility.Collapsed;
-        TxtUpdateStatus.Text = "⏳ Suche nach Updates...";
+        TxtUpdateStatus.Text = "⏳ Verbinde mit GitHub...";
         TxtUpdateStatus.Foreground = System.Windows.Media.Brushes.White;
         BtnCheckUpdates.IsEnabled = false;
 
         try
         {
-            await Task.Delay(1500); // Simulate network request
-            
-            _latestVersion = "v3.0.0";
+            using var client = CreateGitHubClient();
+            var json = await FetchLatestRelease(client);
 
-            if (CurrentVersion == _latestVersion)
+            _latestVersion = json.RootElement.GetProperty("tag_name").GetString();
+            var body = json.RootElement.GetProperty("body").GetString() ?? "Keine Changelogs verfügbar.";
+
+            if (json.RootElement.TryGetProperty("assets", out var assets) && assets.GetArrayLength() > 0)
+                _downloadAssetUrl = assets[0].GetProperty("url").GetString();
+
+            if (_latestVersion != null && _latestVersion != CurrentVersion && !string.IsNullOrEmpty(_downloadAssetUrl))
+            {
+                TxtUpdateStatus.Text = $"✅ {_latestVersion} verfügbar!";
+                TxtUpdateStatus.Foreground = System.Windows.Media.Brushes.Lime;
+                BtnDownloadUpdate.Visibility = Visibility.Visible;
+
+                // Öffne das detaillierte Modal
+                TxtModalVersion.Text = $"Version {_latestVersion} ist zum Download bereit.";
+                TxtChangelog.Text = body;
+                UpdateModal.Visibility = Visibility.Visible;
+            }
+            else
             {
                 TxtUpdateStatus.Text = $"✔️ Du bist aktuell ({CurrentVersion})";
                 TxtUpdateStatus.Foreground = System.Windows.Media.Brushes.Lime;
-                return;
             }
-
-            var body = "🚀 Großes Update auf v3.0.0!\n\n- Verbesserte Leistung\n- Neue Funktionen für die KI\n- Bugfixes für Einstellungen\n- Auto-Updater Optimierung";
-            _downloadAssetUrl = "local_update";
-
-            TxtUpdateStatus.Text = $"✅ {_latestVersion} verfügbar!";
-            TxtUpdateStatus.Foreground = System.Windows.Media.Brushes.Lime;
-            BtnDownloadUpdate.Visibility = Visibility.Visible;
-
-            // Öffne das detaillierte Modal
-            TxtModalVersion.Text = $"Version {_latestVersion} ist zum Download bereit.";
-            TxtChangelog.Text = body;
-            UpdateModal.Visibility = Visibility.Visible;
         }
         catch
         {
-            TxtUpdateStatus.Text = "❌ Fehler bei der Update-Prüfung.";
+            TxtUpdateStatus.Text = "❌ GitHub momentan nicht erreichbar.";
             TxtUpdateStatus.Foreground = System.Windows.Media.Brushes.Red;
         }
         finally
@@ -111,44 +91,79 @@ public partial class SettingsView : UserControl
         BtnModalInstall.IsEnabled = false;
         PrgDownload.Visibility = Visibility.Visible;
         TxtDownloadProgress.Visibility = Visibility.Visible;
-        TxtDownloadProgress.Text = "Ersetze veraltete Dateien...";
+        TxtDownloadProgress.Text = "Verbinde mit GitHub...";
 
         try
         {
-            // Simulate replacing files without ZIP
-            for(int i = 0; i <= 100; i += 20)
-            {
-                await Task.Delay(300);
-                Dispatcher.Invoke(() =>
-                {
-                    PrgDownload.Value = i;
-                    TxtDownloadProgress.Text = $"{i}% — Ersetze alte Dateien...";
-                });
-            }
+            // ── Richtiger EXE-Pfad (funktioniert auch bei SingleFile Publish) ──
+            string exePath = Environment.ProcessPath
+                ?? Process.GetCurrentProcess().MainModule?.FileName
+                ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MindForge.exe");
+            string installDir = Path.GetDirectoryName(exePath)!;
+            string tempZipPath = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.zip");
 
-            CurrentVersion = _latestVersion ?? "v3.0.0";
+            // ── Download via separatem HttpClient (kein Header-Konflikt) ──
+            using var downloadClient = new HttpClient();
+            downloadClient.DefaultRequestHeaders.Add("User-Agent", "MindForge-AutoUpdater/2.2");
+            downloadClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {GitHubToken}");
+            downloadClient.DefaultRequestHeaders.Add("Accept", "application/octet-stream");
+            downloadClient.Timeout = TimeSpan.FromMinutes(10);
+
+            TxtDownloadProgress.Text = "Lade Update herunter...";
+            using var response = await downloadClient.GetAsync(_downloadAssetUrl, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+
+            var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+
+            using (var fs = new FileStream(tempZipPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var stream = await response.Content.ReadAsStreamAsync())
+            {
+                var buffer = new byte[81920];
+                long downloaded = 0;
+                int bytesRead;
+
+                while ((bytesRead = await stream.ReadAsync(buffer)) > 0)
+                {
+                    await fs.WriteAsync(buffer.AsMemory(0, bytesRead));
+                    downloaded += bytesRead;
+                    if (totalBytes > 0)
+                    {
+                        var pct = (int)((double)downloaded / totalBytes * 100);
+                        var dlMb = downloaded / 1024.0 / 1024.0;
+                        var totMb = totalBytes / 1024.0 / 1024.0;
+                        Dispatcher.Invoke(() =>
+                        {
+                            PrgDownload.Value = pct;
+                            TxtDownloadProgress.Text = $"{pct}% — {dlMb:F1} MB / {totMb:F1} MB";
+                        });
+                    }
+                }
+            }
 
             Dispatcher.Invoke(() =>
             {
                 PrgDownload.Value = 100;
-                TxtDownloadProgress.Text = "✅ Update installiert. Neustart...";
+                TxtDownloadProgress.Text = "✅ Download fertig. Installiere Update...";
             });
 
             await Task.Delay(800);
 
-            string exePath = Environment.ProcessPath
-                ?? Process.GetCurrentProcess().MainModule?.FileName
-                ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MindForge.exe");
+            // ── PowerShell-Skript statt BAT (kein Anführungszeichen-Problem) ──
+            string ps1Path = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.ps1");
 
-            string ps1Path = Path.Combine(Path.GetTempPath(), "MindForgeRestart.ps1");
+            // Pfade mit einfachen Anführungszeichen escapen (PS1 LiteralPath)
+            string safeZip    = tempZipPath.Replace("'", "''");
+            string safeDir    = installDir.Replace("'", "''");
             string safeExe    = exePath.Replace("'", "''");
             string ps1Script  = $@"
 Start-Sleep -Seconds 2
+Expand-Archive -LiteralPath '{safeZip}' -DestinationPath '{safeDir}' -Force
 Start-Process -FilePath '{safeExe}'
 Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force
 ";
             await File.WriteAllTextAsync(ps1Path, ps1Script);
 
+            // Starte PowerShell-Skript im Hintergrund
             Process.Start(new ProcessStartInfo
             {
                 FileName = "powershell.exe",
