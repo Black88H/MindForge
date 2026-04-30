@@ -11,7 +11,7 @@ namespace MindForge.Views;
 
 public partial class SettingsView : UserControl
 {
-    private const string CurrentVersion = "v3.0.1";
+    private const string CurrentVersion = "v3.0.2";
     private const string GitHubToken = "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";
     private const string RepoUrl = "https://api.github.com/repos/Black88H/MindForge/releases/latest";
 
