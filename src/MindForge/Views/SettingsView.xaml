@@ -25,7 +25,7 @@
 
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                 <TextBlock Text="Version:" Foreground="#B0B8D1" FontWeight="SemiBold" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="v2.1.0 (Release)" Foreground="White" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <TextBlock x:Name="TxtCurrentVersion" Text="v2.2.0 (Release)" Foreground="White" VerticalAlignment="Center" Margin="0,0,16,0"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
