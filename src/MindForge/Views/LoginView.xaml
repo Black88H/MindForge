@@ -24,9 +24,9 @@
             <!-- Gradient Background -->
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="{DynamicResource BgBrush}" Offset="0"/>
-                    <GradientStop Color="{DynamicResource BgSecondaryBrush}" Offset="0.5"/>
-                    <GradientStop Color="{DynamicResource BgBrush}" Offset="1"/>
+                    <GradientStop Color="#0D1117" Offset="0"/>
+                    <GradientStop Color="#161B2E" Offset="0.5"/>
+                    <GradientStop Color="#0D1117" Offset="1"/>
                 </LinearGradientBrush>
             </Grid.Background>
 
@@ -35,7 +35,7 @@
                      Margin="0,-200,-100,0" Opacity="0.06">
                 <Ellipse.Fill>
                     <RadialGradientBrush>
-                        <GradientStop Color="{DynamicResource AccentBrush}" Offset="0"/>
+                        <GradientStop Color="#6C63FF" Offset="0"/>
                         <GradientStop Color="Transparent" Offset="1"/>
                     </RadialGradientBrush>
                 </Ellipse.Fill>
@@ -78,10 +78,10 @@
                 <!-- Right Panel: Login Form -->
                 <Border Grid.Column="1" CornerRadius="12" Margin="0,40,40,40">
                     <Border.Background>
-                        <SolidColorBrush Color="{DynamicResource BgSecondaryBrush}" Opacity="0.95"/>
+                        <SolidColorBrush Color="#161B2E" Opacity="0.95"/>
                     </Border.Background>
                     <Border.Effect>
-                        <DropShadowEffect Color="{DynamicResource AccentBrush}" BlurRadius="30" ShadowDepth="0" Opacity="0.15"/>
+                        <DropShadowEffect Color="#6C63FF" BlurRadius="30" ShadowDepth="0" Opacity="0.15"/>
                     </Border.Effect>
 
                     <StackPanel Margin="36,40,36,40" VerticalAlignment="Center">
@@ -211,4 +211,5 @@
         </Grid>
     </Border>
 </Window>
+
 
