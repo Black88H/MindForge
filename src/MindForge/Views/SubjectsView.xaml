@@ -15,12 +15,12 @@
             <Grid Grid.Row="0" Margin="0,0,0,24">
                 <StackPanel HorizontalAlignment="Left">
                     <TextBlock Text="Deine Fächer" Foreground="White" FontSize="28" FontWeight="Bold"/>
-                    <TextBlock Text="Verwalte deine Lernbereiche und Module" Foreground="#8892B0" FontSize="14" Margin="0,4,0,0"/>
+                    <TextBlock Text="Verwalte deine Lernbereiche und Module" Foreground="{DynamicResource TextMutedBrush}" FontSize="14" Margin="0,4,0,0"/>
                 </StackPanel>
                 
                 <Button HorizontalAlignment="Right" VerticalAlignment="Top" Click="OnAddSubjectClick"
                         Content="+ Neues Fach" Height="40" Padding="16,0"
-                        Background="#6C63FF" Foreground="White" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold">
+                        Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Template">
@@ -50,11 +50,11 @@
                             <Border CornerRadius="12" Padding="20" Margin="0,0,20,20" Width="280" BorderThickness="1">
                                 <Border.Style>
                                     <Style TargetType="Border">
-                                        <Setter Property="Background" Value="#161B2E"/>
-                                        <Setter Property="BorderBrush" Value="#161B2E"/>
+                                        <Setter Property="Background" Value="{DynamicResource BgSecondaryBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource BgSecondaryBrush}"/>
                                         <Style.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="BorderBrush" Value="#6C63FF"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -78,11 +78,11 @@
                                     </Button>
 
                                     <StackPanel>
-                                        <Border Background="#1E2640" CornerRadius="8" Width="48" Height="48" HorizontalAlignment="Left" Margin="0,0,0,16">
+                                        <Border Background="{DynamicResource BgTertiaryBrush}" CornerRadius="8" Width="48" Height="48" HorizontalAlignment="Left" Margin="0,0,0,16">
                                             <TextBlock Text="{Binding Icon}" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <TextBlock Text="{Binding Name}" Foreground="White" FontSize="20" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding Subtitle}" Foreground="#8892B0" FontSize="12" Margin="0,4,0,16"/>
+                                        <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,4,0,16"/>
                                         
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -90,9 +90,9 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
-                                                <TextBlock Text="Fortschritt" Foreground="#8892B0" FontSize="11"/>
+                                                <TextBlock Text="Fortschritt" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"/>
                                                 <!-- Dynamic color based on progress can be done with value converters, sticking to accent for simplicity -->
-                                                <ProgressBar Value="{Binding Progress}" Maximum="100" Height="6" Margin="0,4,16,0" Foreground="#6C63FF" Background="#1E2640" BorderThickness="0"/>
+                                                <ProgressBar Value="{Binding Progress}" Maximum="100" Height="6" Margin="0,4,16,0" Foreground="{DynamicResource AccentBrush}" Background="{DynamicResource BgTertiaryBrush}" BorderThickness="0"/>
                                             </StackPanel>
                                             <TextBlock Grid.Column="1" Text="{Binding Progress, StringFormat={}{0:0.0000}%}" Foreground="White" FontSize="12" VerticalAlignment="Bottom" FontWeight="SemiBold"/>
                                         </Grid>
@@ -107,26 +107,26 @@
 
         <!-- Modal Overlay -->
         <Border x:Name="ModalOverlay" Background="#99000000" Visibility="Collapsed">
-            <Border Background="#161B2E" CornerRadius="12" Padding="32" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#3A4060" BorderThickness="1">
+            <Border Background="{DynamicResource BgSecondaryBrush}" CornerRadius="12" Padding="32" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                 <StackPanel>
                     <TextBlock Text="Neues Fach" Foreground="White" FontSize="24" FontWeight="Bold" Margin="0,0,0,24"/>
                     
-                    <TextBlock Text="Name des Fachs" Foreground="#8892B0" FontSize="12" Margin="0,0,0,4"/>
-                    <TextBox x:Name="TxtSubjectName" Background="#0D1117" Foreground="White" BorderBrush="#3A4060" Height="40" Padding="8,0" Margin="0,0,0,16"/>
+                    <TextBlock Text="Name des Fachs" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtSubjectName" Background="{DynamicResource BgBrush}" Foreground="White" BorderBrush="{DynamicResource BorderBrush}" Height="40" Padding="8,0" Margin="0,0,0,16"/>
                     
-                    <TextBlock Text="Untertitel / Thema" Foreground="#8892B0" FontSize="12" Margin="0,0,0,4"/>
-                    <TextBox x:Name="TxtSubjectSubtitle" Background="#0D1117" Foreground="White" BorderBrush="#3A4060" Height="40" Padding="8,0" Margin="0,0,0,16"/>
+                    <TextBlock Text="Untertitel / Thema" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtSubjectSubtitle" Background="{DynamicResource BgBrush}" Foreground="White" BorderBrush="{DynamicResource BorderBrush}" Height="40" Padding="8,0" Margin="0,0,0,16"/>
                     
-                    <TextBlock Text="Icon (Emoji)" Foreground="#8892B0" FontSize="12" Margin="0,0,0,4"/>
-                    <TextBox x:Name="TxtSubjectIcon" Text="📚" Background="#0D1117" Foreground="White" BorderBrush="#3A4060" Height="40" Padding="8,0" Margin="0,0,0,24"/>
+                    <TextBlock Text="Icon (Emoji)" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtSubjectIcon" Text="📚" Background="{DynamicResource BgBrush}" Foreground="White" BorderBrush="{DynamicResource BorderBrush}" Height="40" Padding="8,0" Margin="0,0,0,24"/>
                     
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Abbrechen" Click="OnCancelModalClick" Background="Transparent" Foreground="#8892B0" BorderThickness="0" Margin="0,0,8,0"/>
-                        <Button Grid.Column="1" Content="Speichern" Click="OnSaveSubjectClick" Background="#6C63FF" Foreground="White" BorderThickness="0"/>
+                        <Button Grid.Column="0" Content="Abbrechen" Click="OnCancelModalClick" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" BorderThickness="0" Margin="0,0,8,0"/>
+                        <Button Grid.Column="1" Content="Speichern" Click="OnSaveSubjectClick" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0"/>
                     </Grid>
                 </StackPanel>
             </Border>

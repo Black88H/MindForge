@@ -11,25 +11,25 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                <TextBlock Text="Einstellungen" Foreground="White" FontSize="28" FontWeight="Bold"/>
-                <TextBlock Text="Passe MindForge an deine Präferenzen an" Foreground="#8892B0" FontSize="14" Margin="0,4,0,0"/>
+                <TextBlock Text="Einstellungen" Foreground="{DynamicResource TextBrush}" FontSize="28" FontWeight="Bold"/>
+                <TextBlock Text="Passe MindForge an deine Präferenzen an" Foreground="{DynamicResource TextMutedBrush}" FontSize="14" Margin="0,4,0,0"/>
             </StackPanel>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
 
                     <!-- System & Updates -->
-                    <Border Background="#161B2E" CornerRadius="12" Padding="24" Margin="0,0,0,24">
+                    <Border Background="{DynamicResource BgSecondaryBrush}" CornerRadius="12" Padding="24" Margin="0,0,0,24">
                         <StackPanel>
-                            <TextBlock Text="System &amp; Updates" Foreground="White" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                            <TextBlock Text="System &amp; Updates" Foreground="{DynamicResource TextBrush}" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
 
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <TextBlock Text="Version:" Foreground="#B0B8D1" FontWeight="SemiBold" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="TxtCurrentVersion" Text="v2.2.0 (Release)" Foreground="White" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <TextBlock Text="Version:" Foreground="{DynamicResource TextMutedBrush}" FontWeight="SemiBold" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtCurrentVersion" Text="v2.2.0 (Release)" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" Margin="0,0,16,0"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <TextBlock Text="Automatische Updates (Beta)" Foreground="White" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <TextBlock Text="Automatische Updates (Beta)" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" Margin="0,0,16,0"/>
                                 <ToggleButton IsChecked="True" Style="{StaticResource MaterialDesignSwitchToggleButton}"/>
                             </StackPanel>
 
@@ -40,25 +40,25 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Button x:Name="BtnCheckUpdates" Grid.Column="0" Content="Auf Updates prüfen"
-                                        Click="OnCheckUpdatesClick" Background="#6C63FF" Foreground="White"
+                                        Click="OnCheckUpdatesClick" Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource TextBrush}"
                                         BorderThickness="0" Height="40" Padding="16,0"/>
                                 <Button x:Name="BtnDownloadUpdate" Grid.Column="1" Content="⬇ Jetzt installieren"
                                         Click="OnDownloadUpdateClick" Visibility="Collapsed"
-                                        Background="#00C896" Foreground="#0D1117" FontWeight="Bold"
+                                        Background="#00C896" Foreground="{DynamicResource BgBrush}" FontWeight="Bold"
                                         BorderThickness="0" Height="40" Padding="16,0" Margin="12,0,0,0"/>
                                 <TextBlock x:Name="TxtUpdateStatus" Grid.Column="2" Text=""
-                                           Foreground="#8892B0" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                                            Margin="16,0,0,0" TextWrapping="Wrap"/>
                             </Grid>
                         </StackPanel>
                     </Border>
 
                     <!-- KI & API Keys -->
-                    <Border Background="#161B2E" CornerRadius="12" Padding="24" Margin="0,0,0,24">
+                    <Border Background="{DynamicResource BgSecondaryBrush}" CornerRadius="12" Padding="24" Margin="0,0,0,24">
                         <StackPanel>
-                            <TextBlock Text="KI &amp; API Keys" Foreground="White" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                            <TextBlock Text="KI &amp; API Keys" Foreground="{DynamicResource TextBrush}" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
 
-                            <TextBlock Text="Lokales LLM (Ollama)" Foreground="#B0B8D1" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBlock Text="Lokales LLM (Ollama)" Foreground="{DynamicResource TextMutedBrush}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -67,16 +67,16 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="TxtOllamaUrl" materialDesign:HintAssist.Hint="Ollama Endpoint URL"
                                          Text="http://localhost:11434"
-                                         Foreground="White" BorderBrush="#3A4060" Height="40" Margin="0,0,12,0"
+                                         Foreground="{DynamicResource TextBrush}" BorderBrush="{DynamicResource BorderBrush}" Height="40" Margin="0,0,12,0"
                                          Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
                                 <Button Grid.Column="1" Content="Verbindung testen" Click="OnTestOllamaClick"
-                                        Background="#1E2640" Foreground="White" BorderThickness="0" Height="40" Padding="12,0"/>
+                                        Background="{DynamicResource BgTertiaryBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="0" Height="40" Padding="12,0"/>
                                 <TextBlock x:Name="TxtOllamaStatus" Grid.Column="2" Text="" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="18"/>
                             </Grid>
 
-                            <Separator Background="#252D45" Margin="0,16,0,16"/>
+                            <Separator Background="{DynamicResource BorderBrush}" Margin="0,16,0,16"/>
 
-                            <TextBlock Text="OpenAI API Key (Optional)" Foreground="#B0B8D1" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBlock Text="OpenAI API Key (Optional)" Foreground="{DynamicResource TextMutedBrush}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -85,49 +85,49 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <PasswordBox x:Name="PwdOpenAIKey" materialDesign:HintAssist.Hint="sk-..."
-                                             Foreground="White" BorderBrush="#3A4060" Height="40" Margin="0,0,12,0"
+                                             Foreground="{DynamicResource TextBrush}" BorderBrush="{DynamicResource BorderBrush}" Height="40" Margin="0,0,12,0"
                                              Style="{StaticResource MaterialDesignOutlinedPasswordBox}"/>
                                 <Button Grid.Column="1" Content="👁" Click="OnToggleKeyVisibility"
-                                        Background="Transparent" Foreground="#8892B0" BorderThickness="0"
+                                        Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" BorderThickness="0"
                                         Height="40" Width="40" ToolTip="Key anzeigen"/>
                                 <Button Grid.Column="2" Content="Speichern" Click="OnSaveApiKeyClick"
-                                        Background="#6C63FF" Foreground="White" BorderThickness="0"
+                                        Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="0"
                                         Height="40" Padding="12,0" Margin="8,0,0,0"/>
                                 <TextBlock x:Name="TxtApiKeyStatus" Grid.Column="3" Text="" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="18"/>
                             </Grid>
                             <TextBox x:Name="TxtOpenAIKeyVisible" materialDesign:HintAssist.Hint="sk-..."
-                                     Foreground="White" BorderBrush="#3A4060" Height="40" Margin="0,0,0,0"
+                                     Foreground="{DynamicResource TextBrush}" BorderBrush="{DynamicResource BorderBrush}" Height="40" Margin="0,0,0,0"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      Visibility="Collapsed"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Theme / Erscheinungsbild -->
-                    <Border Background="#161B2E" CornerRadius="12" Padding="24" Margin="0,0,0,24">
+                    <Border Background="{DynamicResource BgSecondaryBrush}" CornerRadius="12" Padding="24" Margin="0,0,0,24">
                         <StackPanel>
-                            <TextBlock Text="Erscheinungsbild &amp; Themes" Foreground="White" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
-                            <TextBlock Text="Theme sofort wechseln — kein Neustart erforderlich" Foreground="#8892B0" FontSize="13" Margin="0,0,0,20"/>
+                            <TextBlock Text="Erscheinungsbild &amp; Themes" Foreground="{DynamicResource TextBrush}" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                            <TextBlock Text="Theme sofort wechseln — kein Neustart erforderlich" Foreground="{DynamicResource TextMutedBrush}" FontSize="13" Margin="0,0,0,20"/>
 
                             <WrapPanel>
                                 <Button Content="🌑 Dark" Tag="Dark" Click="OnThemeClick"
                                         x:Name="BtnThemeDark"
-                                        Background="#6C63FF" Foreground="White" BorderThickness="0"
+                                        Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="0"
                                         Height="40" Padding="16,0" Margin="0,0,12,12" FontWeight="SemiBold"/>
                                 <Button Content="☀️ Light" Tag="Light" Click="OnThemeClick"
-                                        Background="#1E2640" Foreground="#8892B0" BorderThickness="0"
+                                        Background="{DynamicResource BgTertiaryBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderThickness="0"
                                         Height="40" Padding="16,0" Margin="0,0,12,12"/>
                                 <Button Content="🧊 Nord" Tag="Nord" Click="OnThemeClick"
-                                        Background="#1E2640" Foreground="#8892B0" BorderThickness="0"
+                                        Background="{DynamicResource BgTertiaryBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderThickness="0"
                                         Height="40" Padding="16,0" Margin="0,0,12,12"/>
                                 <Button Content="🌅 Solarized" Tag="Solarized" Click="OnThemeClick"
-                                        Background="#1E2640" Foreground="#8892B0" BorderThickness="0"
+                                        Background="{DynamicResource BgTertiaryBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderThickness="0"
                                         Height="40" Padding="16,0" Margin="0,0,12,12"/>
                                 <Button Content="⚡ High Contrast" Tag="HighContrast" Click="OnThemeClick"
-                                        Background="#1E2640" Foreground="#8892B0" BorderThickness="0"
+                                        Background="{DynamicResource BgTertiaryBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderThickness="0"
                                         Height="40" Padding="16,0" Margin="0,0,12,12"/>
                             </WrapPanel>
 
-                            <TextBlock x:Name="TxtActiveTheme" Text="Aktives Theme: Dark" Foreground="#6C63FF" FontSize="12" Margin="0,8,0,0"/>
+                            <TextBlock x:Name="TxtActiveTheme" Text="Aktives Theme: Dark" Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0,8,0,0"/>
                         </StackPanel>
                     </Border>
 
@@ -137,24 +137,24 @@
 
         <!-- Update Modal Overlay -->
         <Border x:Name="UpdateModal" Background="#CC000000" Visibility="Collapsed">
-            <Border Background="#161B2E" CornerRadius="16" Padding="36" Width="560"
+            <Border Background="{DynamicResource BgSecondaryBrush}" CornerRadius="16" Padding="36" Width="560"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                    BorderBrush="#6C63FF" BorderThickness="1">
+                    BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1">
                 <StackPanel>
-                    <TextBlock Text="🚀 Update verfügbar!" Foreground="White" FontSize="24" FontWeight="Bold" Margin="0,0,0,8"/>
-                    <TextBlock x:Name="TxtModalVersion" Text="" Foreground="#6C63FF" FontSize="14" Margin="0,0,0,20"/>
+                    <TextBlock Text="🚀 Update verfügbar!" Foreground="{DynamicResource TextBrush}" FontSize="24" FontWeight="Bold" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="TxtModalVersion" Text="" Foreground="{DynamicResource AccentBrush}" FontSize="14" Margin="0,0,0,20"/>
 
-                    <Border Background="#0D1117" CornerRadius="8" Padding="16" Margin="0,0,0,20" MaxHeight="200">
+                    <Border Background="{DynamicResource BgBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,20" MaxHeight="200">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <TextBlock x:Name="TxtChangelog" Text="" Foreground="#8892B0" FontSize="13"
+                            <TextBlock x:Name="TxtChangelog" Text="" Foreground="{DynamicResource TextMutedBrush}" FontSize="13"
                                        TextWrapping="Wrap" FontFamily="Consolas"/>
                         </ScrollViewer>
                     </Border>
 
                     <ProgressBar x:Name="PrgDownload" Height="6" Value="0" Maximum="100"
-                                 Foreground="#00C896" Background="#252D45" BorderThickness="0"
+                                 Foreground="#00C896" Background="{DynamicResource BorderBrush}" BorderThickness="0"
                                  Margin="0,0,0,12" Visibility="Collapsed"/>
-                    <TextBlock x:Name="TxtDownloadProgress" Text="" Foreground="#8892B0" FontSize="12"
+                    <TextBlock x:Name="TxtDownloadProgress" Text="" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
                                Margin="0,0,0,20" Visibility="Collapsed"/>
 
                     <Grid>
@@ -163,11 +163,11 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Button Grid.Column="0" Content="Schließen" Click="OnCloseModal"
-                                Background="Transparent" Foreground="#8892B0" BorderThickness="0"
+                                Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" BorderThickness="0"
                                 Height="44" FontSize="14"/>
                         <Button x:Name="BtnModalInstall" Grid.Column="1" Content="⬇ Jetzt installieren"
                                 Click="OnModalInstallClick"
-                                Background="#00C896" Foreground="#0D1117" BorderThickness="0"
+                                Background="#00C896" Foreground="{DynamicResource BgBrush}" BorderThickness="0"
                                 Height="44" FontSize="14" FontWeight="Bold" Margin="12,0,0,0">
                             <Button.Style>
                                 <Style TargetType="Button">
@@ -189,3 +189,4 @@
         </Border>
     </Grid>
 </UserControl>
+

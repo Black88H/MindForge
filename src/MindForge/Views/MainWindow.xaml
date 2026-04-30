@@ -9,10 +9,7 @@
         MinWidth="1100" MinHeight="650">
 
     <Border CornerRadius="12" ClipToBounds="True">
-        <Grid>
-            <Grid.Background>
-                <SolidColorBrush Color="#0D1117"/>
-            </Grid.Background>
+        <Grid Background="{DynamicResource BgBrush}">
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220"/>
@@ -20,7 +17,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Sidebar -->
-            <Border Grid.Column="0" Background="#161B2E">
+            <Border Grid.Column="0" Background="{DynamicResource BgSecondaryBrush}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -35,7 +32,7 @@
                             <TextBlock Text="MindForge" FontSize="20" FontWeight="Bold"
                                        Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </StackPanel>
-                        <Separator Margin="0,16,0,0" Background="#252D45"/>
+                        <Separator Margin="0,16,0,0" Background="{DynamicResource BorderBrush}"/>
                     </StackPanel>
 
                     <!-- Nav Items -->
@@ -100,7 +97,7 @@
 
                     <!-- Bottom: User & Settings -->
                     <StackPanel Grid.Row="2" Margin="12,0,12,20">
-                        <Separator Background="#252D45" Margin="0,0,0,12"/>
+                        <Separator Background="{DynamicResource BorderBrush}" Margin="0,0,0,12"/>
                         <Button x:Name="BtnSettings" Tag="Settings" Click="OnNavClick"
                                 Style="{StaticResource NavButtonStyle}">
                             <StackPanel Orientation="Horizontal">
@@ -109,20 +106,20 @@
                             </StackPanel>
                         </Button>
                         <!-- User Info -->
-                        <Border Background="#1E2640" CornerRadius="8" Padding="12,10" Margin="0,8,0,0">
+                        <Border Background="{DynamicResource BgTertiaryBrush}" CornerRadius="8" Padding="12,10" Margin="0,8,0,0">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="36" Height="36" CornerRadius="18" Background="#6C63FF">
+                                    <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource AccentBrush}">
                                         <TextBlock x:Name="TxtUserInitial" Text="U" Foreground="White" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
                                         <TextBlock x:Name="TxtUsername" Text="Benutzer" Foreground="White" FontSize="13" FontWeight="SemiBold"/>
-                                        <TextBlock x:Name="TxtUserLevel" Text="Level 1" Foreground="#6C63FF" FontSize="11"/>
+                                        <TextBlock x:Name="TxtUserLevel" Text="Level 1" Foreground="{DynamicResource AccentBrush}" FontSize="11"/>
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Margin="0,10,0,0">
-                                    <TextBlock x:Name="TxtXP" Text="XP: 0 / 1000" Foreground="#8892B0" FontSize="10" Margin="0,0,0,4"/>
-                                    <ProgressBar x:Name="PrgXP" Value="0" Maximum="1000" Height="4" Foreground="#6C63FF" Background="#0D1117" BorderThickness="0"/>
+                                    <TextBlock x:Name="TxtXP" Text="XP: 0 / 1000" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,0,0,4"/>
+                                    <ProgressBar x:Name="PrgXP" Value="0" Maximum="1000" Height="4" Foreground="{DynamicResource AccentBrush}" Background="{DynamicResource BgBrush}" BorderThickness="0"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -138,17 +135,17 @@
                 </Grid.RowDefinitions>
 
                 <!-- Titlebar -->
-                <Border Grid.Row="0" Background="#0D1117" MouseLeftButtonDown="OnDragWindow">
+                <Border Grid.Row="0" Background="{DynamicResource BgBrush}" MouseLeftButtonDown="OnDragWindow">
                     <Grid Margin="16,0">
                         <TextBlock x:Name="TxtPageTitle" Text="Dashboard"
                                    Foreground="White" FontSize="15" FontWeight="SemiBold"
                                    VerticalAlignment="Center"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="—" Click="OnMinimize" Width="40" Height="30"
-                                    Background="Transparent" Foreground="#8892B0" BorderThickness="0"
+                                    Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" BorderThickness="0"
                                     FontSize="16"/>
                             <Button Content="✕" Click="OnClose" Width="40" Height="30"
-                                    Background="Transparent" Foreground="#8892B0" BorderThickness="0"
+                                    Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" BorderThickness="0"
                                     FontSize="14"/>
                         </StackPanel>
                     </Grid>
@@ -157,8 +154,9 @@
                 <!-- Content Frame -->
                 <Frame x:Name="MainFrame" Grid.Row="1"
                        NavigationUIVisibility="Hidden"
-                       Background="#0D1117"/>
+                       Background="{DynamicResource BgBrush}"/>
             </Grid>
         </Grid>
     </Border>
 </Window>
+

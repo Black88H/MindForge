@@ -11,7 +11,7 @@ namespace MindForge.Views;
 
 public partial class SettingsView : UserControl
 {
-    private const string CurrentVersion = "v3.0.2";
+    private const string CurrentVersion = "v3.0.3";
     private const string GitHubToken = "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";
     private const string RepoUrl = "https://api.github.com/repos/Black88H/MindForge/releases/latest";
 
@@ -352,11 +352,11 @@ Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force
     private static void ApplyTheme(string bg, string panel, string accent, string text, string sidebar)
     {
         var res = Application.Current.Resources;
-        res["AppBackground"] = ColorBrush(bg);
-        res["AppPanel"] = ColorBrush(panel);
-        res["AppAccent"] = ColorBrush(accent);
-        res["AppText"] = ColorBrush(text);
-        res["AppSidebar"] = ColorBrush(sidebar);
+        res["BgBrush"] = ColorBrush(bg);
+        res["BgSecondaryBrush"] = ColorBrush(panel);
+        res["AccentBrush"] = ColorBrush(accent);
+        res["TextBrush"] = ColorBrush(text);
+        res["SidebarBrush"] = ColorBrush(sidebar);
 
         // Update MainWindow background live
         if (Application.Current.MainWindow is MainWindow mw)

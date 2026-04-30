@@ -14,18 +14,18 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock Text="KI-Tutor" Foreground="White" FontSize="28" FontWeight="Bold"/>
-            <TextBlock Text="Dein persönlicher Begleiter für tieferes Verständnis (Ollama LLaMA 3)" Foreground="#8892B0" FontSize="14"/>
+            <TextBlock Text="Dein persönlicher Begleiter für tieferes Verständnis (Ollama LLaMA 3)" Foreground="{DynamicResource TextMutedBrush}" FontSize="14"/>
         </StackPanel>
 
         <!-- Chat Area -->
-        <Border Grid.Row="1" Background="#161B2E" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+        <Border Grid.Row="1" Background="{DynamicResource BgSecondaryBrush}" CornerRadius="12" Padding="16" Margin="0,0,0,16">
             <ScrollViewer x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto">
                 <StackPanel x:Name="ChatHistoryPanel">
                     
                     <!-- Bot Welcome Message -->
-                    <Border Background="#1E2640" CornerRadius="8" Padding="16" Margin="0,0,0,12" HorizontalAlignment="Left" MaxWidth="600">
+                    <Border Background="{DynamicResource BgTertiaryBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,12" HorizontalAlignment="Left" MaxWidth="600">
                         <StackPanel>
-                            <TextBlock Text="🤖 KI-Tutor" Foreground="#6C63FF" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <TextBlock Text="🤖 KI-Tutor" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Margin="0,0,0,8"/>
                             <TextBlock Text="Hallo! Wie kann ich dir heute beim Lernen helfen? Wir können über Dokumente sprechen oder neue Konzepte erarbeiten." 
                                        Foreground="White" TextWrapping="Wrap" LineHeight="20"/>
                         </StackPanel>
@@ -45,14 +45,14 @@
             <TextBox x:Name="TxtInput" Grid.Column="0" 
                      materialDesign:HintAssist.Hint="Stelle eine Frage..." 
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     Foreground="White" BorderBrush="#3A4060"
-                     materialDesign:HintAssist.Foreground="#B0B8D1"
+                     Foreground="White" BorderBrush="{DynamicResource BorderBrush}"
+                     materialDesign:HintAssist.Foreground="{DynamicResource TextMutedBrush}"
                      Height="56" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"
                      Margin="0,0,16,0"/>
 
             <Button x:Name="BtnSend" Grid.Column="1" Content="Senden" Click="OnSendClick"
                     Width="100" Height="56" FontSize="16" FontWeight="Bold"
-                    Background="#6C63FF" Foreground="White" BorderThickness="0" Cursor="Hand">
+                    Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Cursor="Hand">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="Template">
