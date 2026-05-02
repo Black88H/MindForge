@@ -21,6 +21,6 @@ public class FileIngestionServiceTests
         var result = await service.IngestPdfAsync(Guid.NewGuid(), Guid.NewGuid(), "does_not_exist.pdf", "Test PDF");
         
         Assert.False(result.IsSuccess);
-        Assert.Contains("nicht gefunden", result.ErrorMessage);
+        Assert.Contains("not found", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -19,6 +19,7 @@ public class MindForgeDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Subject> Subjects => Set<Subject>();
     public DbSet<Material> Materials => Set<Material>();
+    public DbSet<NotebookSession> NotebookSessions => Set<NotebookSession>();
     public DbSet<KnowledgeNode> KnowledgeNodes => Set<KnowledgeNode>();
     public DbSet<KnowledgeEdge> KnowledgeEdges => Set<KnowledgeEdge>();
     public DbSet<LearningPlan> LearningPlans => Set<LearningPlan>();
@@ -131,7 +132,7 @@ public class MindForgeDbContext : DbContext
             new Badge 
             { 
                 Id = Guid.Parse("b0000001-0000-0000-0000-000000000008"), 
-                Name = "KI-Flüsterer", 
+                Name = "KI-Flï¿½sterer", 
                 Description = "50 Chat-Nachrichten gesendet", 
                 IconKey = "chat", 
                 Requirement = "{\"type\":\"chat_messages\",\"count\":50}", 

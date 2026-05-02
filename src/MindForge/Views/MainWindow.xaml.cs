@@ -66,11 +66,12 @@ public partial class MainWindow : Window
         {
             "Dashboard" => "📊 Dashboard",
             "Subjects" => "📚 Fächer",
-            "Materials" => "📄 Materialien",
+            "Materials" => "📚 Material Library",
             "Graph" => "🌐 Wissensgraph",
             "Learning" => "🔄 Lernen (Spaced Repetition)",
             "Tests" => "📝 Tests",
-            "Chat" => "🤖 KI-Tutor",
+            "Chat" => "🤖 AI Tutor",
+            "KITools" => "🧠 AI Tools",
             "Analytics" => "📈 Statistiken",
             "Settings" => "⚙️ Einstellungen",
             _ => page
@@ -81,11 +82,12 @@ public partial class MainWindow : Window
         {
             "Dashboard" => new DashboardView(),
             "Subjects" => new SubjectsView(),
-            "Materials" => new MaterialsView(),
+            "Materials" => new MaterialLibraryView(),
             "Graph" => new GraphView(),
             "Learning" => new LearningView(),
             "Tests" => new TestsView(),
             "Chat" => new ChatView(),
+            "KITools" => new KIToolsView(),
             "Analytics" => new AnalyticsView(),
             "Settings" => new SettingsView(),
             "Profile" => new ProfileView(),

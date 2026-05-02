@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
+using MindForge.ViewModels;
 
 namespace MindForge.Views;
 
@@ -18,12 +20,48 @@ public partial class SettingsView : UserControl
     private string? _downloadAssetUrl;
     private string? _latestVersion;
     private bool _keyVisible = false;
+    private readonly SettingsViewModel _vm;
 
     public SettingsView()
     {
         InitializeComponent();
         TxtCurrentVersion.Text = $"{CurrentVersion} (Release)";
         LoadSettings();
+
+        _vm = App.Services.GetRequiredService<SettingsViewModel>();
+        _vm.LoadSettings();
+    }
+
+    // ── OLLAMA MODEL SELECTION ───────────────────────────────────────────────
+
+    private async void OnRefreshModelsClick(object sender, RoutedEventArgs e)
+    {
+        BtnRefreshModels.IsEnabled = false;
+        TxtModelStatus.Text = "⏳ Loading models...";
+
+        _vm.OllamaUrl = TxtOllamaUrl.Text;
+        await _vm.RefreshModelsCommand.ExecuteAsync(null);
+
+        TxtModelStatus.Text = _vm.OllamaStatus;
+
+        CboChatModel.ItemsSource = _vm.AvailableModels;
+        CboSumModel.ItemsSource = _vm.AvailableModels;
+
+        if (!string.IsNullOrEmpty(_vm.PreferredChatModel))
+            CboChatModel.SelectedItem = _vm.PreferredChatModel;
+        if (!string.IsNullOrEmpty(_vm.PreferredSummarizationModel))
+            CboSumModel.SelectedItem = _vm.PreferredSummarizationModel;
+
+        BtnRefreshModels.IsEnabled = true;
+    }
+
+    private void OnSaveModelsClick(object sender, RoutedEventArgs e)
+    {
+        _vm.OllamaUrl = TxtOllamaUrl.Text;
+        _vm.PreferredChatModel = CboChatModel.SelectedItem as string ?? string.Empty;
+        _vm.PreferredSummarizationModel = CboSumModel.SelectedItem as string ?? string.Empty;
+        _vm.SaveModelSettingsCommand.Execute(null);
+        TxtModelStatus.Text = _vm.OllamaStatus;
     }
 
     // ── UPDATE SYSTEM ────────────────────────────────────────────────────────

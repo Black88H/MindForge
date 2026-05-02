@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MindForge.Data;
 using MindForge.Models;
 using MindForge.Services;
+using MindForge.Services.AI.Providers;
 using Xunit;
 
 namespace MindForge.Tests.Services;
@@ -19,7 +20,10 @@ public class ChatServiceTests
             .UseInMemoryDatabase("TestDb_Chat_1")
             .Options;
         using var db = new MindForgeDbContext(options);
-        var service = new ChatService(db);
+        var provider = new OllamaProvider();
+        provider.SetBaseUrl("http://localhost:19999"); // unreachable — falls back to fallback message
+        var ai = new MindForge.Services.AI.AISelector(provider);
+        var service = new ChatService(db, ai);
         var userId = Guid.NewGuid();
         var prompt = "Erkläre mir Quantenphysik.";
 

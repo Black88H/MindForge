@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             Background="Transparent">
+             Background="Transparent"
+             Loaded="OnLoaded">
 
     <Grid Margin="32">
         <Grid.RowDefinitions>
@@ -10,49 +11,139 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="220"/>
+        </Grid.ColumnDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="KI-Tutor" Foreground="White" FontSize="28" FontWeight="Bold"/>
-            <TextBlock Text="Dein persönlicher Begleiter für tieferes Verständnis (Ollama LLaMA 3)" Foreground="{DynamicResource TextMutedBrush}" FontSize="14"/>
+        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,16">
+            <TextBlock Text="🤖 AI Tutor" Foreground="{DynamicResource TextBrush}" FontSize="28" FontWeight="Bold"/>
+            <TextBlock Text="Chat with your AI tutor, grounded in your uploaded materials"
+                       Foreground="{DynamicResource TextMutedBrush}" FontSize="14"/>
         </StackPanel>
 
         <!-- Chat Area -->
-        <Border Grid.Row="1" Background="{DynamicResource BgSecondaryBrush}" CornerRadius="12" Padding="16" Margin="0,0,0,16">
-            <ScrollViewer x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto">
-                <StackPanel x:Name="ChatHistoryPanel">
-                    
-                    <!-- Bot Welcome Message -->
-                    <Border Background="{DynamicResource BgTertiaryBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,12" HorizontalAlignment="Left" MaxWidth="600">
-                        <StackPanel>
-                            <TextBlock Text="🤖 KI-Tutor" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                            <TextBlock Text="Hallo! Wie kann ich dir heute beim Lernen helfen? Wir können über Dokumente sprechen oder neue Konzepte erarbeiten." 
-                                       Foreground="White" TextWrapping="Wrap" LineHeight="20"/>
-                        </StackPanel>
-                    </Border>
-                    
-                </StackPanel>
-            </ScrollViewer>
+        <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource BgSecondaryBrush}"
+                CornerRadius="12" Padding="16" Margin="0,0,12,16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ScrollViewer x:Name="ChatScrollViewer" Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="ChatHistoryPanel">
+
+                        <!-- Welcome message -->
+                        <Border Background="{DynamicResource BgTertiaryBrush}" CornerRadius="8"
+                                Padding="16" Margin="0,0,0,12" HorizontalAlignment="Left" MaxWidth="600">
+                            <StackPanel>
+                                <TextBlock Text="🤖 AI Tutor" Foreground="{DynamicResource AccentBrush}"
+                                           FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Text="Hello! I'm your AI tutor. Ask me anything — or select source materials on the right to ground my answers in your documents."
+                                           Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" LineHeight="20"/>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Streaming indicator -->
+                <Border Grid.Row="1" x:Name="StreamingIndicator"
+                        Background="{DynamicResource BgTertiaryBrush}" CornerRadius="8"
+                        Padding="12,8" Margin="0,8,0,0" HorizontalAlignment="Left" MaxWidth="500"
+                        Visibility="{Binding IsStreaming, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🤖 AI Tutor: " Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding StreamingResponse}" Foreground="{DynamicResource TextBrush}"
+                                   TextWrapping="Wrap" MaxWidth="380"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Context panel -->
+        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
+                Background="{DynamicResource BgSecondaryBrush}" CornerRadius="12"
+                Padding="14" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="Source Materials" Foreground="{DynamicResource TextMutedBrush}"
+                           FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="Select documents to include as context:"
+                           Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                           TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+                <ListBox ItemsSource="{Binding AvailableMaterials}"
+                         Background="Transparent" BorderThickness="0"
+                         SelectionMode="Multiple"
+                         x:Name="LstContextMaterials"
+                         SelectionChanged="OnContextMaterialChanged"
+                         MaxHeight="400" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding OriginalFileName}"
+                                       Foreground="{DynamicResource TextBrush}"
+                                       FontSize="11" TextWrapping="Wrap"
+                                       Padding="4,2"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="2"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+
+                <TextBlock Text="{Binding ContextMaterials.Count, StringFormat='{}{0} selected'}"
+                           Foreground="{DynamicResource AccentBrush}" FontSize="11" Margin="0,8,0,0"/>
+            </StackPanel>
         </Border>
 
         <!-- Input Area -->
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox x:Name="TxtInput" Grid.Column="0" 
-                     materialDesign:HintAssist.Hint="Stelle eine Frage..." 
+            <TextBox x:Name="TxtInput" Grid.Column="0"
+                     Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                     materialDesign:HintAssist.Hint="Ask a question..."
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     Foreground="White" BorderBrush="{DynamicResource BorderBrush}"
+                     Foreground="{DynamicResource TextBrush}" BorderBrush="{DynamicResource BorderBrush}"
                      materialDesign:HintAssist.Foreground="{DynamicResource TextMutedBrush}"
-                     Height="56" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"
-                     Margin="0,0,16,0"/>
+                     Height="56" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                     AcceptsReturn="False" Margin="0,0,12,0"
+                     KeyDown="OnInputKeyDown"/>
 
-            <Button x:Name="BtnSend" Grid.Column="1" Content="Senden" Click="OnSendClick"
-                    Width="100" Height="56" FontSize="16" FontWeight="Bold"
-                    Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Cursor="Hand">
+            <Button x:Name="BtnStop" Grid.Column="1" Content="⏹" Click="OnStopClick"
+                    Width="56" Height="56" FontSize="18"
+                    Background="#FF4C4C" Foreground="White" BorderThickness="0"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Margin="0,0,8,0"
+                    ToolTip="Stop generation">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <Button x:Name="BtnSend" Grid.Column="2" Content="Send" Click="OnSendClick"
+                    Width="100" Height="56" FontSize="15" FontWeight="Bold"
+                    Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="Template">

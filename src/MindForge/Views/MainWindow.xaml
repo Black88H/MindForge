@@ -86,6 +86,13 @@
                                 <TextBlock Text="KI-Tutor" FontSize="14" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
+                        <Button x:Name="BtnKITools" Tag="KITools" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🧠" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="AI Tools" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <Button x:Name="BtnAnalytics" Tag="Analytics" Click="OnNavClick"
                                 Style="{StaticResource NavButtonStyle}">
                             <StackPanel Orientation="Horizontal">
