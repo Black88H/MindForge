@@ -13,4 +13,6 @@ public class ChatMessage
     public int TokensUsed { get; set; } = 0;
     public string Provider { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    /// <summary>Which notebook this message belongs to (nullable).</summary>
+    public Guid? NotebookId { get; set; }
 }

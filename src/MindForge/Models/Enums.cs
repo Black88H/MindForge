@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MindForge.Models;
 
-public enum MaterialFormat { PDF, DOCX, Image, Handwriting }
+public enum MaterialFormat { PDF, DOCX, Image, Handwriting, Text }
 public enum EdgeRelationType { Prerequisite, RelatedTo, PartOf, Contradicts }
 public enum LearningTaskType { Review, NewContent, Test, FeynmanCheck }
 public enum ChatRole { User, Assistant }

@@ -35,12 +35,16 @@ public class MindForgeDbContext : DbContext
     public DbSet<Achievement> Achievements => Set<Achievement>();
     public DbSet<UserAchievement> UserAchievements => Set<UserAchievement>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
+    public DbSet<Notebook>    Notebooks   => Set<Notebook>();
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseSqlite("Data Source=mindforge.db");
+            var dbPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "MindForge", "mindforge.db");
+            optionsBuilder.UseSqlite($"Data Source={dbPath}");
         }
     }
     

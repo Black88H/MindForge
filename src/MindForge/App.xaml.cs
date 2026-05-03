@@ -9,6 +9,7 @@ using MindForge.ViewModels;
 using MindForge.Views;
 using System.Windows;
 using System;
+using System.IO;
 
 namespace MindForge;
 
@@ -20,9 +21,14 @@ public partial class App : Application
     {
         var services = new ServiceCollection();
 
-        // Database
+        // Database — explicit absolute path so it always lands in AppData\Local\MindForge
+        // regardless of CWD, single-file publish location, or working directory.
+        var dbDir  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MindForge");
+        var dbPath = Path.Combine(dbDir, "mindforge.db");
+        Directory.CreateDirectory(dbDir);
+
         services.AddDbContext<MindForgeDbContext>(options =>
-            options.UseSqlite("Data Source=mindforge.db"));
+            options.UseSqlite($"Data Source={dbPath}"));
 
         // AI layer
         services.AddSingleton<OllamaProvider>();
@@ -58,11 +64,33 @@ public partial class App : Application
 
         Services = services.BuildServiceProvider();
 
-        // Ensure database schema is up to date
+        // Ensure database schema is up to date.
+        // EnsureCreated covers fresh installs; the raw SQL block handles existing DBs
+        // where EnsureCreated skips (it only creates if the DB didn't exist yet).
         using (var scope = Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<MindForgeDbContext>();
             db.Database.EnsureCreated();
+
+            // ── Schema additions for v3.5.0 (safe on existing and fresh DBs) ──────
+            // CREATE TABLE IF NOT EXISTS never fails on repeat; ALTER TABLE ADD COLUMN
+            // fails silently if the column already exists — we catch and ignore.
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS Notebooks (
+                    Id               TEXT NOT NULL PRIMARY KEY,
+                    SubjectId        TEXT NOT NULL,
+                    UserId           TEXT NOT NULL,
+                    Name             TEXT NOT NULL DEFAULT '',
+                    LearningLevel    TEXT NOT NULL DEFAULT 'Fortgeschritten',
+                    ExplanationStyle TEXT NOT NULL DEFAULT 'Normal',
+                    Progress         REAL NOT NULL DEFAULT 0,
+                    ChatCount        INTEGER NOT NULL DEFAULT 0,
+                    CreatedAt        TEXT NOT NULL DEFAULT '',
+                    LastModified     TEXT NOT NULL DEFAULT ''
+                );");
+
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE Materials    ADD COLUMN NotebookId TEXT NULL;"); } catch { /* column already exists */ }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE ChatMessages ADD COLUMN NotebookId TEXT NULL;"); } catch { /* column already exists */ }
         }
 
         // Load saved Ollama URL into selector

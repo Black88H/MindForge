@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,12 +11,21 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Style = System.Windows.Style;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
+using MindForge.Data;
+using MindForge.Helpers;
+using MindForge.Models;
 using MindForge.Services.AI;
+using UglyToad.PdfPig;
 
 namespace MindForge.Views;
 
-// ── Data models ───────────────────────────────────────────────────────────────
+// ── UI data models (in-memory representations, mapped to/from DB) ─────────────
 
 public class SubjectItem
 {
@@ -69,9 +79,9 @@ public class NotebookChatMsg
 
 public class FlashcardItem
 {
-    public Guid   Id       { get; set; } = Guid.NewGuid();
-    public string Question { get; set; } = string.Empty;
-    public string Answer   { get; set; } = string.Empty;
+    public Guid   Id        { get; set; } = Guid.NewGuid();
+    public string Question  { get; set; } = string.Empty;
+    public string Answer    { get; set; } = string.Empty;
     public bool   IsFlipped { get; set; }
 }
 
@@ -91,7 +101,19 @@ public partial class SubjectsView : UserControl
         "🧠","💡","🔑","🏆","⭐","🌟","🎯","🚀","🔥","⚡","💪","🎓",
     };
 
-    public  ObservableCollection<SubjectItem> Subjects { get; set; }
+    // ── DB helper — opens a fresh context without going through DI scope ──────
+    private static MindForgeDbContext OpenDb()
+    {
+        var dbPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "MindForge", "mindforge.db");
+        return new MindForgeDbContext(
+            new DbContextOptionsBuilder<MindForgeDbContext>()
+                .UseSqlite($"Data Source={dbPath}")
+                .Options);
+    }
+
+    public  ObservableCollection<SubjectItem> Subjects { get; set; } = new();
     private SubjectItem?  _activeSubject;
     private NotebookItem? _activeNotebook;
     private CancellationTokenSource? _aiCts;
@@ -107,19 +129,246 @@ public partial class SubjectsView : UserControl
 
         _ai = App.Services.GetRequiredService<AISelector>();
 
-        Subjects = new ObservableCollection<SubjectItem>
-        {
-            new() { Id = Guid.NewGuid(), Name = "Informatik",  Subtitle = "Algorithmen & Datenstrukturen", Icon = "💻", Progress = 65 },
-            new() { Id = Guid.NewGuid(), Name = "Biologie",    Subtitle = "Zellbiologie & Genetik",        Icon = "🧬", Progress = 30 },
-            new() { Id = Guid.NewGuid(), Name = "Mathematik",  Subtitle = "Analysis & Lineare Algebra",    Icon = "📈", Progress = 85 },
-        };
-
         SubjectsList.ItemsSource = Subjects;
         BuildEmojiPalette();
-        Loaded += async (_, _) => await CheckOllamaAsync();
+
+        Loaded += async (_, _) =>
+        {
+            await LoadSubjectsFromDbAsync();
+            await CheckOllamaAsync();
+        };
     }
 
-    // ── Emoji palette (subject dialog) ────────────────────────────────────────
+    // ── DB: Subjects ─────────────────────────────────────────────────────────
+
+    private async Task LoadSubjectsFromDbAsync()
+    {
+        if (!UserSession.IsAuthenticated) return;
+        var userId = UserSession.UserId;
+
+        Subjects.Clear();
+        using var db = OpenDb();
+        var rows = await db.Subjects
+            .Where(s => s.UserId == userId)
+            .OrderBy(s => s.CreatedAt)
+            .ToListAsync();
+
+        foreach (var s in rows)
+            Subjects.Add(new SubjectItem
+            {
+                Id       = s.Id,
+                Name     = s.Name,
+                Subtitle = s.Description ?? string.Empty,
+                Icon     = s.IconKey ?? "📚",
+                Progress = 0,
+            });
+    }
+
+    private async Task SaveSubjectToDbAsync(SubjectItem item)
+    {
+        if (!UserSession.IsAuthenticated) return;
+        using var db = OpenDb();
+        db.Subjects.Add(new Subject
+        {
+            Id          = item.Id,
+            UserId      = UserSession.UserId,
+            Name        = item.Name,
+            Description = item.Subtitle,
+            IconKey     = item.Icon,
+            Color       = "#6366F1",
+            CreatedAt   = DateTime.UtcNow,
+        });
+        await db.SaveChangesAsync();
+    }
+
+    private async Task DeleteSubjectFromDbAsync(Guid id)
+    {
+        if (!UserSession.IsAuthenticated) return;
+        using var db = OpenDb();
+        var s = await db.Subjects.FindAsync(id);
+        if (s is null) return;
+        // Cascade: remove notebooks + their materials + their chat messages
+        var nbIds = await db.Notebooks.Where(n => n.SubjectId == id).Select(n => n.Id).ToListAsync();
+        foreach (var nbId in nbIds)
+        {
+            db.Materials.RemoveRange(db.Materials.Where(m => m.NotebookId == nbId));
+            db.ChatMessages.RemoveRange(db.ChatMessages.Where(c => c.NotebookId == nbId));
+        }
+        db.Notebooks.RemoveRange(db.Notebooks.Where(n => n.SubjectId == id));
+        db.Materials.RemoveRange(db.Materials.Where(m => m.SubjectId == id && m.NotebookId == null));
+        db.Subjects.Remove(s);
+        await db.SaveChangesAsync();
+    }
+
+    // ── DB: Notebooks ─────────────────────────────────────────────────────────
+
+    private async Task LoadNotebooksFromDbAsync(SubjectItem subject)
+    {
+        subject.Notebooks.Clear();
+        if (!UserSession.IsAuthenticated) return;
+
+        using var db = OpenDb();
+        var rows = await db.Notebooks
+            .Where(n => n.SubjectId == subject.Id)
+            .OrderBy(n => n.CreatedAt)
+            .ToListAsync();
+
+        foreach (var n in rows)
+        {
+            var nb = new NotebookItem
+            {
+                Id           = n.Id,
+                Name         = n.Name,
+                LastModified = n.LastModified.ToLocalTime(),
+                Progress     = n.Progress,
+                ChatCount    = n.ChatCount,
+                Settings     = new NotebookSettings
+                {
+                    LearningLevel    = n.LearningLevel,
+                    ExplanationStyle = n.ExplanationStyle,
+                }
+            };
+
+            // Materials
+            var mats = await db.Materials
+                .Where(m => m.NotebookId == n.Id)
+                .OrderBy(m => m.CreatedAt)
+                .ToListAsync();
+            foreach (var m in mats)
+                nb.Materials.Add(new NotebookMaterialItem
+                {
+                    Id      = m.Id,
+                    Name    = m.OriginalFileName,
+                    Content = m.KiContent,
+                    Icon    = m.OriginalFormat == MaterialFormat.PDF  ? "📄" :
+                              m.OriginalFormat == MaterialFormat.DOCX ? "📝" :
+                              m.OriginalFormat == MaterialFormat.Image ? "🖼️" : "📄",
+                });
+
+            // Chat history
+            var chats = await db.ChatMessages
+                .Where(c => c.NotebookId == n.Id)
+                .OrderBy(c => c.CreatedAt)
+                .ToListAsync();
+            foreach (var c in chats)
+                nb.ChatHistory.Add(new NotebookChatMsg
+                {
+                    IsUser  = c.Role == ChatRole.User,
+                    Content = c.Content,
+                    Time    = c.CreatedAt.ToLocalTime().ToString("HH:mm"),
+                });
+
+            subject.Notebooks.Add(nb);
+        }
+
+        if (subject.Notebooks.Count > 0)
+            subject.Progress = subject.Notebooks.Average(n => n.Progress);
+    }
+
+    private async Task<Guid> SaveNotebookToDbAsync(Guid subjectId, string name)
+    {
+        var id  = Guid.NewGuid();
+        var now = DateTime.UtcNow;
+        if (UserSession.IsAuthenticated)
+        {
+            using var db = OpenDb();
+            db.Notebooks.Add(new Notebook
+            {
+                Id               = id,
+                SubjectId        = subjectId,
+                UserId           = UserSession.UserId,
+                Name             = name,
+                LearningLevel    = "Fortgeschritten",
+                ExplanationStyle = "Normal",
+                CreatedAt        = now,
+                LastModified     = now,
+            });
+            await db.SaveChangesAsync();
+        }
+        return id;
+    }
+
+    private async Task DeleteNotebookFromDbAsync(Guid id)
+    {
+        if (!UserSession.IsAuthenticated) return;
+        using var db = OpenDb();
+        db.Materials.RemoveRange(db.Materials.Where(m => m.NotebookId == id));
+        db.ChatMessages.RemoveRange(db.ChatMessages.Where(c => c.NotebookId == id));
+        var nb = await db.Notebooks.FindAsync(id);
+        if (nb is not null) db.Notebooks.Remove(nb);
+        await db.SaveChangesAsync();
+    }
+
+    private async Task SaveNotebookProgressAsync()
+    {
+        if (!UserSession.IsAuthenticated || _activeNotebook is null) return;
+        using var db = OpenDb();
+        var nb = await db.Notebooks.FindAsync(_activeNotebook.Id);
+        if (nb is null) return;
+        nb.Progress         = _activeNotebook.Progress;
+        nb.ChatCount        = _activeNotebook.ChatCount;
+        nb.LastModified     = DateTime.UtcNow;
+        nb.LearningLevel    = _activeNotebook.Settings.LearningLevel;
+        nb.ExplanationStyle = _activeNotebook.Settings.ExplanationStyle;
+        _activeNotebook.LastModified = nb.LastModified.ToLocalTime();
+        await db.SaveChangesAsync();
+    }
+
+    // ── DB: Materials ─────────────────────────────────────────────────────────
+
+    private async Task<Guid> SaveMaterialToDbAsync(string name, string content, MaterialFormat fmt, string filePath = "")
+    {
+        var id = Guid.NewGuid();
+        if (UserSession.IsAuthenticated && _activeNotebook is not null && _activeSubject is not null)
+        {
+            using var db = OpenDb();
+            db.Materials.Add(new Material
+            {
+                Id               = id,
+                UserId           = UserSession.UserId,
+                SubjectId        = _activeSubject.Id,
+                NotebookId       = _activeNotebook.Id,
+                OriginalFileName = name,
+                OriginalFormat   = fmt,
+                OriginalFilePath = filePath,
+                KiContent        = content,
+                TokenCount       = content.Length / 4,
+                CreatedAt        = DateTime.UtcNow,
+            });
+            await db.SaveChangesAsync();
+        }
+        return id;
+    }
+
+    private async Task DeleteMaterialFromDbAsync(Guid id)
+    {
+        if (!UserSession.IsAuthenticated) return;
+        using var db = OpenDb();
+        var m = await db.Materials.FindAsync(id);
+        if (m is not null) { db.Materials.Remove(m); await db.SaveChangesAsync(); }
+    }
+
+    // ── DB: Chat messages ─────────────────────────────────────────────────────
+
+    private async Task SaveChatMessageAsync(string content, ChatRole role)
+    {
+        if (!UserSession.IsAuthenticated || _activeNotebook is null || _activeSubject is null) return;
+        using var db = OpenDb();
+        db.ChatMessages.Add(new ChatMessage
+        {
+            Id         = Guid.NewGuid(),
+            UserId     = UserSession.UserId,
+            SubjectId  = _activeSubject.Id,
+            NotebookId = _activeNotebook.Id,
+            Role       = role,
+            Content    = content,
+            Provider   = "Ollama",
+            CreatedAt  = DateTime.UtcNow,
+        });
+        await db.SaveChangesAsync();
+    }
+
+    // ── Emoji palette ─────────────────────────────────────────────────────────
 
     private void BuildEmojiPalette()
     {
@@ -164,15 +413,15 @@ public partial class SubjectsView : UserControl
         {
             case Key.Escape: CloseModal(); e.Handled = true; break;
             case Key.Enter when Keyboard.Modifiers == ModifierKeys.None && sender is not TextBox:
-                TrySaveSubject(); e.Handled = true; break;
+                _ = TrySaveSubjectAsync(); e.Handled = true; break;
         }
     }
 
     private void OnCancelModalClick(object sender, RoutedEventArgs e) => CloseModal();
     private void CloseModal() => ModalOverlay.Visibility = Visibility.Collapsed;
-    private void OnSaveSubjectClick(object sender, RoutedEventArgs e) => TrySaveSubject();
+    private async void OnSaveSubjectClick(object sender, RoutedEventArgs e) => await TrySaveSubjectAsync();
 
-    private void TrySaveSubject()
+    private async Task TrySaveSubjectAsync()
     {
         var name = TxtSubjectName.Text.Trim();
         if (string.IsNullOrWhiteSpace(name))
@@ -181,38 +430,43 @@ public partial class SubjectsView : UserControl
             TxtSubjectName.Focus();
             return;
         }
-        Subjects.Add(new SubjectItem
+        var item = new SubjectItem
         {
             Id       = Guid.NewGuid(),
             Name     = name,
             Subtitle = TxtSubjectSubtitle.Text.Trim(),
             Icon     = string.IsNullOrWhiteSpace(TxtSubjectIcon.Text) ? "📚" : TxtSubjectIcon.Text,
             Progress = 0,
-        });
+        };
+        await SaveSubjectToDbAsync(item);
+        Subjects.Add(item);
         CloseModal();
     }
 
-    private void OnDeleteSubjectClick(object sender, RoutedEventArgs e)
+    private async void OnDeleteSubjectClick(object sender, RoutedEventArgs e)
     {
-        e.Handled = true; // stop bubble to parent card-button
-        if (sender is Button { Tag: Guid id })
-        {
-            var subject = Subjects.FirstOrDefault(s => s.Id == id);
-            if (subject is not null) Subjects.Remove(subject);
-        }
+        e.Handled = true;
+        if (sender is not Button { Tag: Guid id }) return;
+        var subject = Subjects.FirstOrDefault(s => s.Id == id);
+        if (subject is null) return;
+        await DeleteSubjectFromDbAsync(id);
+        Subjects.Remove(subject);
     }
 
     // ── Level 2: Notebooks overlay ────────────────────────────────────────────
 
-    private void OnSubjectCardClick(object sender, RoutedEventArgs e)
+    private async void OnSubjectCardClick(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: SubjectItem subject })
+        {
+            _activeSubject = subject;
+            await LoadNotebooksFromDbAsync(subject);
             OpenNotebooksOverlay(subject);
+        }
     }
 
     private void OpenNotebooksOverlay(SubjectItem subject)
     {
-        _activeSubject = subject;
         TxtNbSubjectIcon.Text     = subject.Icon;
         TxtNbSubjectName.Text     = subject.Name;
         TxtNbSubjectSubtitle.Text = subject.Subtitle;
@@ -236,9 +490,9 @@ public partial class SubjectsView : UserControl
 
     private void OnAddNotebookClick(object sender, RoutedEventArgs e)
     {
-        TxtNewNotebookName.Text       = string.Empty;
+        TxtNewNotebookName.Text        = string.Empty;
         TxtNewNotebookError.Visibility = Visibility.Collapsed;
-        NewNotebookModal.Visibility   = Visibility.Visible;
+        NewNotebookModal.Visibility    = Visibility.Visible;
         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input,
             () => TxtNewNotebookName.Focus());
     }
@@ -246,15 +500,15 @@ public partial class SubjectsView : UserControl
     private void OnCancelNewNotebook(object sender, RoutedEventArgs e)
         => NewNotebookModal.Visibility = Visibility.Collapsed;
 
-    private void OnSaveNewNotebook(object sender, RoutedEventArgs e) => TrySaveNotebook();
+    private async void OnSaveNewNotebook(object sender, RoutedEventArgs e) => await TrySaveNotebookAsync();
 
-    private void OnNewNotebookKeyDown(object sender, KeyEventArgs e)
+    private async void OnNewNotebookKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Escape) { NewNotebookModal.Visibility = Visibility.Collapsed; e.Handled = true; }
-        else if (e.Key == Key.Enter) { TrySaveNotebook(); e.Handled = true; }
+        else if (e.Key == Key.Enter) { await TrySaveNotebookAsync(); e.Handled = true; }
     }
 
-    private void TrySaveNotebook()
+    private async Task TrySaveNotebookAsync()
     {
         var name = TxtNewNotebookName.Text.Trim();
         if (string.IsNullOrWhiteSpace(name))
@@ -263,23 +517,26 @@ public partial class SubjectsView : UserControl
             TxtNewNotebookName.Focus();
             return;
         }
-        _activeSubject?.Notebooks.Add(new NotebookItem
+        if (_activeSubject is null) return;
+
+        var id = await SaveNotebookToDbAsync(_activeSubject.Id, name);
+        _activeSubject.Notebooks.Add(new NotebookItem
         {
-            Id           = Guid.NewGuid(),
+            Id           = id,
             Name         = name,
             LastModified = DateTime.Now,
         });
         NewNotebookModal.Visibility = Visibility.Collapsed;
     }
 
-    private void OnDeleteNotebookClick(object sender, RoutedEventArgs e)
+    private async void OnDeleteNotebookClick(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (sender is Button { Tag: Guid id } && _activeSubject is not null)
-        {
-            var nb = _activeSubject.Notebooks.FirstOrDefault(n => n.Id == id);
-            if (nb is not null) _activeSubject.Notebooks.Remove(nb);
-        }
+        if (sender is not Button { Tag: Guid id } || _activeSubject is null) return;
+        var nb = _activeSubject.Notebooks.FirstOrDefault(n => n.Id == id);
+        if (nb is null) return;
+        await DeleteNotebookFromDbAsync(id);
+        _activeSubject.Notebooks.Remove(nb);
     }
 
     // ── Level 3: Notebook detail ──────────────────────────────────────────────
@@ -302,7 +559,6 @@ public partial class SubjectsView : UserControl
         DetailMaterialsList.ItemsSource = notebook.Materials;
         DetailChatHistory.ItemsSource   = notebook.ChatHistory;
 
-        // Settings dropdowns — map string → index
         CboLearningLevel.SelectedIndex = notebook.Settings.LearningLevel switch
         {
             "Anfänger" => 0, "Experte" => 2, _ => 1
@@ -312,7 +568,6 @@ public partial class SubjectsView : UserControl
             "Wie für 5-Jährige" => 1, "Technisch/Präzise" => 2, "Mit Beispielen" => 3, _ => 0
         };
 
-        // Reset tool panels
         ToolResultPanel.Visibility  = Visibility.Collapsed;
         FlashcardsPanel.Visibility  = Visibility.Collapsed;
         TxtToolStatus.Visibility    = Visibility.Collapsed;
@@ -320,7 +575,6 @@ public partial class SubjectsView : UserControl
         BtnSendChat.Visibility      = Visibility.Visible;
         BtnStopChat.Visibility      = Visibility.Collapsed;
 
-        // Animate in
         NotebookDetailOverlay.Opacity    = 0;
         NotebookDetailOverlay.Visibility = Visibility.Visible;
         var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(250));
@@ -352,7 +606,7 @@ public partial class SubjectsView : UserControl
             _activeSubject.Progress = _activeSubject.Notebooks.Average(n => n.Progress);
     }
 
-    // ── Materials ─────────────────────────────────────────────────────────────
+    // ── Materials — paste text ────────────────────────────────────────────────
 
     private void OnPasteTextClick(object sender, RoutedEventArgs e)
     {
@@ -366,15 +620,17 @@ public partial class SubjectsView : UserControl
     private void OnCancelPasteText(object sender, RoutedEventArgs e)
         => PasteTextModal.Visibility = Visibility.Collapsed;
 
-    private void OnSavePasteText(object sender, RoutedEventArgs e)
+    private async void OnSavePasteText(object sender, RoutedEventArgs e)
     {
         var name    = TxtPasteName.Text.Trim();
         var content = TxtPasteContent.Text.Trim();
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(content)) return;
-        _activeNotebook?.Materials.Add(new NotebookMaterialItem
-            { Name = name, Content = content });
+
+        var id = await SaveMaterialToDbAsync(name, content, MaterialFormat.Text);
+        _activeNotebook?.Materials.Add(new NotebookMaterialItem { Id = id, Name = name, Content = content });
         PasteTextModal.Visibility = Visibility.Collapsed;
         RefreshDetailProgress();
+        await SaveNotebookProgressAsync();
     }
 
     private void OnPasteTextKeyDown(object sender, KeyEventArgs e)
@@ -382,14 +638,90 @@ public partial class SubjectsView : UserControl
         if (e.Key == Key.Escape) PasteTextModal.Visibility = Visibility.Collapsed;
     }
 
-    private void OnDeleteMaterialClick(object sender, RoutedEventArgs e)
+    // ── Materials — file upload ───────────────────────────────────────────────
+
+    private async void OnUploadFileClick(object sender, RoutedEventArgs e)
+    {
+        var dlg = new OpenFileDialog
+        {
+            Title  = "Datei hochladen",
+            Filter = "Unterstützte Dateien|*.pdf;*.docx;*.txt;*.md;*.cs;*.py;*.js;*.ts;*.java;*.cpp;*.html;*.css;*.csv;*.json;*.xml;*.rtf|" +
+                     "PDF|*.pdf|Word-Dokument|*.docx|Text / Code|*.txt;*.md;*.cs;*.py;*.js;*.ts;*.java;*.cpp;*.html;*.css|" +
+                     "Daten|*.csv;*.json;*.xml|Alle Dateien|*.*",
+            Multiselect = false,
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        var filePath = dlg.FileName;
+        var fileName = Path.GetFileName(filePath);
+        var ext      = Path.GetExtension(filePath).ToLowerInvariant();
+
+        // Show progress in paste modal temporarily
+        TxtPasteName.Text         = Path.GetFileNameWithoutExtension(filePath);
+        TxtPasteContent.Text      = "⏳ Datei wird gelesen…";
+        PasteTextModal.Visibility = Visibility.Visible;
+        await Task.Delay(50); // let UI refresh
+
+        string content;
+        MaterialFormat fmt;
+        try
+        {
+            (content, fmt) = ext switch
+            {
+                ".pdf"  => (await ExtractPdfTextAsync(filePath),                 MaterialFormat.PDF),
+                ".docx" => (await Task.Run(() => ExtractDocxText(filePath)),     MaterialFormat.DOCX),
+                _       => (await File.ReadAllTextAsync(filePath),               MaterialFormat.Text),
+            };
+            if (string.IsNullOrWhiteSpace(content)) content = "[Kein lesbarer Text gefunden]";
+            if (content.Length > 50_000)            content  = content[..50_000] + "\n[… Inhalt gekürzt …]";
+        }
+        catch (Exception ex)
+        {
+            content = $"[Lesefehler: {ex.Message}]";
+            fmt     = MaterialFormat.Text;
+        }
+
+        PasteTextModal.Visibility = Visibility.Collapsed;
+
+        var id   = await SaveMaterialToDbAsync(fileName, content, fmt, filePath);
+        var icon = fmt switch { MaterialFormat.PDF => "📄", MaterialFormat.DOCX => "📝", _ => "📄" };
+        _activeNotebook?.Materials.Add(new NotebookMaterialItem { Id = id, Name = fileName, Content = content, Icon = icon });
+        RefreshDetailProgress();
+        await SaveNotebookProgressAsync();
+    }
+
+    private static Task<string> ExtractPdfTextAsync(string path) => Task.Run(() =>
+    {
+        var sb = new StringBuilder();
+        using var doc = PdfDocument.Open(path);
+        foreach (var page in doc.GetPages())
+            sb.AppendLine(page.Text);
+        return sb.ToString();
+    });
+
+    private static string ExtractDocxText(string path)
+    {
+        var sb = new StringBuilder();
+        using var doc  = WordprocessingDocument.Open(path, false);
+        var body = doc.MainDocumentPart?.Document?.Body;
+        if (body is null) return string.Empty;
+        foreach (var para in body.Descendants<Paragraph>())
+            sb.AppendLine(para.InnerText);
+        return sb.ToString();
+    }
+
+    // ── Materials — delete ────────────────────────────────────────────────────
+
+    private async void OnDeleteMaterialClick(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (sender is Button { Tag: Guid id } && _activeNotebook is not null)
-        {
-            var mat = _activeNotebook.Materials.FirstOrDefault(m => m.Id == id);
-            if (mat is not null) { _activeNotebook.Materials.Remove(mat); RefreshDetailProgress(); }
-        }
+        if (sender is not Button { Tag: Guid id } || _activeNotebook is null) return;
+        var mat = _activeNotebook.Materials.FirstOrDefault(m => m.Id == id);
+        if (mat is null) return;
+        await DeleteMaterialFromDbAsync(id);
+        _activeNotebook.Materials.Remove(mat);
+        RefreshDetailProgress();
+        await SaveNotebookProgressAsync();
     }
 
     // ── Chat ──────────────────────────────────────────────────────────────────
@@ -425,6 +757,9 @@ public partial class SubjectsView : UserControl
         SetChatBusy(true);
         ScrollChatToBottom();
 
+        // Persist user message
+        await SaveChatMessageAsync(userText, ChatRole.User);
+
         _aiCts = new CancellationTokenSource();
         var ct = _aiCts.Token;
 
@@ -440,7 +775,6 @@ public partial class SubjectsView : UserControl
             var prompt = $"{BuildSystemPrompt()}\n\n{BuildMaterialContext()}\n\nFrage: {userText}";
             var (provider, model) = await _ai.SelectAsync(AITask.Chat, ct);
 
-            // Show streaming bubble
             TxtStreamingContent.Text   = "";
             StreamingBubble.Visibility = Visibility.Visible;
             ScrollChatToBottom();
@@ -458,8 +792,12 @@ public partial class SubjectsView : UserControl
 
             StreamingBubble.Visibility = Visibility.Collapsed;
             if (sb.Length > 0)
-                _activeNotebook.ChatHistory.Add(new NotebookChatMsg
-                    { IsUser = false, Content = sb.ToString() });
+            {
+                _activeNotebook.ChatHistory.Add(new NotebookChatMsg { IsUser = false, Content = sb.ToString() });
+                // Persist AI reply + update progress
+                await SaveChatMessageAsync(sb.ToString(), ChatRole.Assistant);
+                await SaveNotebookProgressAsync();
+            }
         }
         catch (OperationCanceledException) { StreamingBubble.Visibility = Visibility.Collapsed; }
         catch (Exception ex)
@@ -490,7 +828,6 @@ public partial class SubjectsView : UserControl
         if (_activeNotebook is null) return "Du bist ein hilfreicher Lernassistent. Antworte auf Deutsch.";
         var level = _activeNotebook.Settings.LearningLevel;
         var style = _activeNotebook.Settings.ExplanationStyle;
-
         var levelDesc = level switch
         {
             "Anfänger" => "Der Lernende ist Anfänger ohne Vorkenntnisse. Erkläre alles von Grund auf.",
@@ -504,7 +841,6 @@ public partial class SubjectsView : UserControl
             "Mit Beispielen"    => "Illustriere jedes Konzept mit einem konkreten Beispiel.",
             _                   => "Erkläre klar und strukturiert.",
         };
-
         return $"""
             Du bist ein KI-Lernassistent für "{_activeSubject?.Name ?? "dieses Fach"}", Notizbuch "{_activeNotebook.Name}".
             {levelDesc}
@@ -516,9 +852,9 @@ public partial class SubjectsView : UserControl
 
     private void SetChatBusy(bool busy) => Dispatcher.Invoke(() =>
     {
-        TxtChatInput.IsEnabled  = !busy;
-        BtnSendChat.Visibility  = busy ? Visibility.Collapsed : Visibility.Visible;
-        BtnStopChat.Visibility  = busy ? Visibility.Visible   : Visibility.Collapsed;
+        TxtChatInput.IsEnabled = !busy;
+        BtnSendChat.Visibility = busy ? Visibility.Collapsed : Visibility.Visible;
+        BtnStopChat.Visibility = busy ? Visibility.Visible   : Visibility.Collapsed;
     });
 
     private void ScrollChatToBottom() => Dispatcher.BeginInvoke(() =>
@@ -533,16 +869,18 @@ public partial class SubjectsView : UserControl
         BtnToggleSettings.Content  = _settingsPanelVisible ? "▲ Einstellungen" : "▼ Einstellungen";
     }
 
-    private void OnLearningLevelChanged(object sender, SelectionChangedEventArgs e)
+    private async void OnLearningLevelChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_activeNotebook is null || CboLearningLevel.SelectedItem is not ComboBoxItem { Content: string lv }) return;
         _activeNotebook.Settings.LearningLevel = lv;
+        await SaveNotebookProgressAsync();
     }
 
-    private void OnExplanationStyleChanged(object sender, SelectionChangedEventArgs e)
+    private async void OnExplanationStyleChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_activeNotebook is null || CboExplanationStyle.SelectedItem is not ComboBoxItem { Content: string st }) return;
         _activeNotebook.Settings.ExplanationStyle = st;
+        await SaveNotebookProgressAsync();
     }
 
     // ── Learning tools ────────────────────────────────────────────────────────
@@ -567,28 +905,28 @@ public partial class SubjectsView : UserControl
         var ctx = BuildMaterialContext();
         return string.IsNullOrEmpty(ctx)
             ? $"Erstelle eine strukturierte Zusammenfassung zum Thema '{_activeSubject?.Name}' auf Deutsch."
-            : $"Erstelle eine strukturierte Zusammenfassung der folgenden Lernmaterialien auf Deutsch. Verwende Bullet Points für Kernkonzepte. Max. 400 Wörter.\n\n{ctx}";
+            : $"Erstelle eine strukturierte Zusammenfassung der folgenden Lernmaterialien auf Deutsch. Verwende Bullet Points. Max. 400 Wörter.\n\n{ctx}";
     }
 
     private string BuildELI5Prompt()
     {
         var ctx = BuildMaterialContext();
         return string.IsNullOrEmpty(ctx)
-            ? $"Erkläre das Thema '{_activeSubject?.Name}' auf Deutsch so einfach wie möglich. Verwende Alltagsbeispiele."
-            : $"Erkläre die folgenden Inhalte auf Deutsch so einfach wie möglich. Keine Fachbegriffe ohne Erklärung. Verwende Analogien.\n\n{ctx}";
+            ? $"Erkläre das Thema '{_activeSubject?.Name}' so einfach wie möglich. Verwende Alltagsbeispiele."
+            : $"Erkläre die folgenden Inhalte so einfach wie möglich. Keine Fachbegriffe ohne Erklärung.\n\n{ctx}";
     }
 
     private string BuildStudyGuidePrompt()
     {
-        var ctx = BuildMaterialContext();
-        var base_ = $"Erstelle einen Lernleitfaden auf Deutsch mit: 1. Kernkonzepte 2. Wichtige Definitionen 3. Typische Prüfungsfragen mit Antworten 4. Zusammenfassung";
+        var ctx   = BuildMaterialContext();
+        var base_ = "Erstelle einen Lernleitfaden auf Deutsch mit: 1. Kernkonzepte 2. Wichtige Definitionen 3. Typische Prüfungsfragen mit Antworten 4. Zusammenfassung";
         return string.IsNullOrEmpty(ctx) ? $"{base_}\n\nThema: {_activeSubject?.Name}" : $"{base_}\n\n{ctx}";
     }
 
     private string BuildQuizPrompt()
     {
-        var ctx = BuildMaterialContext();
-        var base_ = $"Erstelle 5 Multiple-Choice-Fragen auf Deutsch. Format: Frage, dann A) B) C) D), dann 'Richtig: X'";
+        var ctx   = BuildMaterialContext();
+        var base_ = "Erstelle 5 Multiple-Choice-Fragen auf Deutsch. Format: Frage, dann A) B) C) D), dann 'Richtig: X'";
         return string.IsNullOrEmpty(ctx) ? $"{base_}\n\nThema: {_activeSubject?.Name}" : $"{base_}\n\n{ctx}";
     }
 
@@ -604,12 +942,7 @@ public partial class SubjectsView : UserControl
         var ct = _aiCts.Token;
         try
         {
-            if (!await _ai.IsOllamaAvailableAsync(ct))
-            {
-                OllamaStatusBar.Visibility = Visibility.Visible;
-                SetToolBusy(false, string.Empty);
-                return;
-            }
+            if (!await _ai.IsOllamaAvailableAsync(ct)) { OllamaStatusBar.Visibility = Visibility.Visible; SetToolBusy(false, string.Empty); return; }
             var (provider, model) = await _ai.SelectAsync(task, ct);
             TxtToolResult.Text = await provider.GenerateAsync(model, promptFn(), ct);
         }
@@ -628,13 +961,8 @@ public partial class SubjectsView : UserControl
         var ct = _aiCts.Token;
         try
         {
-            if (!await _ai.IsOllamaAvailableAsync(ct))
-            {
-                OllamaStatusBar.Visibility = Visibility.Visible;
-                SetToolBusy(false, string.Empty);
-                return;
-            }
-            var ctx = BuildMaterialContext();
+            if (!await _ai.IsOllamaAvailableAsync(ct)) { OllamaStatusBar.Visibility = Visibility.Visible; SetToolBusy(false, string.Empty); return; }
+            var ctx    = BuildMaterialContext();
             var prompt = string.IsNullOrEmpty(ctx)
                 ? $"Erstelle 8 Lernkarten zum Thema '{_activeSubject?.Name}' auf Deutsch.\nFormat (getrennt durch ---):\nFRAGE: [Frage]\nANTWORT: [Antwort]\n---"
                 : $"Erstelle 8 Lernkarten auf Deutsch aus diesen Materialien.\nFormat:\nFRAGE: [Frage]\nANTWORT: [Antwort]\n---\n\n{ctx}";
@@ -652,14 +980,11 @@ public partial class SubjectsView : UserControl
                 FlashcardsPanel.Visibility = Visibility.Visible;
                 ShowFlashcard();
                 RefreshDetailProgress();
+                await SaveNotebookProgressAsync();
             }
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            TxtToolResult.Text         = $"⚠️ Fehler: {ex.Message}";
-            ToolResultPanel.Visibility = Visibility.Visible;
-        }
+        catch (Exception ex) { TxtToolResult.Text = $"⚠️ Fehler: {ex.Message}"; ToolResultPanel.Visibility = Visibility.Visible; }
         finally { SetToolBusy(false, string.Empty); }
     }
 
@@ -694,10 +1019,7 @@ public partial class SubjectsView : UserControl
     private void OnFlipCard(object sender, RoutedEventArgs e)
     {
         if (_activeNotebook?.Flashcards.Count > 0)
-        {
-            _activeNotebook.Flashcards[_flashcardIndex].IsFlipped ^= true;
-            ShowFlashcard();
-        }
+        { _activeNotebook.Flashcards[_flashcardIndex].IsFlipped ^= true; ShowFlashcard(); }
     }
 
     private void OnPrevCard(object sender, RoutedEventArgs e)
@@ -722,8 +1044,8 @@ public partial class SubjectsView : UserControl
 
     private void SetToolBusy(bool busy, string status) => Dispatcher.Invoke(() =>
     {
-        TxtToolStatus.Text       = status;
-        TxtToolStatus.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        TxtToolStatus.Text         = status;
+        TxtToolStatus.Visibility   = busy ? Visibility.Visible : Visibility.Collapsed;
         PanelToolButtons.IsEnabled = !busy;
     });
 
@@ -732,12 +1054,10 @@ public partial class SubjectsView : UserControl
     private async Task CheckOllamaAsync()
     {
         var ok = await _ai.IsOllamaAvailableAsync();
-        Dispatcher.Invoke(() => OllamaStatusBar.Visibility = ok
-            ? Visibility.Collapsed : Visibility.Visible);
+        Dispatcher.Invoke(() => OllamaStatusBar.Visibility = ok ? Visibility.Collapsed : Visibility.Visible);
     }
 
-    private async void OnRetryOllamaClick(object sender, RoutedEventArgs e)
-        => await CheckOllamaAsync();
+    private async void OnRetryOllamaClick(object sender, RoutedEventArgs e) => await CheckOllamaAsync();
 
     // ── Animation helpers ─────────────────────────────────────────────────────
 

@@ -16,4 +16,6 @@ public class Material
     public int TokenCount { get; set; }
     public string Tags { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    /// <summary>Which notebook this material belongs to (nullable — materials can be subject-level).</summary>
+    public Guid? NotebookId { get; set; }
 }
