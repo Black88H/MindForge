@@ -5,24 +5,23 @@
 
     <UserControl.Resources>
 
-        <!-- ── Shared TextBox template: rounded corners + accent focus ring ── -->
+        <!-- ── Shared TextBox template ── -->
         <Style x:Key="ModernTextBox" TargetType="TextBox">
-            <Setter Property="Background"              Value="{DynamicResource BgBrush}"/>
-            <Setter Property="Foreground"              Value="White"/>
-            <Setter Property="CaretBrush"              Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionBrush"          Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="SelectionOpacity"        Value="0.35"/>
-            <Setter Property="BorderBrush"             Value="{DynamicResource BorderBrush}"/>
-            <Setter Property="BorderThickness"         Value="1"/>
-            <Setter Property="Padding"                 Value="12,0"/>
-            <Setter Property="Height"                  Value="44"/>
+            <Setter Property="Background"               Value="{DynamicResource BgBrush}"/>
+            <Setter Property="Foreground"               Value="White"/>
+            <Setter Property="CaretBrush"               Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionBrush"           Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="SelectionOpacity"         Value="0.35"/>
+            <Setter Property="BorderBrush"              Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness"          Value="1"/>
+            <Setter Property="Padding"                  Value="12,0"/>
+            <Setter Property="Height"                   Value="44"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="FontSize"                Value="14"/>
+            <Setter Property="FontSize"                 Value="14"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="bd"
-                                Background="{TemplateBinding Background}"
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="8">
@@ -44,7 +43,17 @@
             </Setter>
         </Style>
 
-        <!-- ── Emoji palette button ── -->
+        <!-- ── Multiline TextBox ── -->
+        <Style x:Key="ModernTextBoxMulti" TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
+            <Setter Property="Height"                   Value="Auto"/>
+            <Setter Property="AcceptsReturn"            Value="True"/>
+            <Setter Property="TextWrapping"             Value="Wrap"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Padding"                  Value="12,8"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+        </Style>
+
+        <!-- ── Emoji button ── -->
         <Style x:Key="EmojiBtn" TargetType="Button">
             <Setter Property="Width"           Value="36"/>
             <Setter Property="Height"          Value="36"/>
@@ -72,7 +81,7 @@
             </Setter>
         </Style>
 
-        <!-- ── Primary action button ── -->
+        <!-- ── Primary button ── -->
         <Style x:Key="PrimaryBtn" TargetType="Button">
             <Setter Property="Background"      Value="{DynamicResource AccentBrush}"/>
             <Setter Property="Foreground"      Value="White"/>
@@ -85,9 +94,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bg"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="8">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="8">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                                               Margin="{TemplateBinding Padding}"/>
                         </Border>
@@ -98,13 +105,16 @@
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="bg" Property="Opacity" Value="0.65"/>
                             </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bg" Property="Opacity" Value="0.4"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <!-- ── Ghost / cancel button ── -->
+        <!-- ── Ghost button ── -->
         <Style x:Key="GhostBtn" TargetType="Button">
             <Setter Property="Background"      Value="Transparent"/>
             <Setter Property="Foreground"      Value="{DynamicResource TextMutedBrush}"/>
@@ -117,11 +127,9 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bg"
-                                Background="{TemplateBinding Background}"
+                        <Border x:Name="bg" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="8">
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                                               Margin="{TemplateBinding Padding}"/>
                         </Border>
@@ -136,7 +144,7 @@
             </Setter>
         </Style>
 
-        <!-- ── Close (×) icon button ── -->
+        <!-- ── Close (×) button ── -->
         <Style x:Key="CloseBtn" TargetType="Button">
             <Setter Property="Background"      Value="Transparent"/>
             <Setter Property="Foreground"      Value="{DynamicResource TextMutedBrush}"/>
@@ -165,20 +173,100 @@
             </Setter>
         </Style>
 
+        <!-- ── Pill / tool button ── -->
+        <Style x:Key="ToolBtn" TargetType="Button">
+            <Setter Property="Background"      Value="{DynamicResource BgTertiaryBrush}"/>
+            <Setter Property="Foreground"      Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="0"/>
+            <Setter Property="Height"          Value="40"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="8"
+                                Padding="14,0">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bg" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Icon button (small square) ── -->
+        <Style x:Key="IconBtn" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Foreground"      Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width"           Value="30"/>
+            <Setter Property="Height"          Value="30"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="Transparent" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#22FFFFFF"/>
+                                <Setter Property="Foreground" Value="#FF4C61"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Card button (transparent, fills entire area) ── -->
+        <Style x:Key="CardBtn" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="Foreground"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment"   Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </UserControl.Resources>
 
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         ROOT GRID — all overlays stacked here (last = on top)
+         ═══════════════════════════════════════════════════════════════════════ -->
     <Grid>
+
+        <!-- ── Level 1: Subjects grid ── -->
         <Grid Margin="32">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Header row -->
+            <!-- Header -->
             <Grid Grid.Row="0" Margin="0,0,0,24">
                 <StackPanel HorizontalAlignment="Left">
                     <TextBlock Text="Deine Fächer" Foreground="White" FontSize="28" FontWeight="Bold"/>
-                    <TextBlock Text="Verwalte deine Lernbereiche und Module"
+                    <TextBlock Text="Verwalte deine Lernbereiche — klicke ein Fach um Notizbücher zu öffnen"
                                Foreground="{DynamicResource TextMutedBrush}" FontSize="14" Margin="0,4,0,0"/>
                 </StackPanel>
                 <Button HorizontalAlignment="Right" VerticalAlignment="Top"
@@ -213,185 +301,778 @@
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <ItemsControl x:Name="SubjectsList">
                     <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel/>
-                        </ItemsPanelTemplate>
+                        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border CornerRadius="12" Padding="20" Margin="0,0,20,20" Width="280" BorderThickness="1">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Background"   Value="{DynamicResource BgSecondaryBrush}"/>
-                                        <Setter Property="BorderBrush"  Value="{DynamicResource BgSecondaryBrush}"/>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <Grid>
-                                    <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                            Content="✕" Foreground="#FF4C61" Background="Transparent"
-                                            BorderThickness="0" Padding="0" Margin="0,-10,-10,0"
-                                            Click="OnDeleteSubjectClick" Tag="{Binding Id}">
-                                        <Button.Style>
-                                            <Style TargetType="Button">
-                                                <Setter Property="Opacity" Value="0"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
-                                                        <Setter Property="Opacity" Value="1"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                    </Button>
-                                    <StackPanel>
-                                        <Border Background="{DynamicResource BgTertiaryBrush}" CornerRadius="8"
-                                                Width="48" Height="48" HorizontalAlignment="Left" Margin="0,0,0,16">
-                                            <TextBlock Text="{Binding Icon}" FontSize="24"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <TextBlock Text="{Binding Name}" Foreground="White" FontSize="20" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource TextMutedBrush}"
-                                                   FontSize="12" Margin="0,4,0,16"/>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0">
-                                                <TextBlock Text="Fortschritt" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"/>
-                                                <ProgressBar Value="{Binding Progress}" Maximum="100" Height="6" Margin="0,4,16,0"
-                                                             Foreground="{DynamicResource AccentBrush}"
-                                                             Background="{DynamicResource BgTertiaryBrush}" BorderThickness="0"/>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="1"
-                                                       Text="{Binding Progress, StringFormat={}{0:0}%}"
-                                                       Foreground="White" FontSize="12" VerticalAlignment="Bottom" FontWeight="SemiBold"/>
-                                        </Grid>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
+                            <!-- Entire card is a transparent button → fires OnSubjectCardClick -->
+                            <Button Style="{StaticResource CardBtn}"
+                                    Tag="{Binding}"
+                                    Click="OnSubjectCardClick"
+                                    Margin="0,0,20,20">
+                                <Border CornerRadius="12" Padding="20" Width="280" BorderThickness="1">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background"  Value="{DynamicResource BgSecondaryBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BgSecondaryBrush}"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <!-- Delete button (top-right) -->
+                                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                Content="✕" Foreground="#FF4C61" Background="Transparent"
+                                                BorderThickness="0" Padding="0" Margin="0,-10,-10,0"
+                                                Click="OnDeleteSubjectClick" Tag="{Binding Id}">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Opacity" Value="0"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                                            <Setter Property="Opacity" Value="1"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <StackPanel>
+                                            <Border Background="{DynamicResource BgTertiaryBrush}" CornerRadius="8"
+                                                    Width="48" Height="48" HorizontalAlignment="Left" Margin="0,0,0,16">
+                                                <TextBlock Text="{Binding Icon}" FontSize="24"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <TextBlock Text="{Binding Name}" Foreground="White" FontSize="20" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource TextMutedBrush}"
+                                                       FontSize="12" Margin="0,4,0,16"/>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Fortschritt" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"/>
+                                                    <ProgressBar Value="{Binding Progress}" Maximum="100" Height="6" Margin="0,4,16,0"
+                                                                 Foreground="{DynamicResource AccentBrush}"
+                                                                 Background="{DynamicResource BgTertiaryBrush}" BorderThickness="0"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding Progress, StringFormat={}{0:0}%}"
+                                                           Foreground="White" FontSize="12" VerticalAlignment="Bottom" FontWeight="SemiBold"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </Button>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
         </Grid>
 
-        <!-- ════════════════════════════════════════════
-             REDESIGNED MODAL — "Neues Fach"
-             ════════════════════════════════════════════ -->
-        <Border x:Name="ModalOverlay"
-                Background="#BB000000"
-                Visibility="Collapsed"
+        <!-- ══════════════════════════════════════════════════════════════════
+             NEUES FACH modal
+             ══════════════════════════════════════════════════════════════════ -->
+        <Border x:Name="ModalOverlay" Background="#BB000000" Visibility="Collapsed"
                 PreviewKeyDown="OnModalKeyDown">
-
-            <!-- Dialog card -->
-            <Border Background="{DynamicResource BgSecondaryBrush}"
-                    CornerRadius="16" Width="480"
+            <Border Background="{DynamicResource BgSecondaryBrush}" CornerRadius="16" Width="480"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                 <Border.Effect>
                     <DropShadowEffect Color="#000000" BlurRadius="48" ShadowDepth="0" Opacity="0.55"/>
                 </Border.Effect>
-
                 <StackPanel>
-
-                    <!-- ── Dialog header ── -->
                     <Grid Margin="28,24,20,0">
                         <StackPanel>
-                            <TextBlock Text="Neues Fach erstellen"
-                                       Foreground="White" FontSize="20" FontWeight="Bold"/>
+                            <TextBlock Text="Neues Fach erstellen" Foreground="White" FontSize="20" FontWeight="Bold"/>
                             <TextBlock Text="Füge ein Fach hinzu und wähle ein passendes Icon"
-                                       Foreground="{DynamicResource TextMutedBrush}"
-                                       FontSize="13" Margin="0,4,0,0"/>
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="13" Margin="0,4,0,0"/>
                         </StackPanel>
-                        <Button Style="{StaticResource CloseBtn}"
-                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                        <Button Style="{StaticResource CloseBtn}" HorizontalAlignment="Right" VerticalAlignment="Top"
                                 Content="✕" Click="OnCancelModalClick"/>
                     </Grid>
-
-                    <!-- thin divider -->
                     <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,16,0,0"/>
-
-                    <!-- ── Form body ── -->
                     <StackPanel Margin="28,20,28,0">
-
-                        <!-- Name field -->
-                        <TextBlock Text="FACHNAME" Foreground="{DynamicResource TextMutedBrush}"
-                                   FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
-                        <TextBox x:Name="TxtSubjectName" Style="{StaticResource ModernTextBox}"
-                                 Margin="0,0,0,4"/>
+                        <TextBlock Text="FACHNAME" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
+                        <TextBox x:Name="TxtSubjectName" Style="{StaticResource ModernTextBox}" Margin="0,0,0,4"/>
                         <TextBlock x:Name="TxtNameError" Text="Bitte gib einen Namen ein."
-                                   Foreground="#FF4C61" FontSize="11" Margin="2,0,0,12"
-                                   Visibility="Collapsed"/>
-
-                        <!-- Subtitle field -->
-                        <TextBlock Text="BESCHREIBUNG" Foreground="{DynamicResource TextMutedBrush}"
-                                   FontSize="11" FontWeight="Bold" Margin="0,4,0,6"/>
-                        <TextBox x:Name="TxtSubjectSubtitle" Style="{StaticResource ModernTextBox}"
-                                 Margin="0,0,0,20"/>
-
-                        <!-- ── Emoji picker ── -->
-                        <TextBlock Text="FACH-ICON" Foreground="{DynamicResource TextMutedBrush}"
-                                   FontSize="11" FontWeight="Bold" Margin="0,0,0,10"/>
-
+                                   Foreground="#FF4C61" FontSize="11" Margin="2,0,0,12" Visibility="Collapsed"/>
+                        <TextBlock Text="BESCHREIBUNG" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" FontWeight="Bold" Margin="0,4,0,6"/>
+                        <TextBox x:Name="TxtSubjectSubtitle" Style="{StaticResource ModernTextBox}" Margin="0,0,0,20"/>
+                        <TextBlock Text="FACH-ICON" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" FontWeight="Bold" Margin="0,0,0,10"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="64"/>
                                 <ColumnDefinition Width="12"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-
-                            <!-- Large emoji preview -->
-                            <Border Grid.Column="0" CornerRadius="10"
-                                    Background="{DynamicResource BgBrush}"
+                            <Border Grid.Column="0" CornerRadius="10" Background="{DynamicResource BgBrush}"
                                     BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1.5"
                                     Width="64" Height="64">
-                                <TextBlock x:Name="TxtEmojiPreview" Text="📚"
-                                           FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtEmojiPreview" Text="📚" FontSize="30"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-
-                            <!-- Emoji palette -->
-                            <Border Grid.Column="2"
-                                    Background="{DynamicResource BgBrush}"
-                                    CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                                    Padding="4">
+                            <Border Grid.Column="2" Background="{DynamicResource BgBrush}" CornerRadius="8"
+                                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="4">
                                 <ScrollViewer MaxHeight="148" VerticalScrollBarVisibility="Auto"
                                               HorizontalScrollBarVisibility="Disabled">
                                     <WrapPanel x:Name="EmojiPalette" Orientation="Horizontal"/>
                                 </ScrollViewer>
                             </Border>
                         </Grid>
-
-                        <!-- hidden backing field for save logic -->
                         <TextBox x:Name="TxtSubjectIcon" Visibility="Collapsed" Text="📚"/>
-
                     </StackPanel>
-
-                    <!-- thin divider -->
                     <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,20,0,0"/>
-
-                    <!-- ── Footer buttons ── -->
                     <Grid Margin="28,16,28,24">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Style="{StaticResource GhostBtn}"
-                                Content="Abbrechen" Click="OnCancelModalClick"/>
-                        <Button Grid.Column="2" Style="{StaticResource PrimaryBtn}"
-                                x:Name="BtnSave" Click="OnSaveSubjectClick">
+                        <Button Grid.Column="0" Style="{StaticResource GhostBtn}" Content="Abbrechen" Click="OnCancelModalClick"/>
+                        <Button Grid.Column="2" Style="{StaticResource PrimaryBtn}" Click="OnSaveSubjectClick">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="✓" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="Fach erstellen" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
 
+        <!-- ══════════════════════════════════════════════════════════════════
+             LEVEL 2: NOTEBOOKS OVERLAY  (slide-in from right)
+             ══════════════════════════════════════════════════════════════════ -->
+        <Grid x:Name="NotebooksOverlay" Visibility="Collapsed">
+            <!-- Dark backdrop — click to close -->
+            <Rectangle Fill="#88000000" MouseLeftButtonDown="OnNotebooksBackdropClick"/>
+
+            <!-- Slide-in panel -->
+            <Border x:Name="NotebooksPanel" Width="680" HorizontalAlignment="Right"
+                    Background="{DynamicResource BgSecondaryBrush}">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="NotebooksPanelTransform" X="0"/>
+                </Border.RenderTransform>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Border Grid.Row="0" Background="{DynamicResource BgBrush}" Padding="28,20">
+                        <Grid>
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <TextBlock x:Name="TxtNbSubjectIcon" Text="📚" FontSize="28" Margin="0,0,12,0"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock x:Name="TxtNbSubjectName" Text="Fach"
+                                                   Foreground="White" FontSize="22" FontWeight="Bold"/>
+                                        <TextBlock x:Name="TxtNbSubjectSubtitle" Text=""
+                                                   Foreground="{DynamicResource TextMutedBrush}" FontSize="13"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Gesamtfortschritt:" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtNbSubjectProgress" Text="0%"
+                                               Foreground="{DynamicResource AccentBrush}" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Style="{StaticResource CloseBtn}" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                    Content="✕" Click="OnCloseNotebooksClick" Width="36" Height="36" FontSize="16"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Notebooks list -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28,20">
+                        <StackPanel>
+                            <!-- Empty state -->
+                            <StackPanel x:Name="NbEmptyState" HorizontalAlignment="Center" Margin="0,60,0,0">
+                                <TextBlock Text="📓" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                                <TextBlock Text="Noch keine Notizbücher" Foreground="White" FontSize="16"
+                                           FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Erstelle dein erstes Notizbuch, um mit dem Lernen zu beginnen."
+                                           Foreground="{DynamicResource TextMutedBrush}" FontSize="13"
+                                           HorizontalAlignment="Center" TextAlignment="Center" Margin="0,8,0,0"/>
+                            </StackPanel>
+
+                            <!-- Notebooks -->
+                            <ItemsControl x:Name="NotebooksList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Style="{StaticResource CardBtn}"
+                                                Tag="{Binding}"
+                                                Click="OnNotebookCardClick"
+                                                Margin="0,0,0,12">
+                                            <Border CornerRadius="10" Padding="18,14" BorderThickness="1">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background"  Value="{DynamicResource BgTertiaryBrush}"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource BgTertiaryBrush}"/>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Grid>
+                                                    <!-- Delete -->
+                                                    <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                            Content="✕" Foreground="#FF4C61" Background="Transparent"
+                                                            BorderThickness="0" Padding="0"
+                                                            Click="OnDeleteNotebookClick" Tag="{Binding Id}">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Opacity" Value="0"/>
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="Button">
+                                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                                                        <Setter Property="Opacity" Value="1"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Name}" Foreground="White"
+                                                                   FontSize="16" FontWeight="SemiBold"/>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
+                                                            <TextBlock Text="Zuletzt bearbeitet: " Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
+                                                            <TextBlock Text="{Binding LastModifiedLabel}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
+                                                        </StackPanel>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="5"
+                                                                         Foreground="{DynamicResource AccentBrush}"
+                                                                         Background="{DynamicResource BgBrush}" BorderThickness="0"/>
+                                                            <TextBlock Grid.Column="1"
+                                                                       Text="{Binding Progress, StringFormat={}{0:0}%}"
+                                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                                       FontSize="11" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Footer: + New Notebook -->
+                    <Border Grid.Row="2" Background="{DynamicResource BgBrush}" Padding="28,16">
+                        <Button Style="{StaticResource PrimaryBtn}" HorizontalAlignment="Left"
+                                Click="OnAddNotebookClick">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="+" FontSize="18" FontWeight="Bold" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Neues Notizbuch" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             LEVEL 3: NOTEBOOK DETAIL (full-screen overlay)
+             ══════════════════════════════════════════════════════════════════ -->
+        <Grid x:Name="NotebookDetailOverlay" Visibility="Collapsed"
+              Background="{DynamicResource BgBrush}">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="DetailPanelTransform" X="0"/>
+            </Grid.RenderTransform>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60"/>    <!-- Header bar -->
+                <RowDefinition Height="Auto"/>  <!-- Ollama warning -->
+                <RowDefinition Height="*"/>     <!-- Main content -->
+            </Grid.RowDefinitions>
+
+            <!-- ── Header bar ── -->
+            <Border Grid.Row="0" Background="{DynamicResource BgSecondaryBrush}" Padding="24,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Back -->
+                    <Button Grid.Column="0" Style="{StaticResource GhostBtn}" Height="36"
+                            Padding="14,0" Click="OnDetailBack" Margin="0,0,16,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="←" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Zurück" VerticalAlignment="Center" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Breadcrumb -->
+                    <TextBlock Grid.Column="1" x:Name="TxtDetailBreadcrumb"
+                               Text="Fach › Notizbuch" Foreground="White"
+                               FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+
+                    <!-- Progress -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0">
+                        <ProgressBar x:Name="PrgDetailProgress" Width="100" Height="6" Value="0" Maximum="100"
+                                     Foreground="{DynamicResource AccentBrush}"
+                                     Background="{DynamicResource BgTertiaryBrush}"
+                                     BorderThickness="0" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="TxtDetailProgress" Text="0%"
+                                   Foreground="{DynamicResource AccentBrush}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ── Ollama warning bar ── -->
+            <Border Grid.Row="1" x:Name="OllamaStatusBar" Visibility="Collapsed"
+                    Background="#CC3D1A" Padding="20,10">
+                <Grid>
+                    <StackPanel>
+                        <TextBlock Text="❌ Keine Verbindung zu Ollama" Foreground="White" FontWeight="Bold" FontSize="13"/>
+                        <TextBlock FontSize="11" Foreground="#FFCCAA" Margin="0,4,0,0">
+                            So beheben: 1) Ollama installieren (ollama.ai)  2) ollama serve  3) ollama pull llama3.2
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource GhostBtn}" Height="32" Padding="12,0" FontSize="12"
+                                Content="🔄 Erneut versuchen" Click="OnRetryOllamaClick" Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource CloseBtn}" Content="✕"
+                                Click="OnRetryOllamaClick"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ── Main content: 2-column layout ── -->
+            <Grid Grid.Row="2" Margin="20,16,20,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="300"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ╔══════════════════════════════╗
+                     ║  LEFT: Settings + Mat + Chat ║
+                     ╚══════════════════════════════╝ -->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>  <!-- Settings collapsible -->
+                        <RowDefinition Height="Auto"/>  <!-- Materials -->
+                        <RowDefinition Height="*"/>     <!-- Chat history -->
+                        <RowDefinition Height="Auto"/>  <!-- Chat input -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Settings (collapsible) -->
+                    <Border Grid.Row="0" Background="{DynamicResource BgSecondaryBrush}"
+                            CornerRadius="10" Margin="0,0,0,12">
+                        <StackPanel>
+                            <Button x:Name="BtnToggleSettings" Style="{StaticResource ToolBtn}"
+                                    Height="44" Content="▲ Einstellungen" FontWeight="SemiBold"
+                                    FontSize="13" Click="OnToggleSettings"
+                                    Background="{DynamicResource BgSecondaryBrush}"
+                                    HorizontalContentAlignment="Left"/>
+                            <StackPanel x:Name="SettingsContent" Margin="14,0,14,14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="LERNLEVEL" Foreground="{DynamicResource TextMutedBrush}"
+                                                   FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
+                                        <ComboBox x:Name="CboLearningLevel" Height="36"
+                                                  SelectionChanged="OnLearningLevelChanged"
+                                                  Foreground="{DynamicResource TextBrush}"
+                                                  Background="{DynamicResource BgBrush}">
+                                            <ComboBoxItem Content="Anfänger"/>
+                                            <ComboBoxItem Content="Fortgeschritten" IsSelected="True"/>
+                                            <ComboBoxItem Content="Experte"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="ERKLÄRUNGSSTIL" Foreground="{DynamicResource TextMutedBrush}"
+                                                   FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
+                                        <ComboBox x:Name="CboExplanationStyle" Height="36"
+                                                  SelectionChanged="OnExplanationStyleChanged"
+                                                  Foreground="{DynamicResource TextBrush}"
+                                                  Background="{DynamicResource BgBrush}">
+                                            <ComboBoxItem Content="Normal" IsSelected="True"/>
+                                            <ComboBoxItem Content="Wie für 5-Jährige"/>
+                                            <ComboBoxItem Content="Technisch/Präzise"/>
+                                            <ComboBoxItem Content="Mit Beispielen"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Materials section -->
+                    <Border Grid.Row="1" Background="{DynamicResource BgSecondaryBrush}"
+                            CornerRadius="10" Padding="14" Margin="0,0,0,12">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,10">
+                                <TextBlock Text="📎 Materialien" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <Button Style="{StaticResource PrimaryBtn}" HorizontalAlignment="Right"
+                                        Height="32" Padding="12,0" FontSize="12"
+                                        Content="+ Text einfügen" Click="OnPasteTextClick"/>
+                            </Grid>
+                            <!-- Material list -->
+                            <ItemsControl x:Name="DetailMaterialsList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource BgBrush}" CornerRadius="6"
+                                                Padding="10,6" Margin="0,0,0,6">
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Icon}" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}"
+                                                               FontSize="13" VerticalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis" MaxWidth="280"/>
+                                                </StackPanel>
+                                                <Button Style="{StaticResource IconBtn}" HorizontalAlignment="Right"
+                                                        Content="✕" Click="OnDeleteMaterialClick" Tag="{Binding Id}" FontSize="11"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <!-- Empty hint -->
+                            <TextBlock Text="Füge Texte oder Notizen hinzu, um den KI-Kontext anzureichern."
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                                       TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Chat history -->
+                    <Border Grid.Row="2" Background="{DynamicResource BgSecondaryBrush}"
+                            CornerRadius="10" Margin="0,0,0,12" Padding="14">
+                        <ScrollViewer x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <!-- Welcome message -->
+                                <Border Background="{DynamicResource BgTertiaryBrush}" CornerRadius="8"
+                                        Padding="12,10" Margin="0,0,0,8" HorizontalAlignment="Left" MaxWidth="500">
+                                    <StackPanel>
+                                        <TextBlock Text="🤖 KI-Assistent" Foreground="{DynamicResource AccentBrush}"
+                                                   FontWeight="SemiBold" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Hallo! Ich bin dein Lernassistent. Stelle mir Fragen zu deinen Materialien oder bitte mich, Konzepte zu erklären."
+                                                   Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" FontSize="13" LineHeight="20"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Chat messages -->
+                                <ItemsControl x:Name="DetailChatHistory">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,0,0,8">
+                                                <!-- User bubble -->
+                                                <Border x:Name="UserBubble"
+                                                        HorizontalAlignment="Right" MaxWidth="480"
+                                                        Background="{DynamicResource AccentBrush}"
+                                                        CornerRadius="12,12,2,12" Padding="12,8">
+                                                    <TextBlock Text="{Binding Content}" Foreground="White"
+                                                               TextWrapping="Wrap" FontSize="13" LineHeight="20"/>
+                                                </Border>
+                                                <!-- AI bubble -->
+                                                <Border x:Name="AiBubble"
+                                                        HorizontalAlignment="Left" MaxWidth="520"
+                                                        Background="{DynamicResource BgTertiaryBrush}"
+                                                        CornerRadius="2,12,12,12" Padding="12,10">
+                                                    <StackPanel>
+                                                        <TextBlock Text="🤖 KI-Assistent" Foreground="{DynamicResource AccentBrush}"
+                                                                   FontSize="11" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{Binding Content}" Foreground="{DynamicResource TextBrush}"
+                                                                   TextWrapping="Wrap" FontSize="13" LineHeight="20"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsUser}" Value="True">
+                                                    <Setter TargetName="AiBubble"  Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsUser}" Value="False">
+                                                    <Setter TargetName="UserBubble" Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Streaming bubble -->
+                                <Border x:Name="StreamingBubble" Visibility="Collapsed"
+                                        HorizontalAlignment="Left" MaxWidth="520"
+                                        Background="{DynamicResource BgTertiaryBrush}"
+                                        CornerRadius="2,12,12,12" Padding="12,10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="🤖 KI-Assistent" Foreground="{DynamicResource AccentBrush}"
+                                                   FontSize="11" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <TextBlock x:Name="TxtStreamingContent" Foreground="{DynamicResource TextBrush}"
+                                                   TextWrapping="Wrap" FontSize="13" LineHeight="20"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Chat input -->
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" x:Name="TxtChatInput"
+                                 Height="48"
+                                 KeyDown="OnChatKeyDown">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
+                                    <Setter Property="Tag" Value="Frage stellen… (Enter zum Senden)"/>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <Button Grid.Column="2" x:Name="BtnStopChat"
+                                Style="{StaticResource PrimaryBtn}"
+                                Background="#FF4C4C" Width="48" Height="48" Padding="0"
+                                Content="⏹" FontSize="16" Visibility="Collapsed"
+                                Click="OnStopChatClick"/>
+                        <Button Grid.Column="4" x:Name="BtnSendChat"
+                                Style="{StaticResource PrimaryBtn}"
+                                Width="100" Height="48" Padding="0"
+                                Click="OnSendChatClick">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Senden" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="↑" FontSize="16" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Grid>
+
+                <!-- ╔═══════════════════════════╗
+                     ║  RIGHT: Learning Tools    ║
+                     ╚═══════════════════════════╝ -->
+                <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="🛠 Lernwerkzeuge" Foreground="White"
+                                   FontSize="16" FontWeight="SemiBold" Margin="0,0,0,14"/>
+
+                        <StackPanel x:Name="PanelToolButtons">
+                            <Button Style="{StaticResource ToolBtn}" Margin="0,0,0,8"
+                                    Click="OnSummaryClick">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📄" Margin="0,0,8,0" FontSize="15"/>
+                                    <TextBlock Text="Zusammenfassung" FontSize="13"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource ToolBtn}" Margin="0,0,0,8"
+                                    Click="OnELI5Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="👶" Margin="0,0,8,0" FontSize="15"/>
+                                    <TextBlock Text="Einfach erklärt" FontSize="13"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource ToolBtn}" Margin="0,0,0,8"
+                                    Click="OnStudyGuideClick">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📚" Margin="0,0,8,0" FontSize="15"/>
+                                    <TextBlock Text="Lernleitfaden" FontSize="13"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource ToolBtn}" Margin="0,0,0,8"
+                                    Click="OnFlashcardsClick">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🎴" Margin="0,0,8,0" FontSize="15"/>
+                                    <TextBlock Text="Lernkarten erstellen" FontSize="13"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource ToolBtn}" Margin="0,0,0,0"
+                                    Click="OnQuizClick">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="❓" Margin="0,0,8,0" FontSize="15"/>
+                                    <TextBlock Text="Quiz generieren" FontSize="13"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Status -->
+                        <TextBlock x:Name="TxtToolStatus" Text="" Visibility="Collapsed"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="12" Margin="0,12,0,0" TextWrapping="Wrap"/>
+
+                        <!-- Text result panel -->
+                        <Border x:Name="ToolResultPanel" Visibility="Collapsed"
+                                Background="{DynamicResource BgSecondaryBrush}"
+                                CornerRadius="10" Padding="14" Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock x:Name="TxtToolTitle" Text="" Foreground="{DynamicResource AccentBrush}"
+                                           FontSize="13" FontWeight="Bold" Margin="0,0,0,10"/>
+                                <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto">
+                                    <TextBlock x:Name="TxtToolResult" Text="" Foreground="{DynamicResource TextBrush}"
+                                               TextWrapping="Wrap" FontSize="12" LineHeight="20"/>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Flashcards panel -->
+                        <Border x:Name="FlashcardsPanel" Visibility="Collapsed"
+                                Background="{DynamicResource BgSecondaryBrush}"
+                                CornerRadius="10" Padding="14" Margin="0,14,0,0">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,10">
+                                    <TextBlock Text="🎴 Lernkarten" Foreground="{DynamicResource AccentBrush}"
+                                               FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtFlashcardCounter" Text="0 / 0"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <!-- Card front -->
+                                <Border x:Name="FlashcardFront"
+                                        Background="{DynamicResource BgBrush}" CornerRadius="8"
+                                        Padding="16" MinHeight="100" Cursor="Hand"
+                                        MouseLeftButtonDown="OnFlipCard">
+                                    <StackPanel>
+                                        <TextBlock Text="FRAGE" Foreground="{DynamicResource TextMutedBrush}"
+                                                   FontSize="10" FontWeight="Bold" Margin="0,0,0,8"/>
+                                        <TextBlock x:Name="TxtFlashcardQuestion" Text=""
+                                                   Foreground="White" FontSize="14" TextWrapping="Wrap"/>
+                                        <TextBlock Text="Klicken zum Umdrehen" Foreground="{DynamicResource TextMutedBrush}"
+                                                   FontSize="10" Margin="0,12,0,0" HorizontalAlignment="Right"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Card back -->
+                                <Border x:Name="FlashcardBack" Visibility="Collapsed"
+                                        Background="{DynamicResource AccentBrush}" CornerRadius="8"
+                                        Padding="16" MinHeight="100" Cursor="Hand"
+                                        MouseLeftButtonDown="OnFlipCard">
+                                    <StackPanel>
+                                        <TextBlock Text="ANTWORT" Foreground="#CCFFFFFF"
+                                                   FontSize="10" FontWeight="Bold" Margin="0,0,0,8"/>
+                                        <TextBlock x:Name="TxtFlashcardAnswer" Text=""
+                                                   Foreground="White" FontSize="14" TextWrapping="Wrap"/>
+                                        <TextBlock Text="Klicken zum Umdrehen" Foreground="#BBFFFFFF"
+                                                   FontSize="10" Margin="0,12,0,0" HorizontalAlignment="Right"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Navigation -->
+                                <Grid Margin="0,12,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Style="{StaticResource GhostBtn}"
+                                            Height="34" Padding="0" Content="← Zurück"
+                                            Click="OnPrevCard" Margin="0,0,4,0"/>
+                                    <Button Grid.Column="1" Style="{StaticResource GhostBtn}"
+                                            Height="34" Padding="0" Content="Weiter →"
+                                            Click="OnNextCard" Margin="4,0,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             NEUES NOTIZBUCH modal
+             ══════════════════════════════════════════════════════════════════ -->
+        <Border x:Name="NewNotebookModal" Background="#BB000000" Visibility="Collapsed"
+                PreviewKeyDown="OnNewNotebookKeyDown">
+            <Border Background="{DynamicResource BgSecondaryBrush}" CornerRadius="14" Width="420"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" BlurRadius="40" ShadowDepth="0" Opacity="0.5"/>
+                </Border.Effect>
+                <StackPanel Margin="28,24,28,28">
+                    <Grid Margin="0,0,0,16">
+                        <TextBlock Text="Neues Notizbuch" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                        <Button Style="{StaticResource CloseBtn}" HorizontalAlignment="Right"
+                                Content="✕" Click="OnCancelNewNotebook"/>
+                    </Grid>
+                    <TextBlock Text="NAME" Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
+                    <TextBox x:Name="TxtNewNotebookName" Style="{StaticResource ModernTextBox}" Margin="0,0,0,4"/>
+                    <TextBlock x:Name="TxtNewNotebookError" Text="Bitte gib einen Namen ein."
+                               Foreground="#FF4C61" FontSize="11" Margin="2,0,0,16" Visibility="Collapsed"/>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Style="{StaticResource GhostBtn}" Content="Abbrechen" Click="OnCancelNewNotebook"/>
+                        <Button Grid.Column="2" Style="{StaticResource PrimaryBtn}" Content="Erstellen" Click="OnSaveNewNotebook"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             TEXT EINFÜGEN modal
+             ══════════════════════════════════════════════════════════════════ -->
+        <Border x:Name="PasteTextModal" Background="#BB000000" Visibility="Collapsed"
+                PreviewKeyDown="OnPasteTextKeyDown">
+            <Border Background="{DynamicResource BgSecondaryBrush}" CornerRadius="14" Width="560"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" BlurRadius="40" ShadowDepth="0" Opacity="0.5"/>
+                </Border.Effect>
+                <StackPanel Margin="28,24,28,28">
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="Text einfügen" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="Füge Notizen, Texte oder Zusammenfassungen als Kontext hinzu"
+                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Button Style="{StaticResource CloseBtn}" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Content="✕" Click="OnCancelPasteText"/>
+                    </Grid>
+                    <TextBlock Text="BEZEICHNUNG" Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
+                    <TextBox x:Name="TxtPasteName" Style="{StaticResource ModernTextBox}" Margin="0,0,0,16"/>
+                    <TextBlock Text="INHALT" Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
+                    <TextBox x:Name="TxtPasteContent" Style="{StaticResource ModernTextBoxMulti}"
+                             MinHeight="160" MaxHeight="300" Margin="0,0,0,20"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Style="{StaticResource GhostBtn}" Content="Abbrechen" Click="OnCancelPasteText"/>
+                        <Button Grid.Column="2" Style="{StaticResource PrimaryBtn}" Content="Hinzufügen" Click="OnSavePasteText"/>
+                    </Grid>
                 </StackPanel>
             </Border>
         </Border>
