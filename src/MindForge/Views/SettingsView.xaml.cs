@@ -13,7 +13,16 @@ namespace MindForge.Views;
 
 public partial class SettingsView : UserControl
 {
-    private const string CurrentVersion = "v3.0.4";
+    // Reads the real assembly version so the display and update check are always
+    // accurate after an in-place update (csproj <Version> drives this value).
+    private static string CurrentVersion
+    {
+        get
+        {
+            var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            return v is null ? "v0.0.0" : $"v{v.Major}.{v.Minor}.{v.Build}";
+        }
+    }
     private const string GitHubToken = "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";
     private const string RepoUrl = "https://api.github.com/repos/Black88H/MindForge/releases/latest";
 
@@ -190,24 +199,51 @@ public partial class SettingsView : UserControl
             string ps1Path = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.ps1");
 
             // Pfade mit einfachen Anführungszeichen escapen (PS1 LiteralPath)
-            string safeZip    = tempZipPath.Replace("'", "''");
-            string safeDir    = installDir.Replace("'", "''");
-            string safeExe    = exePath.Replace("'", "''");
-            string ps1Script  = $@"
-Start-Sleep -Seconds 2
-Expand-Archive -LiteralPath '{safeZip}' -DestinationPath '{safeDir}' -Force
-Start-Process -FilePath '{safeExe}'
-Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force
-";
+            string safeZip = tempZipPath.Replace("'", "''");
+            string safeDir = installDir.Replace("'", "''");
+            string safeExe = exePath.Replace("'", "''");
+
+            // Non-interpolated template (@"") so PowerShell braces need no escaping.
+            // Placeholders are substituted via .Replace() below.
+            string ps1Script = @"
+# ── Wait for the old process to fully release its file lock ──────────────
+$procName = 'MindForge'
+for ($i = 0; $i -lt 60; $i++) {
+    if (-not (Get-Process -Name $procName -ErrorAction SilentlyContinue)) { break }
+    Start-Sleep -Milliseconds 500
+}
+Start-Sleep -Milliseconds 800
+
+# ── Overwrite installation in-place ──────────────────────────────────────
+try {
+    Expand-Archive -LiteralPath 'SAFE_ZIP' -DestinationPath 'SAFE_DIR' -Force
+} catch {
+    $_ | Out-File (Join-Path $env:TEMP 'MindForgeUpdate_Error.txt') -Force
+    exit 1
+}
+
+# ── Relaunch the updated app ──────────────────────────────────────────────
+if (Test-Path 'SAFE_EXE') { Start-Process -FilePath 'SAFE_EXE' }
+
+# ── Clean up temp files ───────────────────────────────────────────────────
+Remove-Item -LiteralPath 'SAFE_ZIP' -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
+"
+                .Replace("SAFE_ZIP", safeZip)
+                .Replace("SAFE_DIR", safeDir)
+                .Replace("SAFE_EXE", safeExe);
+
             await File.WriteAllTextAsync(ps1Path, ps1Script);
 
-            // Starte PowerShell-Skript im Hintergrund
+            // UseShellExecute = true breaks the child out of the parent's Job Object so
+            // the updater process is NOT killed when this app shuts down.
+            // WindowStyle = Hidden prevents a visible PowerShell window.
             Process.Start(new ProcessStartInfo
             {
-                FileName = "powershell.exe",
-                Arguments = $"-ExecutionPolicy Bypass -WindowStyle Hidden -NonInteractive -File \"{ps1Path}\"",
-                UseShellExecute = false,
-                CreateNoWindow = true
+                FileName        = "powershell.exe",
+                Arguments       = $"-ExecutionPolicy Bypass -NonInteractive -WindowStyle Hidden -File \"{ps1Path}\"",
+                UseShellExecute = true,
+                WindowStyle     = ProcessWindowStyle.Hidden,
             });
 
             await Task.Delay(500);
