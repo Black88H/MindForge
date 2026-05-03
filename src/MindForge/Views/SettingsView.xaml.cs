@@ -90,8 +90,9 @@ public partial class SettingsView : UserControl
             _latestVersion = json.RootElement.GetProperty("tag_name").GetString();
             var body = json.RootElement.GetProperty("body").GetString() ?? "Keine Changelogs verfügbar.";
 
+            // Use browser_download_url — direct CDN link, no auth redirect needed for public repos.
             if (json.RootElement.TryGetProperty("assets", out var assets) && assets.GetArrayLength() > 0)
-                _downloadAssetUrl = assets[0].GetProperty("url").GetString();
+                _downloadAssetUrl = assets[0].GetProperty("browser_download_url").GetString();
 
             if (_latestVersion != null && _latestVersion != CurrentVersion && !string.IsNullOrEmpty(_downloadAssetUrl))
             {
@@ -134,27 +135,25 @@ public partial class SettingsView : UserControl
     {
         if (string.IsNullOrEmpty(_downloadAssetUrl)) return;
 
-        BtnDownloadUpdate.IsEnabled = false;
-        BtnModalInstall.IsEnabled = false;
-        PrgDownload.Visibility = Visibility.Visible;
+        BtnDownloadUpdate.IsEnabled    = false;
+        BtnModalInstall.IsEnabled      = false;
+        PrgDownload.Visibility         = Visibility.Visible;
         TxtDownloadProgress.Visibility = Visibility.Visible;
-        TxtDownloadProgress.Text = "Verbinde mit GitHub...";
+        TxtDownloadProgress.Text       = "Verbinde mit GitHub...";
 
         try
         {
-            // ── Richtiger EXE-Pfad (funktioniert auch bei SingleFile Publish) ──
+            // ── Resolve paths ─────────────────────────────────────────────────
             string exePath = Environment.ProcessPath
                 ?? Process.GetCurrentProcess().MainModule?.FileName
                 ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MindForge.exe");
-            string installDir = Path.GetDirectoryName(exePath)!;
+            string installDir  = Path.GetDirectoryName(exePath)!;
             string tempZipPath = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.zip");
 
-            // ── Download via separatem HttpClient (kein Header-Konflikt) ──
-            using var downloadClient = new HttpClient();
-            downloadClient.DefaultRequestHeaders.Add("User-Agent", "MindForge-AutoUpdater/2.2");
-            downloadClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {GitHubToken}");
-            downloadClient.DefaultRequestHeaders.Add("Accept", "application/octet-stream");
-            downloadClient.Timeout = TimeSpan.FromMinutes(10);
+            // ── Download ──────────────────────────────────────────────────────
+            // browser_download_url is a direct CDN link — no special Accept header required.
+            using var downloadClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+            downloadClient.DefaultRequestHeaders.Add("User-Agent", "MindForge-AutoUpdater/3.0");
 
             TxtDownloadProgress.Text = "Lade Update herunter...";
             using var response = await downloadClient.GetAsync(_downloadAssetUrl, HttpCompletionOption.ResponseHeadersRead);
@@ -165,10 +164,9 @@ public partial class SettingsView : UserControl
             using (var fs = new FileStream(tempZipPath, FileMode.Create, FileAccess.Write, FileShare.None))
             using (var stream = await response.Content.ReadAsStreamAsync())
             {
-                var buffer = new byte[81920];
+                var  buffer     = new byte[81920];
                 long downloaded = 0;
-                int bytesRead;
-
+                int  bytesRead;
                 while ((bytesRead = await stream.ReadAsync(buffer)) > 0)
                 {
                     await fs.WriteAsync(buffer.AsMemory(0, bytesRead));
@@ -176,68 +174,120 @@ public partial class SettingsView : UserControl
                     if (totalBytes > 0)
                     {
                         var pct = (int)((double)downloaded / totalBytes * 100);
-                        var dlMb = downloaded / 1024.0 / 1024.0;
-                        var totMb = totalBytes / 1024.0 / 1024.0;
                         Dispatcher.Invoke(() =>
                         {
-                            PrgDownload.Value = pct;
-                            TxtDownloadProgress.Text = $"{pct}% — {dlMb:F1} MB / {totMb:F1} MB";
+                            PrgDownload.Value        = pct;
+                            TxtDownloadProgress.Text = $"{pct}% — {downloaded / 1_048_576.0:F1} MB / {totalBytes / 1_048_576.0:F1} MB";
                         });
                     }
                 }
             }
 
+            // Validate — a truncated download would brick the install
+            var fi = new FileInfo(tempZipPath);
+            if (!fi.Exists || fi.Length < 1024)
+                throw new InvalidOperationException($"Download ungültig (Größe: {fi.Length} Bytes). Bitte erneut versuchen.");
+
             Dispatcher.Invoke(() =>
             {
-                PrgDownload.Value = 100;
-                TxtDownloadProgress.Text = "✅ Download fertig. Installiere Update...";
+                PrgDownload.Value        = 100;
+                TxtDownloadProgress.Text = "✅ Download fertig. Bereite Installer vor...";
             });
 
-            await Task.Delay(800);
+            // ── Build PowerShell updater ──────────────────────────────────────
+            // ROOT CAUSE FIX: Expand-Archive -Force on Windows PowerShell 5.1 does NOT
+            // overwrite existing files (that capability requires PS 7+). The correct
+            // approach is ZipFile::OpenRead + entry.ExtractToFile($dest, $true), which
+            // honours the overwrite flag on both PS 5.1 (.NET Framework) and PS 7+.
 
-            // ── PowerShell-Skript statt BAT (kein Anführungszeichen-Problem) ──
             string ps1Path = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.ps1");
-
-            // Pfade mit einfachen Anführungszeichen escapen (PS1 LiteralPath)
             string safeZip = tempZipPath.Replace("'", "''");
             string safeDir = installDir.Replace("'", "''");
             string safeExe = exePath.Replace("'", "''");
+            string logPath = Path.Combine(Path.GetTempPath(), "MindForgeUpdate_Log.txt").Replace("'", "''");
 
-            // Non-interpolated template (@"") so PowerShell braces need no escaping.
-            // Placeholders are substituted via .Replace() below.
+            // Non-interpolated verbatim string — PS variables stay as-is; only the
+            // SAFE_* placeholders are substituted via .Replace() afterwards.
             string ps1Script = @"
-# ── Wait for the old process to fully release its file lock ──────────────
-$procName = 'MindForge'
-for ($i = 0; $i -lt 60; $i++) {
-    if (-not (Get-Process -Name $procName -ErrorAction SilentlyContinue)) { break }
+$log = 'LOG_PATH'
+'[START] MindForge updater running' | Out-File $log -Encoding UTF8 -Force
+
+# ── Wait up to 30 s for old process to exit ──────────────────────────────
+$deadline = (Get-Date).AddSeconds(30)
+while ((Get-Date) -lt $deadline) {
+    if (-not (Get-Process -Name 'MindForge' -ErrorAction SilentlyContinue)) { break }
     Start-Sleep -Milliseconds 500
 }
 Start-Sleep -Milliseconds 800
+'[WAIT] Process exit confirmed' | Out-File $log -Append
 
-# ── Overwrite installation in-place ──────────────────────────────────────
+# ── Extract ZIP with per-entry overwrite (PS 5.1 compatible) ─────────────
+# Expand-Archive -Force does NOT overwrite on PS 5.1; ExtractToFile($path, $true)
+# is the correct .NET Framework API for in-place overwriting.
 try {
-    Expand-Archive -LiteralPath 'SAFE_ZIP' -DestinationPath 'SAFE_DIR' -Force
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    $zip = [System.IO.Compression.ZipFile]::OpenRead('SAFE_ZIP')
+    foreach ($entry in $zip.Entries) {
+        $dest = Join-Path 'SAFE_DIR' $entry.FullName
+        if ($entry.Name -eq '') {
+            # Directory entry — ensure it exists
+            [System.IO.Directory]::CreateDirectory($dest) | Out-Null
+        } else {
+            $dir = [System.IO.Path]::GetDirectoryName($dest)
+            [System.IO.Directory]::CreateDirectory($dir) | Out-Null
+            # $true = overwrite existing file
+            $entry.ExtractToFile($dest, $true)
+        }
+    }
+    $zip.Dispose()
+    '[OK] Extraction complete' | Out-File $log -Append
 } catch {
-    $_ | Out-File (Join-Path $env:TEMP 'MindForgeUpdate_Error.txt') -Force
+    ""[ERROR] $_"" | Out-File $log -Append
     exit 1
 }
 
-# ── Relaunch the updated app ──────────────────────────────────────────────
-if (Test-Path 'SAFE_EXE') { Start-Process -FilePath 'SAFE_EXE' }
+# ── Verify the new EXE exists before relaunching ─────────────────────────
+if (Test-Path -LiteralPath 'SAFE_EXE') {
+    Start-Process -FilePath 'SAFE_EXE'
+    '[OK] App relaunched' | Out-File $log -Append
+} else {
+    '[WARN] EXE not found after extraction' | Out-File $log -Append
+}
 
-# ── Clean up temp files ───────────────────────────────────────────────────
+# ── Clean up temp artefacts ───────────────────────────────────────────────
 Remove-Item -LiteralPath 'SAFE_ZIP' -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
 "
+                .Replace("LOG_PATH", logPath)
                 .Replace("SAFE_ZIP", safeZip)
                 .Replace("SAFE_DIR", safeDir)
                 .Replace("SAFE_EXE", safeExe);
 
-            await File.WriteAllTextAsync(ps1Path, ps1Script);
+            await File.WriteAllTextAsync(ps1Path, ps1Script, System.Text.Encoding.UTF8);
 
-            // UseShellExecute = true breaks the child out of the parent's Job Object so
-            // the updater process is NOT killed when this app shuts down.
-            // WindowStyle = Hidden prevents a visible PowerShell window.
+            // ── Confirm with user before closing ─────────────────────────────
+            var choice = MessageBox.Show(
+                $"Update {_latestVersion} wurde heruntergeladen.\n\n" +
+                "MindForge wird jetzt kurz geschlossen, die Dateien werden ersetzt " +
+                "und die App startet automatisch neu.\n\n" +
+                "Jetzt installieren?",
+                "Update installieren",
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Information);
+
+            if (choice != MessageBoxResult.OK)
+            {
+                // User cancelled — restore buttons
+                BtnDownloadUpdate.IsEnabled = true;
+                BtnModalInstall.IsEnabled   = true;
+                TxtDownloadProgress.Text    = "Installation abgebrochen.";
+                return;
+            }
+
+            // UseShellExecute = true detaches the updater from this process's Job Object
+            // so Windows does NOT kill it when MindForge.exe exits.
             Process.Start(new ProcessStartInfo
             {
                 FileName        = "powershell.exe",
@@ -246,17 +296,21 @@ Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force -ErrorAction Silent
                 WindowStyle     = ProcessWindowStyle.Hidden,
             });
 
-            await Task.Delay(500);
-            Application.Current.Shutdown();
+            // Give the PS process a moment to start before we vanish
+            await Task.Delay(600);
+
+            // Environment.Exit is more forceful than Shutdown() and guarantees the
+            // process handle is released so the updater can overwrite MindForge.exe.
+            Environment.Exit(0);
         }
         catch (Exception ex)
         {
             Dispatcher.Invoke(() =>
             {
-                TxtDownloadProgress.Text = $"❌ Fehler: {ex.Message}";
+                TxtDownloadProgress.Text       = $"❌ Fehler: {ex.Message}";
                 TxtDownloadProgress.Foreground = System.Windows.Media.Brushes.Red;
-                BtnDownloadUpdate.IsEnabled = true;
-                BtnModalInstall.IsEnabled = true;
+                BtnDownloadUpdate.IsEnabled    = true;
+                BtnModalInstall.IsEnabled      = true;
             });
         }
     }
