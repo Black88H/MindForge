@@ -90,9 +90,11 @@ public partial class SettingsView : UserControl
             _latestVersion = json.RootElement.GetProperty("tag_name").GetString();
             var body = json.RootElement.GetProperty("body").GetString() ?? "Keine Changelogs verfügbar.";
 
-            // Use browser_download_url — direct CDN link, no auth redirect needed for public repos.
+            // Private repo: store the API asset URL (not browser_download_url).
+            // browser_download_url returns 404 without auth on private repos;
+            // the API URL + Accept: application/octet-stream + token works correctly.
             if (json.RootElement.TryGetProperty("assets", out var assets) && assets.GetArrayLength() > 0)
-                _downloadAssetUrl = assets[0].GetProperty("browser_download_url").GetString();
+                _downloadAssetUrl = assets[0].GetProperty("url").GetString();
 
             if (_latestVersion != null && _latestVersion != CurrentVersion && !string.IsNullOrEmpty(_downloadAssetUrl))
             {
@@ -151,9 +153,12 @@ public partial class SettingsView : UserControl
             string tempZipPath = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.zip");
 
             // ── Download ──────────────────────────────────────────────────────
-            // browser_download_url is a direct CDN link — no special Accept header required.
+            // Private repo: authenticate via token + Accept: application/octet-stream.
+            // GitHub API redirects this to a signed CDN URL which returns the binary.
             using var downloadClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
-            downloadClient.DefaultRequestHeaders.Add("User-Agent", "MindForge-AutoUpdater/3.0");
+            downloadClient.DefaultRequestHeaders.Add("User-Agent",    "MindForge-AutoUpdater/3.0");
+            downloadClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {GitHubToken}");
+            downloadClient.DefaultRequestHeaders.Add("Accept",        "application/octet-stream");
 
             TxtDownloadProgress.Text = "Lade Update herunter...";
             using var response = await downloadClient.GetAsync(_downloadAssetUrl, HttpCompletionOption.ResponseHeadersRead);
