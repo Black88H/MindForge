@@ -51,7 +51,31 @@ public class MindForgeDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
+        // ── EF Core 8 breaking change: Guid is now stored as BLOB in SQLite by default.
+        // The existing database stores all GUIDs as uppercase TEXT strings (legacy format).
+        // This global converter restores TEXT storage so WHERE clauses match the stored values
+        // and SaveChangesAsync() no longer throws DbUpdateConcurrencyException on every
+        // LOGIN and REGISTER call.
+        var guidConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<Guid, string>(
+            v => v.ToString("D").ToUpper(),
+            v => Guid.Parse(v));
+
+        var nullableGuidConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<Guid?, string?>(
+            v => v.HasValue ? v.Value.ToString("D").ToUpper() : null,
+            v => v != null ? Guid.Parse(v) : null);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(Guid))
+                    property.SetValueConverter(guidConverter);
+                else if (property.ClrType == typeof(Guid?))
+                    property.SetValueConverter(nullableGuidConverter);
+            }
+        }
+
         // AppSettings Primary Key
         modelBuilder.Entity<AppSettings>().HasKey(a => a.Key);
 
