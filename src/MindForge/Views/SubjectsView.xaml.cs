@@ -118,7 +118,7 @@ public partial class SubjectsView : UserControl
     private NotebookItem? _activeNotebook;
     private CancellationTokenSource? _aiCts;
     private readonly AISelector _ai;
-    private bool _settingsPanelVisible = true;
+    private bool _settingsPanelVisible = false;
     private int  _flashcardIndex;
 
     // ── Constructor ───────────────────────────────────────────────────────────
@@ -881,7 +881,7 @@ public partial class SubjectsView : UserControl
     {
         _settingsPanelVisible = !_settingsPanelVisible;
         SettingsContent.Visibility = _settingsPanelVisible ? Visibility.Visible : Visibility.Collapsed;
-        BtnToggleSettings.Content  = _settingsPanelVisible ? "▲ Einstellungen" : "▼ Einstellungen";
+        BtnToggleSettings.Content  = _settingsPanelVisible ? "▲ Einstellungen" : "⚙ Einstellungen";
     }
 
     private async void OnLearningLevelChanged(object sender, SelectionChangedEventArgs e)
