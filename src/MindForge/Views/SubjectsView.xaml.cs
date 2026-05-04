@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -68,6 +70,7 @@ public class NotebookSettings
 {
     public string LearningLevel    { get; set; } = "Fortgeschritten";
     public string ExplanationStyle { get; set; } = "Normal";
+    public string Language         { get; set; } = "Deutsch";
 }
 
 public class NotebookChatMsg
@@ -226,6 +229,7 @@ public partial class SubjectsView : UserControl
                 {
                     LearningLevel    = n.LearningLevel,
                     ExplanationStyle = n.ExplanationStyle,
+                    Language         = n.Language,
                 }
             };
 
@@ -310,6 +314,7 @@ public partial class SubjectsView : UserControl
         nb.LastModified     = DateTime.UtcNow;
         nb.LearningLevel    = _activeNotebook.Settings.LearningLevel;
         nb.ExplanationStyle = _activeNotebook.Settings.ExplanationStyle;
+        nb.Language         = _activeNotebook.Settings.Language;
         _activeNotebook.LastModified = nb.LastModified.ToLocalTime();
         await db.SaveChangesAsync();
     }
@@ -567,6 +572,10 @@ public partial class SubjectsView : UserControl
         {
             "Wie für 5-Jährige" => 1, "Technisch/Präzise" => 2, "Mit Beispielen" => 3, _ => 0
         };
+        CboLanguage.SelectedIndex = notebook.Settings.Language switch
+        {
+            "English" => 1, "Français" => 2, "Español" => 3, _ => 0
+        };
 
         ToolResultPanel.Visibility  = Visibility.Collapsed;
         FlashcardsPanel.Visibility  = Visibility.Collapsed;
@@ -652,15 +661,22 @@ public partial class SubjectsView : UserControl
         };
         if (dlg.ShowDialog() != true) return;
 
-        var filePath = dlg.FileName;
-        var fileName = Path.GetFileName(filePath);
-        var ext      = Path.GetExtension(filePath).ToLowerInvariant();
-
         // Show progress in paste modal temporarily
-        TxtPasteName.Text         = Path.GetFileNameWithoutExtension(filePath);
+        TxtPasteName.Text         = Path.GetFileNameWithoutExtension(dlg.FileName);
         TxtPasteContent.Text      = "⏳ Datei wird gelesen…";
         PasteTextModal.Visibility = Visibility.Visible;
         await Task.Delay(50); // let UI refresh
+
+        await UploadFileFromPathAsync(dlg.FileName);
+
+        PasteTextModal.Visibility = Visibility.Collapsed;
+    }
+
+    private async Task UploadFileFromPathAsync(string filePath)
+    {
+        if (_activeNotebook is null) return;
+        var fileName = Path.GetFileName(filePath);
+        var ext      = Path.GetExtension(filePath).ToLowerInvariant();
 
         string content;
         MaterialFormat fmt;
@@ -668,9 +684,9 @@ public partial class SubjectsView : UserControl
         {
             (content, fmt) = ext switch
             {
-                ".pdf"  => (await ExtractPdfTextAsync(filePath),                 MaterialFormat.PDF),
-                ".docx" => (await Task.Run(() => ExtractDocxText(filePath)),     MaterialFormat.DOCX),
-                _       => (await File.ReadAllTextAsync(filePath),               MaterialFormat.Text),
+                ".pdf"  => (await ExtractPdfTextAsync(filePath),             MaterialFormat.PDF),
+                ".docx" => (await Task.Run(() => ExtractDocxText(filePath)), MaterialFormat.DOCX),
+                _       => (await File.ReadAllTextAsync(filePath),           MaterialFormat.Text),
             };
             if (string.IsNullOrWhiteSpace(content)) content = "[Kein lesbarer Text gefunden]";
             if (content.Length > 50_000)            content  = content[..50_000] + "\n[… Inhalt gekürzt …]";
@@ -681,11 +697,9 @@ public partial class SubjectsView : UserControl
             fmt     = MaterialFormat.Text;
         }
 
-        PasteTextModal.Visibility = Visibility.Collapsed;
-
         var id   = await SaveMaterialToDbAsync(fileName, content, fmt, filePath);
         var icon = fmt switch { MaterialFormat.PDF => "📄", MaterialFormat.DOCX => "📝", _ => "📄" };
-        _activeNotebook?.Materials.Add(new NotebookMaterialItem { Id = id, Name = fileName, Content = content, Icon = icon });
+        _activeNotebook.Materials.Add(new NotebookMaterialItem { Id = id, Name = fileName, Content = content, Icon = icon });
         RefreshDetailProgress();
         await SaveNotebookProgressAsync();
     }
@@ -842,6 +856,7 @@ public partial class SubjectsView : UserControl
         if (_activeNotebook is null) return "Du bist ein hilfreicher Lernassistent. Antworte auf Deutsch.";
         var level = _activeNotebook.Settings.LearningLevel;
         var style = _activeNotebook.Settings.ExplanationStyle;
+        var lang  = _activeNotebook.Settings.Language;
         var levelDesc = level switch
         {
             "Anfänger" => "Der Lernende ist Anfänger ohne Vorkenntnisse. Erkläre alles von Grund auf.",
@@ -855,11 +870,18 @@ public partial class SubjectsView : UserControl
             "Mit Beispielen"    => "Illustriere jedes Konzept mit einem konkreten Beispiel.",
             _                   => "Erkläre klar und strukturiert.",
         };
+        var langInstruction = lang switch
+        {
+            "English"  => "Always answer in English.",
+            "Français" => "Réponds toujours en français.",
+            "Español"  => "Responde siempre en español.",
+            _          => "Antworte immer auf Deutsch.",
+        };
         return $"""
             Du bist ein KI-Lernassistent für "{_activeSubject?.Name ?? "dieses Fach"}", Notizbuch "{_activeNotebook.Name}".
             {levelDesc}
             {styleDesc}
-            Antworte immer auf Deutsch. Sei präzise und hilfreich.
+            {langInstruction} Sei präzise und hilfreich.
             Falls Lernmaterialien vorhanden sind, beziehe dich darauf.
             """;
     }
@@ -896,6 +918,235 @@ public partial class SubjectsView : UserControl
         if (_activeNotebook is null || CboExplanationStyle.SelectedItem is not ComboBoxItem { Content: string st }) return;
         _activeNotebook.Settings.ExplanationStyle = st;
         await SaveNotebookProgressAsync();
+    }
+
+    private async void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_activeNotebook is null || CboLanguage.SelectedItem is not ComboBoxItem { Content: string lang }) return;
+        _activeNotebook.Settings.Language = lang;
+        await SaveNotebookProgressAsync();
+    }
+
+    // ── Clear chat ────────────────────────────────────────────────────────────
+
+    private async void OnClearChatClick(object sender, RoutedEventArgs e)
+    {
+        if (_activeNotebook is null) return;
+        var result = MessageBox.Show(
+            "Möchtest du den Chat-Verlauf wirklich löschen?",
+            "Chat löschen", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (result != MessageBoxResult.Yes) return;
+
+        if (UserSession.IsAuthenticated)
+        {
+            using var db = OpenDb();
+            db.ChatMessages.RemoveRange(db.ChatMessages.Where(c => c.NotebookId == _activeNotebook.Id));
+            await db.SaveChangesAsync();
+        }
+
+        _activeNotebook.ChatHistory.Clear();
+        _activeNotebook.ChatCount = 0;
+        RefreshDetailProgress();
+        await SaveNotebookProgressAsync();
+    }
+
+    // ── Export notebook ───────────────────────────────────────────────────────
+
+    private async void OnExportNotebookClick(object sender, RoutedEventArgs e)
+    {
+        if (_activeNotebook is null) return;
+
+        var dlg = new SaveFileDialog
+        {
+            Title      = "Notizbuch exportieren",
+            FileName   = $"{_activeNotebook.Name}.txt",
+            Filter     = "Textdatei|*.txt|Alle Dateien|*.*",
+            DefaultExt = ".txt",
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"=== {_activeNotebook.Name} ===");
+        sb.AppendLine($"Exportiert: {DateTime.Now:dd.MM.yyyy HH:mm}");
+        sb.AppendLine($"Fach: {_activeSubject?.Name ?? ""}");
+        sb.AppendLine();
+
+        if (_activeNotebook.Materials.Count > 0)
+        {
+            sb.AppendLine("──── MATERIALIEN ────────────────────────────────────");
+            foreach (var mat in _activeNotebook.Materials)
+            {
+                sb.AppendLine();
+                sb.AppendLine($"[{mat.Icon} {mat.Name}]");
+                sb.AppendLine(mat.Content);
+            }
+            sb.AppendLine();
+        }
+
+        if (_activeNotebook.ChatHistory.Count > 0)
+        {
+            sb.AppendLine("──── CHAT-VERLAUF ───────────────────────────────────");
+            foreach (var msg in _activeNotebook.ChatHistory)
+            {
+                sb.AppendLine();
+                sb.AppendLine($"[{(msg.IsUser ? "Du" : "KI")} {msg.Time}]");
+                sb.AppendLine(msg.Content);
+            }
+        }
+
+        try
+        {
+            await File.WriteAllTextAsync(dlg.FileName, sb.ToString(), Encoding.UTF8);
+            MessageBox.Show($"Notizbuch erfolgreich exportiert:\n{dlg.FileName}",
+                "Export erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Export fehlgeschlagen: {ex.Message}",
+                "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    // ── Import from URL ───────────────────────────────────────────────────────
+
+    private async void OnImportUrlClick(object sender, RoutedEventArgs e)
+    {
+        if (_activeNotebook is null) return;
+
+        var url = ShowInputDialog("URL importieren", "Webseiten-URL eingeben:");
+        if (string.IsNullOrWhiteSpace(url)) return;
+
+        if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+            !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            url = "https://" + url;
+
+        SetToolBusy(true, "⏳ Webseite wird geladen…");
+        try
+        {
+            using var http = new HttpClient();
+            http.Timeout = TimeSpan.FromSeconds(30);
+            http.DefaultRequestHeaders.UserAgent.ParseAdd(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MindForge/3.7.0");
+
+            var html = await http.GetStringAsync(url);
+
+            // Strip HTML tags and entities
+            var text = Regex.Replace(html, "<[^>]+>", " ");
+            text = Regex.Replace(text, @"&\w+;", " ");
+            text = Regex.Replace(text, @"\s{2,}", " ").Trim();
+            if (text.Length > 50_000) text = text[..50_000] + "\n[… Inhalt gekürzt …]";
+
+            var uri      = new Uri(url);
+            var siteName = uri.Host.Replace("www.", "");
+            var name     = $"{siteName} – {DateTime.Now:dd.MM. HH:mm}";
+
+            var id = await SaveMaterialToDbAsync(name, text, MaterialFormat.Text, url);
+            _activeNotebook.Materials.Add(new NotebookMaterialItem
+                { Id = id, Name = name, Content = text, Icon = "🌐" });
+
+            RefreshDetailProgress();
+            await SaveNotebookProgressAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"URL konnte nicht geladen werden:\n{ex.Message}",
+                "Import-Fehler", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            SetToolBusy(false, string.Empty);
+        }
+    }
+
+    private static string? ShowInputDialog(string title, string prompt)
+    {
+        var dlg = new Window
+        {
+            Title                 = title,
+            Width                 = 480,
+            Height                = 180,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            WindowStyle           = WindowStyle.ToolWindow,
+            ResizeMode            = ResizeMode.NoResize,
+        };
+        var panel = new StackPanel { Margin = new Thickness(20) };
+        panel.Children.Add(new TextBlock { Text = prompt, Margin = new Thickness(0, 0, 0, 8) });
+        var textBox = new TextBox
+        {
+            Height                   = 36,
+            Padding                  = new Thickness(8, 0, 8, 0),
+            VerticalContentAlignment = VerticalAlignment.Center,
+            FontSize                 = 14,
+        };
+        panel.Children.Add(textBox);
+        var buttons = new StackPanel
+        {
+            Orientation         = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin              = new Thickness(0, 12, 0, 0),
+        };
+        string? result = null;
+        var btnOk = new Button { Content = "OK", Width = 80, Margin = new Thickness(0, 0, 8, 0), IsDefault = true };
+        btnOk.Click += (_, _) => { result = textBox.Text.Trim(); dlg.DialogResult = true; };
+        var btnCancel = new Button { Content = "Abbrechen", Width = 80, IsCancel = true };
+        buttons.Children.Add(btnOk);
+        buttons.Children.Add(btnCancel);
+        panel.Children.Add(buttons);
+        dlg.Content = panel;
+        dlg.ContentRendered += (_, _) => textBox.Focus();
+        return dlg.ShowDialog() == true ? result : null;
+    }
+
+    // ── Drag-and-drop materials ───────────────────────────────────────────────
+
+    private void OnMaterialDragEnter(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            e.Effects                       = DragDropEffects.Copy;
+            TxtDropHint.Visibility          = Visibility.Visible;
+            MaterialsDropZone.BorderBrush   = (Brush)FindResource("AccentBrush");
+            MaterialsDropZone.BorderThickness = new Thickness(2);
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+        e.Handled = true;
+    }
+
+    private void OnMaterialDragLeave(object sender, DragEventArgs e)
+    {
+        TxtDropHint.Visibility            = Visibility.Collapsed;
+        MaterialsDropZone.BorderBrush     = Brushes.Transparent;
+        MaterialsDropZone.BorderThickness = new Thickness(0);
+        e.Handled = true;
+    }
+
+    private async void OnMaterialDrop(object sender, DragEventArgs e)
+    {
+        TxtDropHint.Visibility            = Visibility.Collapsed;
+        MaterialsDropZone.BorderBrush     = Brushes.Transparent;
+        MaterialsDropZone.BorderThickness = new Thickness(0);
+
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop) || _activeNotebook is null)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+        SetToolBusy(true, $"⏳ {files.Length} Datei(en) werden geladen…");
+        try
+        {
+            foreach (var filePath in files)
+                await UploadFileFromPathAsync(filePath);
+        }
+        finally
+        {
+            SetToolBusy(false, string.Empty);
+        }
+        e.Handled = true;
     }
 
     // ── Learning tools ────────────────────────────────────────────────────────

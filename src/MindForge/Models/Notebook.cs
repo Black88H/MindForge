@@ -10,6 +10,7 @@ public class Notebook
     public string Name             { get; set; } = string.Empty;
     public string LearningLevel    { get; set; } = "Fortgeschritten";
     public string ExplanationStyle { get; set; } = "Normal";
+    public string Language         { get; set; } = "Deutsch";
     public double Progress         { get; set; }
     public int    ChatCount        { get; set; }
     public DateTime CreatedAt      { get; set; } = DateTime.UtcNow;

@@ -91,6 +91,7 @@ public partial class App : Application
 
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Materials    ADD COLUMN NotebookId TEXT NULL;"); } catch { /* column already exists */ }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE ChatMessages ADD COLUMN NotebookId TEXT NULL;"); } catch { /* column already exists */ }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE Notebooks    ADD COLUMN Language TEXT NOT NULL DEFAULT 'Deutsch';"); } catch { /* column already exists */ }
         }
 
         // Load saved Ollama URL into selector

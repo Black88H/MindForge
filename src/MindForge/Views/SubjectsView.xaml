@@ -718,7 +718,8 @@
                                    FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
                         <ComboBox x:Name="CboLanguage" Height="36"
                                   Foreground="{DynamicResource TextBrush}"
-                                  Background="{DynamicResource BgBrush}">
+                                  Background="{DynamicResource BgBrush}"
+                                  SelectionChanged="OnLanguageChanged">
                             <ComboBoxItem Content="Deutsch" IsSelected="True"/>
                             <ComboBoxItem Content="English"/>
                             <ComboBoxItem Content="Français"/>
@@ -728,77 +729,104 @@
                 </Grid>
             </Border>
 
-            <!-- ── Main content: 2-column layout ── -->
+            <!-- ── Main content: 2-column layout with vertical GridSplitter ── -->
             <Grid Grid.Row="3" Margin="20,16,20,16">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="16"/>
-                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="*" MinWidth="400"/>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="300" MinWidth="200" MaxWidth="520"/>
                 </Grid.ColumnDefinitions>
+
+                <!-- Vertical splitter: left ↔ right -->
+                <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              Background="{DynamicResource BgTertiaryBrush}"
+                              ShowsPreview="True" Cursor="SizeWE"/>
 
                 <!-- ╔══════════════════════════════╗
                      ║  LEFT: Materials + Chat      ║
                      ╚══════════════════════════════╝ -->
                 <Grid Grid.Column="0">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>  <!-- Materials -->
-                        <RowDefinition Height="*"/>     <!-- Chat history -->
-                        <RowDefinition Height="Auto"/>  <!-- Chat input -->
+                        <RowDefinition Height="190" MinHeight="80"/>  <!-- Materials (resizable) -->
+                        <RowDefinition Height="5"/>                   <!-- Horizontal splitter -->
+                        <RowDefinition Height="*" MinHeight="180"/>   <!-- Chat history -->
+                        <RowDefinition Height="Auto"/>                <!-- Chat input -->
                     </Grid.RowDefinitions>
 
-                    <!-- Materials section (card grid) -->
+                    <!-- Horizontal splitter: materials ↔ chat -->
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch"
+                                  Background="{DynamicResource BgTertiaryBrush}"
+                                  ShowsPreview="True" Cursor="SizeNS"/>
+
+                    <!-- Materials section (card grid) with drag-and-drop -->
                     <Border Grid.Row="0" Background="{DynamicResource BgSecondaryBrush}"
-                            CornerRadius="10" Padding="14" Margin="0,0,0,12">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,10">
-                                <TextBlock Text="📎 Materialien" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            CornerRadius="10" Padding="14" Margin="0,0,12,0"
+                            AllowDrop="True" Drop="OnMaterialDrop" DragEnter="OnMaterialDragEnter"
+                            DragLeave="OnMaterialDragLeave"
+                            x:Name="MaterialsDropZone">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="📎 Materialien" Foreground="White" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtDropHint" Text="  — Dateien hierher ziehen"
+                                               Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                                               VerticalAlignment="Center" Visibility="Collapsed"/>
+                                </StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Style="{StaticResource GhostBtn}"
+                                            Height="30" Padding="10,0" FontSize="11" Margin="0,0,6,0"
+                                            Content="🌐 URL" Click="OnImportUrlClick" ToolTip="Webseite importieren"/>
                                     <Button Style="{StaticResource PrimaryBtn}"
-                                            Height="32" Padding="12,0" FontSize="12" Margin="0,0,6,0"
-                                            Content="📁 Datei hochladen" Click="OnUploadFileClick"/>
+                                            Height="30" Padding="10,0" FontSize="11" Margin="0,0,6,0"
+                                            Content="📁 Hochladen" Click="OnUploadFileClick"/>
                                     <Button Style="{StaticResource PrimaryBtn}"
-                                            Height="32" Padding="12,0" FontSize="12"
-                                            Content="+ Text einfügen" Click="OnPasteTextClick"/>
+                                            Height="30" Padding="10,0" FontSize="11"
+                                            Content="+ Text" Click="OnPasteTextClick"/>
                                 </StackPanel>
                             </Grid>
-                            <!-- Material cards (WrapPanel grid) -->
-                            <ItemsControl x:Name="DetailMaterialsList">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="{DynamicResource BgBrush}" CornerRadius="8"
-                                                Padding="10,8" Margin="0,0,8,8" Width="150"
-                                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                                            <StackPanel>
-                                                <Grid Margin="0,0,0,4">
-                                                    <TextBlock Text="{Binding Icon}" FontSize="22" VerticalAlignment="Center"/>
-                                                    <Button Style="{StaticResource IconBtn}"
-                                                            HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                            Content="✕" Click="OnDeleteMaterialClick" Tag="{Binding Id}"
-                                                            FontSize="10" Width="20" Height="20" Padding="0"/>
-                                                </Grid>
-                                                <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}"
-                                                           FontSize="12" TextWrapping="Wrap"
-                                                           TextTrimming="CharacterEllipsis" MaxHeight="36"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <!-- Empty hint -->
-                            <TextBlock Text="Füge Texte oder Notizen hinzu, um den KI-Kontext anzureichern."
-                                       Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
-                                       TextWrapping="Wrap" Margin="0,4,0,0"/>
-                        </StackPanel>
+                            <!-- Material cards (WrapPanel grid, scrollable) -->
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <WrapPanel x:Name="DetailMaterialsWrap" Orientation="Horizontal">
+                                    <ItemsControl x:Name="DetailMaterialsList">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{DynamicResource BgBrush}" CornerRadius="8"
+                                                        Padding="10,8" Margin="0,0,8,8" Width="150"
+                                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                                                    <StackPanel>
+                                                        <Grid Margin="0,0,0,4">
+                                                            <TextBlock Text="{Binding Icon}" FontSize="22" VerticalAlignment="Center"/>
+                                                            <Button Style="{StaticResource IconBtn}"
+                                                                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                                    Content="✕" Click="OnDeleteMaterialClick" Tag="{Binding Id}"
+                                                                    FontSize="10" Width="20" Height="20" Padding="0"/>
+                                                        </Grid>
+                                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextBrush}"
+                                                                   FontSize="12" TextWrapping="Wrap"
+                                                                   TextTrimming="CharacterEllipsis" MaxHeight="36"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </WrapPanel>
+                            </ScrollViewer>
+                        </Grid>
                     </Border>
 
-                    <!-- Chat history -->
-                    <Border Grid.Row="1" Background="{DynamicResource BgSecondaryBrush}"
-                            CornerRadius="10" Margin="0,0,0,12" Padding="14">
+                    <!-- Chat history (Row 2, after GridSplitter Row 1) -->
+                    <Border Grid.Row="2" Background="{DynamicResource BgSecondaryBrush}"
+                            CornerRadius="10" Margin="0,6,12,6" Padding="14">
                         <ScrollViewer x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto">
                             <StackPanel>
                                 <!-- Welcome message -->
@@ -884,17 +912,24 @@
                         </ScrollViewer>
                     </Border>
 
-                    <!-- Chat input -->
-                    <Grid Grid.Row="2">
+                    <!-- Chat input (Row 3, after chat area) -->
+                    <Grid Grid.Row="3" Margin="0,0,12,0">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="8"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="8"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="8"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0" x:Name="TxtChatInput"
-                                 Height="48"
+                        <!-- Clear chat history -->
+                        <Button Grid.Column="0" Style="{StaticResource GhostBtn}"
+                                Width="44" Height="44" Padding="0" FontSize="16"
+                                Content="🗑" Click="OnClearChatClick"
+                                ToolTip="Chat-Verlauf leeren"/>
+                        <TextBox Grid.Column="2" x:Name="TxtChatInput"
+                                 Height="44"
                                  KeyDown="OnChatKeyDown">
                             <TextBox.Style>
                                 <Style TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
@@ -902,14 +937,14 @@
                                 </Style>
                             </TextBox.Style>
                         </TextBox>
-                        <Button Grid.Column="2" x:Name="BtnStopChat"
+                        <Button Grid.Column="4" x:Name="BtnStopChat"
                                 Style="{StaticResource PrimaryBtn}"
-                                Background="#FF4C4C" Width="48" Height="48" Padding="0"
+                                Background="#FF4C4C" Width="44" Height="44" Padding="0"
                                 Content="⏹" FontSize="16" Visibility="Collapsed"
                                 Click="OnStopChatClick"/>
-                        <Button Grid.Column="4" x:Name="BtnSendChat"
+                        <Button Grid.Column="6" x:Name="BtnSendChat"
                                 Style="{StaticResource PrimaryBtn}"
-                                Width="100" Height="48" Padding="0"
+                                Width="90" Height="44" Padding="0"
                                 Click="OnSendChatClick">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Senden" VerticalAlignment="Center" Margin="0,0,6,0"/>
@@ -922,7 +957,8 @@
                 <!-- ╔═══════════════════════════╗
                      ║  RIGHT: Learning Tools    ║
                      ╚═══════════════════════════╝ -->
-                <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto"
+                              Margin="12,0,0,0">
                     <StackPanel>
                         <TextBlock Text="🛠 Lernwerkzeuge" Foreground="White"
                                    FontSize="16" FontWeight="SemiBold" Margin="0,0,0,14"/>
@@ -972,7 +1008,7 @@
                                     <TextBlock Text="Lernkarten erstellen" FontSize="13" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <Button Style="{StaticResource ToolBtn}" Margin="0,0,0,0"
+                            <Button Style="{StaticResource ToolBtn}" Margin="0,0,0,16"
                                     Click="OnQuizClick">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#F72585" CornerRadius="7"
@@ -981,6 +1017,22 @@
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <TextBlock Text="Quiz generieren" FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Utility actions -->
+                            <Separator Background="{DynamicResource BorderBrush}" Margin="0,0,0,12"/>
+                            <TextBlock Text="AKTIONEN" Foreground="{DynamicResource TextMutedBrush}"
+                                       FontSize="10" FontWeight="Bold" Margin="0,0,0,8"/>
+                            <Button Style="{StaticResource ToolBtn}" Margin="0,0,0,8"
+                                    Click="OnExportNotebookClick">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#22AA55" CornerRadius="7"
+                                            Width="30" Height="30" Margin="0,0,10,0">
+                                        <TextBlock Text="💾" FontSize="14"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Notizbuch exportieren" FontSize="13" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
