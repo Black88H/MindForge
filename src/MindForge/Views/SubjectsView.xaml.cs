@@ -757,54 +757,68 @@ public partial class SubjectsView : UserControl
         SetChatBusy(true);
         ScrollChatToBottom();
 
-        // Persist user message
-        await SaveChatMessageAsync(userText, ChatRole.User);
-
         _aiCts = new CancellationTokenSource();
         var ct = _aiCts.Token;
 
         try
         {
+            // Persist user message — inside try so DB errors show as chat messages
+            await SaveChatMessageAsync(userText, ChatRole.User);
+
             if (!await _ai.IsOllamaAvailableAsync(ct))
             {
                 OllamaStatusBar.Visibility = Visibility.Visible;
-                SetChatBusy(false);
+                _activeNotebook.ChatHistory.Add(new NotebookChatMsg
+                {
+                    IsUser  = false,
+                    Content = "⚠️ Ollama ist nicht erreichbar.\n" +
+                              "Stelle sicher, dass Ollama läuft: ollama serve\n" +
+                              "Standard-URL: http://localhost:11434"
+                });
                 return;
             }
 
-            var prompt = $"{BuildSystemPrompt()}\n\n{BuildMaterialContext()}\n\nFrage: {userText}";
-            var (provider, model) = await _ai.SelectAsync(AITask.Chat, ct);
+            // Build system prompt with learning context + materials
+            var systemPrompt = BuildSystemPrompt();
+            var matContext   = BuildMaterialContext();
+            if (!string.IsNullOrEmpty(matContext))
+                systemPrompt += "\n\n" + matContext;
 
             TxtStreamingContent.Text   = "";
             StreamingBubble.Visibility = Visibility.Visible;
             ScrollChatToBottom();
 
             var sb = new StringBuilder();
-            await foreach (var chunk in provider.StreamAsync(model, prompt, ct))
+
+            // StreamChatAsync uses /api/chat (messages format) with
+            // ResponseHeadersRead so tokens stream in real-time.
+            await foreach (var chunk in _ai.StreamChatAsync(systemPrompt, userText, AITask.Chat, ct))
             {
                 sb.Append(chunk);
-                Dispatcher.Invoke(() =>
-                {
-                    TxtStreamingContent.Text = sb.ToString();
-                    ScrollChatToBottom();
-                });
+                // We are already on the UI thread (WPF SynchronizationContext),
+                // so update the live streaming TextBlock directly — no Dispatcher.Invoke needed.
+                TxtStreamingContent.Text = sb.ToString();
+                ScrollChatToBottom();
             }
 
             StreamingBubble.Visibility = Visibility.Collapsed;
+
             if (sb.Length > 0)
             {
                 _activeNotebook.ChatHistory.Add(new NotebookChatMsg { IsUser = false, Content = sb.ToString() });
-                // Persist AI reply + update progress
                 await SaveChatMessageAsync(sb.ToString(), ChatRole.Assistant);
                 await SaveNotebookProgressAsync();
             }
         }
-        catch (OperationCanceledException) { StreamingBubble.Visibility = Visibility.Collapsed; }
+        catch (OperationCanceledException)
+        {
+            StreamingBubble.Visibility = Visibility.Collapsed;
+        }
         catch (Exception ex)
         {
             StreamingBubble.Visibility = Visibility.Collapsed;
-            _activeNotebook.ChatHistory.Add(new NotebookChatMsg
-                { IsUser = false, Content = $"⚠️ Fehler: {ex.Message}" });
+            _activeNotebook?.ChatHistory.Add(new NotebookChatMsg
+                { IsUser = false, Content = $"⚠️ Fehler: {ex.GetType().Name}: {ex.Message}" });
         }
         finally { SetChatBusy(false); }
 
@@ -850,12 +864,13 @@ public partial class SubjectsView : UserControl
             """;
     }
 
-    private void SetChatBusy(bool busy) => Dispatcher.Invoke(() =>
+    private void SetChatBusy(bool busy)
     {
+        // Always called from the UI thread — no Dispatcher.Invoke needed.
         TxtChatInput.IsEnabled = !busy;
         BtnSendChat.Visibility = busy ? Visibility.Collapsed : Visibility.Visible;
         BtnStopChat.Visibility = busy ? Visibility.Visible   : Visibility.Collapsed;
-    });
+    }
 
     private void ScrollChatToBottom() => Dispatcher.BeginInvoke(() =>
         ChatScrollViewer.ScrollToBottom());

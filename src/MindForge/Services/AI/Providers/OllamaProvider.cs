@@ -12,7 +12,7 @@ namespace MindForge.Services.AI.Providers;
 
 public class OllamaProvider : IAIProvider
 {
-    private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromMinutes(5) };
+    private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromMinutes(10) };
     private string _baseUrl = "http://localhost:11434";
     private bool _available;
 
@@ -73,13 +73,21 @@ public class OllamaProvider : IAIProvider
             : string.Empty;
     }
 
+    /// <summary>
+    /// Streams a plain-prompt completion via /api/generate.
+    /// Uses ResponseHeadersRead so chunks arrive in real-time instead of
+    /// waiting for the whole response to buffer first.
+    /// </summary>
     public async IAsyncEnumerable<string> StreamAsync(string model, string prompt,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         var body = JsonSerializer.Serialize(new { model, prompt, stream = true });
-        using var req = new StringContent(body, Encoding.UTF8, "application/json");
+        var req   = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/generate")
+            { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 
-        using var response = await _http.PostAsync($"{_baseUrl}/api/generate", req, ct);
+        // ResponseHeadersRead = start reading the stream immediately,
+        // do NOT buffer the whole response in memory first.
+        using var response = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
         response.EnsureSuccessStatusCode();
 
         using var stream = await response.Content.ReadAsStreamAsync(ct);
@@ -89,7 +97,6 @@ public class OllamaProvider : IAIProvider
         while ((line = await reader.ReadLineAsync(ct)) != null && !ct.IsCancellationRequested)
         {
             if (string.IsNullOrEmpty(line)) continue;
-
             string chunk;
             try
             {
@@ -97,10 +104,53 @@ public class OllamaProvider : IAIProvider
                 if (!doc.RootElement.TryGetProperty("response", out var r)) continue;
                 chunk = r.GetString() ?? string.Empty;
             }
-            catch (JsonException)
+            catch (JsonException) { continue; }
+
+            if (!string.IsNullOrEmpty(chunk))
+                yield return chunk;
+        }
+    }
+
+    /// <summary>
+    /// Streams a chat-style response via /api/chat using a messages array.
+    /// Preferred over StreamAsync for conversational use — the model receives
+    /// proper role-tagged turns (system / user) instead of one flat prompt.
+    /// </summary>
+    public async IAsyncEnumerable<string> StreamChatAsync(
+        string model,
+        string systemPrompt,
+        string userMessage,
+        [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        var messages = new List<object>();
+        if (!string.IsNullOrWhiteSpace(systemPrompt))
+            messages.Add(new { role = "system", content = systemPrompt });
+        messages.Add(new { role = "user", content = userMessage });
+
+        var body = JsonSerializer.Serialize(new { model, messages, stream = true });
+        var req  = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/chat")
+            { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+
+        using var response = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+        response.EnsureSuccessStatusCode();
+
+        using var stream = await response.Content.ReadAsStreamAsync(ct);
+        using var reader = new System.IO.StreamReader(stream);
+
+        string? line;
+        while ((line = await reader.ReadLineAsync(ct)) != null && !ct.IsCancellationRequested)
+        {
+            if (string.IsNullOrEmpty(line)) continue;
+            string chunk;
+            try
             {
-                continue;
+                // /api/chat format: {"message":{"role":"assistant","content":"…"},"done":false}
+                using var doc = JsonDocument.Parse(line);
+                if (!doc.RootElement.TryGetProperty("message", out var msg)) continue;
+                if (!msg.TryGetProperty("content", out var content)) continue;
+                chunk = content.GetString() ?? string.Empty;
             }
+            catch (JsonException) { continue; }
 
             if (!string.IsNullOrEmpty(chunk))
                 yield return chunk;
