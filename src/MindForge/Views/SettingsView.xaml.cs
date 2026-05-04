@@ -23,7 +23,7 @@ public partial class SettingsView : UserControl
             return v is null ? "v0.0.0" : $"v{v.Major}.{v.Minor}.{v.Build}";
         }
     }
-    private const string GitHubToken = "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";
+    // Repo is public — no token needed for the API or for downloading releases.
     private const string RepoUrl = "https://api.github.com/repos/Black88H/MindForge/releases/latest";
 
     private string? _downloadAssetUrl;
@@ -90,11 +90,9 @@ public partial class SettingsView : UserControl
             _latestVersion = json.RootElement.GetProperty("tag_name").GetString();
             var body = json.RootElement.GetProperty("body").GetString() ?? "Keine Changelogs verfügbar.";
 
-            // Private repo: store the API asset URL (not browser_download_url).
-            // browser_download_url returns 404 without auth on private repos;
-            // the API URL + Accept: application/octet-stream + token works correctly.
+            // Public repo: browser_download_url works without auth and is a direct CDN link.
             if (json.RootElement.TryGetProperty("assets", out var assets) && assets.GetArrayLength() > 0)
-                _downloadAssetUrl = assets[0].GetProperty("url").GetString();
+                _downloadAssetUrl = assets[0].GetProperty("browser_download_url").GetString();
 
             if (_latestVersion != null && _latestVersion != CurrentVersion && !string.IsNullOrEmpty(_downloadAssetUrl))
             {
@@ -153,12 +151,9 @@ public partial class SettingsView : UserControl
             string tempZipPath = Path.Combine(Path.GetTempPath(), "MindForgeUpdate.zip");
 
             // ── Download ──────────────────────────────────────────────────────
-            // Private repo: authenticate via token + Accept: application/octet-stream.
-            // GitHub API redirects this to a signed CDN URL which returns the binary.
+            // Public repo: browser_download_url is a direct CDN link — no auth needed.
             using var downloadClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
-            downloadClient.DefaultRequestHeaders.Add("User-Agent",    "MindForge-AutoUpdater/3.0");
-            downloadClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {GitHubToken}");
-            downloadClient.DefaultRequestHeaders.Add("Accept",        "application/octet-stream");
+            downloadClient.DefaultRequestHeaders.Add("User-Agent", "MindForge-AutoUpdater/3.0");
 
             TxtDownloadProgress.Text = "Lade Update herunter...";
             using var response = await downloadClient.GetAsync(_downloadAssetUrl, HttpCompletionOption.ResponseHeadersRead);
@@ -508,9 +503,9 @@ Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force -ErrorAction Silent
 
     private static HttpClient CreateGitHubClient()
     {
+        // Public repo — no Authorization header needed.
         var client = new HttpClient();
         client.DefaultRequestHeaders.Add("User-Agent", "MindForge-AutoUpdater/2.1");
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {GitHubToken}");
         client.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
         return client;
     }
