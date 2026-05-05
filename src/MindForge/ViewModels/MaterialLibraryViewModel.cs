@@ -80,7 +80,10 @@ public partial class MaterialLibraryViewModel : ObservableObject
         {
             ".pdf"  => await _ingestion.IngestPdfAsync(UserSession.UserId, SelectedSubject.Id, filePath, title),
             ".docx" => await _ingestion.IngestDocxAsync(UserSession.UserId, SelectedSubject.Id, filePath, title),
-            ".txt" or ".md" => await _ingestion.IngestTextAsync(UserSession.UserId, SelectedSubject.Id, filePath, title),
+            ".txt" or ".md" or ".csv" or ".json" or ".html" or ".htm" or ".xml"
+                    => await _ingestion.IngestTextAsync(UserSession.UserId, SelectedSubject.Id, filePath, title),
+            ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".webp" or ".tiff" or ".tif"
+                    => await _ingestion.IngestImageAsync(UserSession.UserId, SelectedSubject.Id, filePath, title),
             _ => Result<Material>.Failure($"Unsupported file type: {ext}")
         };
 

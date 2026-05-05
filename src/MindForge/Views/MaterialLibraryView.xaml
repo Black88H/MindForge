@@ -45,7 +45,7 @@
                     <TextBlock Text="Add Material" Foreground="{DynamicResource TextMutedBrush}"
                                FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
 
-                    <Button Content="📄  Upload PDF / DOCX / TXT" Click="OnUploadFileClick"
+                    <Button Content="📁  Upload (PDF / Bild / TXT / …)" Click="OnUploadFileClick"
                             Background="{DynamicResource AccentBrush}" Foreground="White"
                             BorderThickness="0" Height="40" Margin="0,0,0,8">
                         <Button.Style>
@@ -86,9 +86,7 @@
                                 ToolTip="Add web page"/>
                     </Grid>
 
-                    <TextBlock x:Name="TxtStatus" Text="{Binding StatusMessage}"
-                               Foreground="{DynamicResource AccentBrush}"
-                               FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                    <!-- Status shown in the page footer (Grid.Row=2) — no duplicate here -->
                 </StackPanel>
             </Border>
 
@@ -155,87 +153,99 @@
                 </Grid>
             </Border>
 
-            <!-- Right: AI Panel -->
+            <!-- Right: AI Panel — Grid so AI output fills all remaining height -->
             <Border Grid.Column="2" Background="{DynamicResource BgSecondaryBrush}"
                     CornerRadius="12" Padding="16">
-                <StackPanel>
-                    <TextBlock Text="AI Actions" Foreground="{DynamicResource TextMutedBrush}"
-                               FontSize="12" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>  <!-- buttons -->
+                        <RowDefinition Height="Auto"/>  <!-- separator -->
+                        <RowDefinition Height="Auto"/>  <!-- "AI Output" label + busy bar -->
+                        <RowDefinition Height="*"/>     <!-- AI output fills remaining space -->
+                    </Grid.RowDefinitions>
 
-                    <Button Content="📝  Summarize" Click="OnSummarizeClick"
-                            Background="{DynamicResource AccentBrush}" Foreground="White"
-                            BorderThickness="0" Height="40" Margin="0,0,0,8">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                    <!-- Action buttons -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                        <TextBlock Text="AI Aktionen" Foreground="{DynamicResource TextMutedBrush}"
+                                   FontSize="12" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-                    <Button Content="🏷️  Extract Topics" Click="OnTopicsClick"
-                            Background="{DynamicResource BgTertiaryBrush}" Foreground="{DynamicResource TextBrush}"
-                            BorderThickness="0" Height="40" Margin="0,0,0,8">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                        <Button Content="📝  Zusammenfassen" Click="OnSummarizeClick"
+                                Background="{DynamicResource AccentBrush}" Foreground="White"
+                                BorderThickness="0" Height="40" Margin="0,0,0,8">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+                        </Button>
 
-                    <Button Content="🗑️  Delete Material" Click="OnDeleteClick"
-                            Background="#FF4C4C" Foreground="White"
-                            BorderThickness="0" Height="40" Margin="0,0,0,16">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+                        <Button Content="🏷️  Themen extrahieren" Click="OnTopicsClick"
+                                Background="{DynamicResource BgTertiaryBrush}" Foreground="{DynamicResource TextBrush}"
+                                BorderThickness="0" Height="40" Margin="0,0,0,8">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+                        </Button>
 
-                    <Separator Background="{DynamicResource BorderBrush}" Margin="0,0,0,12"/>
+                        <Button Content="🗑️  Material löschen" Click="OnDeleteClick"
+                                Background="#FF4C4C" Foreground="White"
+                                BorderThickness="0" Height="40">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
 
-                    <TextBlock Text="AI Output" Foreground="{DynamicResource TextMutedBrush}"
-                               FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <Separator Grid.Row="1" Background="{DynamicResource BorderBrush}" Margin="0,0,0,12"/>
 
-                    <Border Background="{DynamicResource BgBrush}" CornerRadius="8"
-                            Padding="12" MinHeight="200" MaxHeight="400">
+                    <!-- Label + busy indicator -->
+                    <Grid Grid.Row="2" Margin="0,0,0,8">
+                        <TextBlock Text="KI-Ausgabe" Foreground="{DynamicResource TextMutedBrush}"
+                                   FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <ProgressBar x:Name="PrgBusy" IsIndeterminate="True" Height="3"
+                                     Foreground="{DynamicResource AccentBrush}"
+                                     VerticalAlignment="Bottom"
+                                     Visibility="{Binding IsBusy,
+                                         Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    </Grid>
+
+                    <!-- AI output — ScrollViewer fills star row, no hard MaxHeight cap -->
+                    <Border Grid.Row="3" Background="{DynamicResource BgBrush}" CornerRadius="8" Padding="12">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <TextBlock x:Name="TxtAiOutput" Text="{Binding AiOutput}"
                                        Foreground="{DynamicResource TextBrush}"
-                                       FontSize="13" TextWrapping="Wrap"
-                                       LineHeight="20"/>
+                                       FontSize="13" TextWrapping="Wrap" LineHeight="20"/>
                         </ScrollViewer>
                     </Border>
-
-                    <ProgressBar x:Name="PrgBusy" IsIndeterminate="True" Height="4"
-                                 Foreground="{DynamicResource AccentBrush}"
-                                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"
-                                 Margin="0,8,0,0"/>
-                </StackPanel>
+                </Grid>
             </Border>
         </Grid>
 

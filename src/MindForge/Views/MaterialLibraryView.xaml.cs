@@ -26,11 +26,18 @@ public partial class MaterialLibraryView : UserControl
     {
         var dlg = new OpenFileDialog
         {
-            Filter = "Supported Files|*.pdf;*.docx;*.txt;*.md|PDF|*.pdf|Word|*.docx|Text|*.txt;*.md",
-            Multiselect = false
+            Title = "Material hochladen",
+            Filter = "Alle unterstützten Dateien|*.pdf;*.docx;*.txt;*.md;*.csv;*.json;*.html;*.htm;*.xml;*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp;*.tiff;*.tif" +
+                     "|Dokumente|*.pdf;*.docx;*.txt;*.md" +
+                     "|Bilder (OCR)|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp;*.tiff;*.tif" +
+                     "|Daten & Web|*.csv;*.json;*.html;*.htm;*.xml" +
+                     "|Alle Dateien|*.*",
+            Multiselect = true
         };
         if (dlg.ShowDialog() != true) return;
-        await _vm.IngestFileCommand.ExecuteAsync(dlg.FileName);
+
+        foreach (var file in dlg.FileNames)
+            await _vm.IngestFileCommand.ExecuteAsync(file);
     }
 
     private async void OnAddUrlClick(object sender, RoutedEventArgs e)

@@ -150,21 +150,62 @@ public class FileIngestionService : IFileIngestionService
         return Result<Material>.Success(material);
     }
 
-    private static string TryOcrPage(UglyToad.PdfPig.Content.Page page)
+    // ── Image ingestion via Tesseract OCR ─────────────────────────────────────
+
+    public async Task<Result<Material>> IngestImageAsync(Guid userId, Guid subjectId,
+        string filePath, string title)
     {
+        if (!File.Exists(filePath))
+            return Result<Material>.Failure("File not found.");
+
         try
         {
-            var tessDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tessdata");
-            if (!Directory.Exists(tessDataPath))
-                return "[Image page - OCR skipped (tessdata missing)]";
-
-            // OCR via Tesseract is available but requires image extraction from the PDF page
-            // Returning placeholder until image extraction is wired to Pix
-            return "[Image page - OCR placeholder]";
+            var text = await Task.Run(() => ExtractTextFromImage(filePath));
+            return await SaveMaterialAsync(userId, subjectId, title, filePath,
+                MaterialFormat.Image, text);
         }
-        catch
+        catch (Exception ex)
         {
-            return "[OCR error]";
+            return Result<Material>.Failure($"Error processing image: {ex.Message}");
         }
+    }
+
+    private static string ExtractTextFromImage(string imagePath)
+    {
+        var tessDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tessdata");
+        if (!Directory.Exists(tessDataPath))
+            return $"[Image: {Path.GetFileName(imagePath)}]\n" +
+                   "(OCR unavailable — create a 'tessdata' folder next to the exe " +
+                   "and add deu.traineddata / eng.traineddata)";
+
+        // Try German then English — use whichever traineddata file exists
+        foreach (var lang in new[] { "deu", "eng" })
+        {
+            var dataFile = Path.Combine(tessDataPath, $"{lang}.traineddata");
+            if (!File.Exists(dataFile)) continue;
+
+            try
+            {
+                using var engine = new Tesseract.TesseractEngine(
+                    tessDataPath, lang, Tesseract.EngineMode.Default);
+                using var img = Tesseract.Pix.LoadFromFile(imagePath);
+                using var page = engine.Process(img);
+                var extracted = page.GetText().Trim();
+                if (!string.IsNullOrEmpty(extracted))
+                    return extracted;
+            }
+            catch { /* try next language */ }
+        }
+
+        return $"[Image: {Path.GetFileName(imagePath)}]\n" +
+               "(No text extracted — ensure tessdata/deu.traineddata or eng.traineddata exists)";
+    }
+
+    private static string TryOcrPage(UglyToad.PdfPig.Content.Page page)
+    {
+        // PDF image pages: OCR requires rendering the page to a bitmap first.
+        // Full PdfPig→Bitmap→Tesseract pipeline is non-trivial; return a placeholder
+        // so the rest of the PDF text still ingests correctly.
+        return "[Image page — OCR for embedded PDF images not yet supported]";
     }
 }

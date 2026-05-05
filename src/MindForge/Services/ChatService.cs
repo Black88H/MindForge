@@ -49,35 +49,46 @@ public class ChatService : IChatService
         await SaveMessageAsync(userId, prompt, ChatRole.User);
 
         var fullPrompt = BuildPrompt(prompt, context);
-        var chunks = await CollectStreamAsync(fullPrompt, ct);
-
         var fullResponse = new System.Text.StringBuilder();
-        foreach (var chunk in chunks)
+
+        // Resolve provider BEFORE the yield sequence — yield cannot live inside try/catch.
+        IAIProvider? provider = null;
+        string model = string.Empty;
+        bool canStream = false;
+
+        try
         {
-            fullResponse.Append(chunk);
-            yield return chunk;
+            (provider, model) = await _ai.SelectAsync(AITask.Chat, ct);
+            canStream = true;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { /* Ollama unavailable — fall through to fallback */ }
+
+        if (!canStream || provider == null)
+        {
+            // Yield fallback outside of try/catch — no compile restriction here
+            fullResponse.Append(FallbackResponse);
+            yield return FallbackResponse;
+        }
+        else
+        {
+            // True real-time streaming: yield each token as it arrives from Ollama.
+            // No try/catch wrapping the yield — exceptions propagate naturally to the caller.
+            await foreach (var chunk in provider.StreamAsync(model, fullPrompt, ct)
+                                                .WithCancellation(ct))
+            {
+                fullResponse.Append(chunk);
+                yield return chunk;
+            }
+
+            if (fullResponse.Length == 0)
+            {
+                fullResponse.Append(FallbackResponse);
+                yield return FallbackResponse;
+            }
         }
 
         await SaveMessageAsync(userId, fullResponse.ToString(), ChatRole.Assistant);
-    }
-
-    private async Task<System.Collections.Generic.List<string>> CollectStreamAsync(
-        string prompt, CancellationToken ct)
-    {
-        var result = new System.Collections.Generic.List<string>();
-        try
-        {
-            var (provider, model) = await _ai.SelectAsync(AITask.Chat, ct);
-            await foreach (var chunk in provider.StreamAsync(model, prompt, ct))
-                result.Add(chunk);
-        }
-        catch (OperationCanceledException) { throw; }
-        catch { /* Ollama unreachable */ }
-
-        if (result.Count == 0)
-            result.Add(FallbackResponse);
-
-        return result;
     }
 
     public async Task<List<ChatMessage>> GetHistoryAsync(Guid userId, int limit = 50)
