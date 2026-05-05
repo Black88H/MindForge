@@ -63,27 +63,6 @@
                                 <TextBlock Text="Materialien" FontSize="14" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="BtnGraph" Tag="Graph" Click="OnNavClick"
-                                Style="{StaticResource NavButtonStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🌐" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Wissensgraph" FontSize="14" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button x:Name="BtnLearning" Tag="Learning" Click="OnNavClick"
-                                Style="{StaticResource NavButtonStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🔄" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Lernen (SR)" FontSize="14" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button x:Name="BtnTests" Tag="Tests" Click="OnNavClick"
-                                Style="{StaticResource NavButtonStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📝" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Tests" FontSize="14" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
                         <Button x:Name="BtnChat" Tag="Chat" Click="OnNavClick"
                                 Style="{StaticResource NavButtonStyle}">
                             <StackPanel Orientation="Horizontal">
@@ -96,13 +75,6 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🧠" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="AI Tools" FontSize="14" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button x:Name="BtnAnalytics" Tag="Analytics" Click="OnNavClick"
-                                Style="{StaticResource NavButtonStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📈" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Statistiken" FontSize="14" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>

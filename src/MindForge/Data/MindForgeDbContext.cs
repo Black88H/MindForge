@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MindForge.Models;
 using System;
+#pragma warning disable CS8618
 
 namespace MindForge.Data;
 
@@ -35,7 +36,10 @@ public class MindForgeDbContext : DbContext
     public DbSet<Achievement> Achievements => Set<Achievement>();
     public DbSet<UserAchievement> UserAchievements => Set<UserAchievement>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
-    public DbSet<Notebook>    Notebooks   => Set<Notebook>();
+    public DbSet<Notebook>         Notebooks        => Set<Notebook>();
+    public DbSet<MaterialChunk>    MaterialChunks   => Set<MaterialChunk>();
+    public DbSet<FormulaEntry>     Formulas         => Set<FormulaEntry>();
+    public DbSet<NotebookSnapshot> NotebookSnapshots => Set<NotebookSnapshot>();
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -78,6 +82,41 @@ public class MindForgeDbContext : DbContext
 
         // AppSettings Primary Key
         modelBuilder.Entity<AppSettings>().HasKey(a => a.Key);
+
+        // ── Performance indexes ──────────────────────────────────────────────
+        // Materials: fast lookup by notebook
+        modelBuilder.Entity<Material>()
+            .HasIndex(m => m.NotebookId)
+            .HasDatabaseName("IX_Materials_NotebookId");
+
+        // ChatMessages: lookup by notebook + time for history loading
+        modelBuilder.Entity<ChatMessage>()
+            .HasIndex(c => c.NotebookId)
+            .HasDatabaseName("IX_ChatMessages_NotebookId");
+
+        // SpacedRepetitionItems: due-item queries
+        modelBuilder.Entity<SpacedRepetitionItem>()
+            .HasIndex(s => s.UserId)
+            .HasDatabaseName("IX_SRS_UserId");
+
+        // MaterialChunks: RAG search by notebook
+        modelBuilder.Entity<MaterialChunk>()
+            .HasIndex(c => c.NotebookId)
+            .HasDatabaseName("IX_MaterialChunks_NotebookId");
+
+        modelBuilder.Entity<MaterialChunk>()
+            .HasIndex(c => c.MaterialId)
+            .HasDatabaseName("IX_MaterialChunks_MaterialId");
+
+        // NotebookSnapshots: history lookup
+        modelBuilder.Entity<NotebookSnapshot>()
+            .HasIndex(s => s.NotebookId)
+            .HasDatabaseName("IX_NotebookSnapshots_NotebookId");
+
+        // FormulaEntry: formula panel lookup
+        modelBuilder.Entity<FormulaEntry>()
+            .HasIndex(f => f.NotebookId)
+            .HasDatabaseName("IX_Formulas_NotebookId");
 
         // KnowledgeEdge: Zwei FK zur selben Tabelle
         modelBuilder.Entity<KnowledgeEdge>()

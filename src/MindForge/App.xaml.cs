@@ -17,8 +17,33 @@ public partial class App : Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
+    private static readonly string ErrorLogPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "MindForge", "error.log");
+
     protected override void OnStartup(StartupEventArgs e)
     {
+        // Global unhandled-exception handlers — prevent silent crashes
+        DispatcherUnhandledException += (_, args) =>
+        {
+            LogError(args.Exception);
+            System.Windows.MessageBox.Show(
+                $"Ein unerwarteter Fehler ist aufgetreten:\n\n{args.Exception.Message}\n\n" +
+                $"Details wurden gespeichert unter:\n{ErrorLogPath}",
+                "MindForge – Fehler", System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Error);
+            args.Handled = true;
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            if (args.ExceptionObject is Exception ex)
+                LogError(ex);
+        };
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            LogError(args.Exception);
+            args.SetObserved();
+        };
         var services = new ServiceCollection();
 
         // Database — explicit absolute path so it always lands in AppData\Local\MindForge
@@ -33,6 +58,7 @@ public partial class App : Application
         // AI layer
         services.AddSingleton<OllamaProvider>();
         services.AddSingleton<AISelector>();
+        services.AddSingleton<RAGService>();
 
         // Services
         services.AddScoped<IAuthService, AuthService>();
@@ -92,6 +118,40 @@ public partial class App : Application
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Materials    ADD COLUMN NotebookId TEXT NULL;"); } catch { /* column already exists */ }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE ChatMessages ADD COLUMN NotebookId TEXT NULL;"); } catch { /* column already exists */ }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Notebooks    ADD COLUMN Language TEXT NOT NULL DEFAULT 'Deutsch';"); } catch { /* column already exists */ }
+
+            // ── v4.0.0 schema additions ───────────────────────────────────────────
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS MaterialChunks (
+                    Id            TEXT NOT NULL PRIMARY KEY,
+                    MaterialId    TEXT NOT NULL,
+                    NotebookId    TEXT NOT NULL,
+                    MaterialName  TEXT NOT NULL DEFAULT '',
+                    ChunkIndex    INTEGER NOT NULL DEFAULT 0,
+                    Text          TEXT NOT NULL DEFAULT '',
+                    EmbeddingJson TEXT NOT NULL DEFAULT '[]'
+                );");
+
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS Formulas (
+                    Id          TEXT NOT NULL PRIMARY KEY,
+                    NotebookId  TEXT NOT NULL,
+                    LaTeX       TEXT NOT NULL DEFAULT '',
+                    Description TEXT NOT NULL DEFAULT '',
+                    Category    TEXT NOT NULL DEFAULT '',
+                    CreatedAt   TEXT NOT NULL DEFAULT ''
+                );");
+
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS NotebookSnapshots (
+                    Id            TEXT NOT NULL PRIMARY KEY,
+                    NotebookId    TEXT NOT NULL,
+                    CreatedAt     TEXT NOT NULL DEFAULT '',
+                    Label         TEXT NOT NULL DEFAULT '',
+                    MaterialsJson TEXT NOT NULL DEFAULT '[]',
+                    ChatJson      TEXT NOT NULL DEFAULT '[]',
+                    MaterialCount INTEGER NOT NULL DEFAULT 0,
+                    ChatCount     INTEGER NOT NULL DEFAULT 0
+                );");
         }
 
         // Load saved Ollama URL into selector
@@ -122,5 +182,16 @@ public partial class App : Application
             }
         }
         catch { /* ignore — defaults are fine */ }
+    }
+
+    internal static void LogError(Exception ex)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(ErrorLogPath)!);
+            var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}\n\n";
+            File.AppendAllText(ErrorLogPath, line);
+        }
+        catch { /* logging must never throw */ }
     }
 }

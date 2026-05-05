@@ -116,6 +116,80 @@ public class OllamaProvider : IAIProvider
     /// Preferred over StreamAsync for conversational use — the model receives
     /// proper role-tagged turns (system / user) instead of one flat prompt.
     /// </summary>
+    /// <summary>
+    /// Calls Ollama /api/embed (batch endpoint) and returns the first embedding vector.
+    /// Falls back to /api/embeddings (legacy) on failure.
+    /// Returns null if neither endpoint responds correctly.
+    /// </summary>
+    public async Task<float[]?> GetEmbeddingAsync(
+        string text,
+        string model,
+        CancellationToken ct = default)
+    {
+        var batch = await GetEmbeddingsBatchAsync([text], model, ct);
+        return batch.Count > 0 ? batch[0] : null;
+    }
+
+    /// <summary>
+    /// Batch-embeds multiple texts in ONE API call via /api/embed.
+    /// Falls back to sequential /api/embeddings calls if the batch endpoint
+    /// is not available. Returns an empty list on total failure.
+    /// </summary>
+    public async Task<List<float[]>> GetEmbeddingsBatchAsync(
+        IReadOnlyList<string> texts,
+        string model,
+        CancellationToken ct = default)
+    {
+        if (texts.Count == 0) return [];
+
+        // Try /api/embed with array input (Ollama ≥ 0.1.34)
+        try
+        {
+            var body    = JsonSerializer.Serialize(new { model, input = texts });
+            using var req      = new StringContent(body, Encoding.UTF8, "application/json");
+            using var response = await _http.PostAsync($"{_baseUrl}/api/embed", req, ct);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync(ct);
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("embeddings", out var arr))
+                {
+                    var result = new List<float[]>();
+                    foreach (var item in arr.EnumerateArray())
+                    {
+                        if (item.ValueKind == JsonValueKind.Array)
+                            result.Add(item.EnumerateArray().Select(v => v.GetSingle()).ToArray());
+                    }
+                    if (result.Count > 0) return result;
+                }
+            }
+        }
+        catch { /* fall through */ }
+
+        // Fallback: sequential legacy /api/embeddings (1 call per text)
+        var fallback = new List<float[]>();
+        foreach (var text in texts)
+        {
+            ct.ThrowIfCancellationRequested();
+            try
+            {
+                var body    = JsonSerializer.Serialize(new { model, prompt = text });
+                using var req      = new StringContent(body, Encoding.UTF8, "application/json");
+                using var response = await _http.PostAsync($"{_baseUrl}/api/embeddings", req, ct);
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync(ct);
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("embedding", out var arr))
+                        fallback.Add(arr.EnumerateArray().Select(v => v.GetSingle()).ToArray());
+                }
+            }
+            catch { /* skip this chunk */ }
+        }
+        return fallback;
+    }
+
     public async IAsyncEnumerable<string> StreamChatAsync(
         string model,
         string systemPrompt,
