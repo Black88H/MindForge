@@ -92,7 +92,10 @@
 
             <!-- Center: Material List -->
             <Border Grid.Column="1" Background="{DynamicResource BgSecondaryBrush}"
-                    CornerRadius="12" Padding="16" Margin="0,0,12,0">
+                    CornerRadius="12" Padding="16" Margin="0,0,12,0"
+                    AllowDrop="True"
+                    x:Name="DropZoneBorder"
+                    DragEnter="OnDragEnter" DragLeave="OnDragLeave" Drop="OnDrop">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>

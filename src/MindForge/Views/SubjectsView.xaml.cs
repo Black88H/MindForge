@@ -1053,6 +1053,33 @@ public partial class SubjectsView : UserControl
     private void ScrollChatToBottom() => Dispatcher.BeginInvoke(() =>
         ChatScrollViewer.ScrollToBottom());
 
+    // ── Tool sidebar collapse ─────────────────────────────────────────────────
+
+    private bool _toolSidebarCollapsed;
+    private GridLength _savedToolColWidth = new GridLength(300);
+
+    private void OnToggleToolSidebar(object sender, RoutedEventArgs e)
+    {
+        if (_toolSidebarCollapsed)
+        {
+            // Expand: restore column width and show scroll content
+            RightToolColDef.MinWidth = 200;
+            RightToolColDef.Width    = _savedToolColWidth;
+            RightToolScrollViewer.Visibility   = Visibility.Visible;
+            ToolbarCollapsedStrip.Visibility   = Visibility.Collapsed;
+        }
+        else
+        {
+            // Collapse: save current width, shrink column to strip width
+            _savedToolColWidth               = RightToolColDef.Width;
+            RightToolColDef.MinWidth         = 0;
+            RightToolColDef.Width            = new GridLength(36);
+            RightToolScrollViewer.Visibility = Visibility.Collapsed;
+            ToolbarCollapsedStrip.Visibility = Visibility.Visible;
+        }
+        _toolSidebarCollapsed = !_toolSidebarCollapsed;
+    }
+
     // ── Settings panel ────────────────────────────────────────────────────────
 
     private void OnToggleSettings(object sender, RoutedEventArgs e)
@@ -1330,7 +1357,7 @@ public partial class SubjectsView : UserControl
             var ctx = BuildMaterialContext(); // already token-limited
             var prompt = $"Extrahiere alle Formeln. Format pro Formel (Trenner ---):\nLATEX: <LaTeX>\nBESCHREIBUNG: <kurz>\nKATEGORIE: <Thema>\n---\nNur echte Formeln, kein Fließtext. Max 30.\n{ctx}";
 
-            var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct);
+            var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct: ct);
             var response = await GenerateWithCacheAsync(
                 "formulas", prompt,
                 () => provider.GenerateAsync(model, prompt, ct));
@@ -1413,7 +1440,7 @@ public partial class SubjectsView : UserControl
                 ? $"Audio-Zusammenfassung (~250 Wörter, natürliche Sprache, keine Listen) in {lang} zu: {_activeSubject?.Name}"
                 : $"Audio-Zusammenfassung (~250 Wörter, natürliche Sprache, keine Listen) in {lang}:\n{ctx}";
 
-            var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct);
+            var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct: ct);
             var summary = await GenerateWithCacheAsync(
                 "audio", prompt,
                 () => provider.GenerateAsync(model, prompt, ct));
@@ -1604,7 +1631,7 @@ public partial class SubjectsView : UserControl
                          "Format: # Kapitel, ## Abschnitte, $$Formeln$$, Bullet-Points.\n" +
                          $"Materialien:\n{matCtx}";
 
-            var (provider, model) = await _ai.SelectAsync(AITask.StudyGuide, ct);
+            var (provider, model) = await _ai.SelectAsync(AITask.StudyGuide, ct: ct);
             TxtToolResult.Text = await GenerateWithCacheAsync(
                 "smartmerge", prompt,
                 () => provider.GenerateAsync(model, prompt, ct));
@@ -1835,7 +1862,7 @@ public partial class SubjectsView : UserControl
         {
             if (!await _ai.IsOllamaAvailableAsync(ct)) { OllamaStatusBar.Visibility = Visibility.Visible; SetToolBusy(false, string.Empty); return; }
             var prompt = promptFn();
-            var (provider, model) = await _ai.SelectAsync(task, ct);
+            var (provider, model) = await _ai.SelectAsync(task, ct: ct);
             TxtToolResult.Text = await GenerateWithCacheAsync(
                 task.ToString(), prompt,
                 () => provider.GenerateAsync(model, prompt, ct));
@@ -1861,7 +1888,7 @@ public partial class SubjectsView : UserControl
                 ? $"8 Lernkarten zu '{_activeSubject?.Name}'. Format (--- als Trenner):\nFRAGE: [Frage]\nANTWORT: [Antwort]\n---"
                 : $"8 Lernkarten aus diesen Materialien:\nFRAGE: [Frage]\nANTWORT: [Antwort]\n---\n{ctx}";
 
-            var (provider, model) = await _ai.SelectAsync(AITask.StudyGuide, ct);
+            var (provider, model) = await _ai.SelectAsync(AITask.StudyGuide, ct: ct);
             var response = await GenerateWithCacheAsync(
                 "flashcards", prompt,
                 () => provider.GenerateAsync(model, prompt, ct));
@@ -2405,7 +2432,7 @@ public partial class SubjectsView : UserControl
                 ? $"10 Multiple-Choice-Fragen zu '{_activeSubject?.Name}' auf Deutsch. Format:\nQ: [Frage]\nA) [Option] B) [Option] C) [Option] D) [Option]\nRICHTIG: [A/B/C/D]\n---"
                 : $"10 Multiple-Choice-Fragen aus diesen Materialien auf Deutsch:\nQ: [Frage]\nA) [Option] B) [Option] C) [Option] D) [Option]\nRICHTIG: [A/B/C/D]\n---\n{ctx}";
 
-            var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct);
+            var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct: ct);
             raw = await GenerateWithCacheAsync("interactivequiz", prompt,
                 () => provider.GenerateAsync(model, prompt, ct));
         }

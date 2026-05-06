@@ -33,7 +33,7 @@ public class ChatService : IChatService
         try
         {
             var fullPrompt = BuildPrompt(prompt, context);
-            var (provider, model) = await _ai.SelectAsync(AITask.Chat, ct);
+            var (provider, model) = await _ai.SelectAsync(AITask.Chat, ct: ct);
             responseText = await provider.GenerateAsync(model, fullPrompt, ct);
         }
         catch (OperationCanceledException) { throw; }
@@ -43,12 +43,16 @@ public class ChatService : IChatService
         return responseText;
     }
 
-    public async IAsyncEnumerable<string> StreamMessageAsync(Guid userId, string prompt,
-        string context = "", [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<string> StreamMessageAsync(
+        Guid userId, string prompt,
+        string context       = "",
+        string systemPrompt  = "",
+        string? modelOverride = null,
+        [EnumeratorCancellation] CancellationToken ct = default)
     {
         await SaveMessageAsync(userId, prompt, ChatRole.User);
 
-        var fullPrompt = BuildPrompt(prompt, context);
+        var fullPrompt   = BuildPrompt(prompt, context, systemPrompt);
         var fullResponse = new System.Text.StringBuilder();
 
         // Resolve provider BEFORE the yield sequence — yield cannot live inside try/catch.
@@ -58,7 +62,7 @@ public class ChatService : IChatService
 
         try
         {
-            (provider, model) = await _ai.SelectAsync(AITask.Chat, ct);
+            (provider, model) = await _ai.SelectAsync(AITask.Chat, modelOverride, ct);
             canStream = true;
         }
         catch (OperationCanceledException) { throw; }
@@ -66,14 +70,11 @@ public class ChatService : IChatService
 
         if (!canStream || provider == null)
         {
-            // Yield fallback outside of try/catch — no compile restriction here
             fullResponse.Append(FallbackResponse);
             yield return FallbackResponse;
         }
         else
         {
-            // True real-time streaming: yield each token as it arrives from Ollama.
-            // No try/catch wrapping the yield — exceptions propagate naturally to the caller.
             await foreach (var chunk in provider.StreamAsync(model, fullPrompt, ct)
                                                 .WithCancellation(ct))
             {
@@ -123,18 +124,23 @@ public class ChatService : IChatService
         await _db.SaveChangesAsync();
     }
 
-    private static string BuildPrompt(string userMessage, string context)
+    private static string BuildPrompt(string userMessage, string context, string systemPrompt = "")
     {
-        if (string.IsNullOrWhiteSpace(context))
-            return userMessage;
+        var sb = new System.Text.StringBuilder();
 
-        return $"""
-            You are a helpful AI tutor. Answer based on the provided context when available.
+        sb.AppendLine(string.IsNullOrWhiteSpace(systemPrompt)
+            ? "You are a helpful AI tutor. Answer based on the provided context when available."
+            : systemPrompt);
 
-            Context from study materials:
-            {context}
+        if (!string.IsNullOrWhiteSpace(context))
+        {
+            sb.AppendLine();
+            sb.AppendLine("Context from study materials:");
+            sb.AppendLine(context);
+        }
 
-            User question: {userMessage}
-            """;
+        sb.AppendLine();
+        sb.Append($"User: {userMessage}");
+        return sb.ToString();
     }
 }

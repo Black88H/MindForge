@@ -21,10 +21,18 @@ public class AISelector
 
     public void SetOllamaUrl(string url) => _ollama.SetBaseUrl(url);
 
-    public async Task<(IAIProvider provider, string model)> SelectAsync(AITask task, CancellationToken ct = default)
+    /// <summary>Sets the generation temperature on the underlying Ollama provider (0–2).</summary>
+    public void SetTemperature(double temperature) => _ollama.Temperature = temperature;
+
+    /// <summary>Selects the best provider+model for the task.
+    /// Pass <paramref name="modelOverride"/> to force a specific Ollama model name.</summary>
+    public async Task<(IAIProvider provider, string model)> SelectAsync(
+        AITask task, string? modelOverride = null, CancellationToken ct = default)
     {
         await EnsureModelsRefreshedAsync(ct);
-        var model = PickModel(task, _cachedModels);
+        var model = !string.IsNullOrWhiteSpace(modelOverride)
+            ? modelOverride
+            : PickModel(task, _cachedModels);
         return (_ollama, model);
     }
 

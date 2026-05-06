@@ -39,7 +39,7 @@ public class NotebookService : INotebookService
             {content}
             """;
 
-        var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct);
+        var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct: ct);
         return await provider.GenerateAsync(model, prompt, ct);
     }
 
@@ -71,7 +71,7 @@ public class NotebookService : INotebookService
             {combined}
             """;
 
-        var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct);
+        var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct: ct);
         return await provider.GenerateAsync(model, prompt, ct);
     }
 
@@ -133,7 +133,7 @@ public class NotebookService : INotebookService
             {context}
             """;
 
-        var (provider, model) = await _ai.SelectAsync(AITask.QnA, ct);
+        var (provider, model) = await _ai.SelectAsync(AITask.QnA, ct: ct);
         var answer = await provider.GenerateAsync(model, prompt, ct);
 
         // Filter citations to only those mentioned in the answer
@@ -178,7 +178,7 @@ public class NotebookService : INotebookService
             {combined}
             """;
 
-        var (provider, model) = await _ai.SelectAsync(AITask.StudyGuide, ct);
+        var (provider, model) = await _ai.SelectAsync(AITask.StudyGuide, ct: ct);
         return await provider.GenerateAsync(model, prompt, ct);
     }
 
@@ -197,7 +197,7 @@ public class NotebookService : INotebookService
             {content}
             """;
 
-        var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct);
+        var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct: ct);
         var response = await provider.GenerateAsync(model, prompt, ct);
 
         return response
@@ -221,7 +221,7 @@ public class NotebookService : INotebookService
             {summary}
             """;
 
-        var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct);
+        var (provider, model) = await _ai.SelectAsync(AITask.Summarization, ct: ct);
         return await provider.GenerateAsync(model, prompt, ct);
     }
 

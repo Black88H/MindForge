@@ -734,7 +734,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MinWidth="400"/>
                     <ColumnDefinition Width="5"/>
-                    <ColumnDefinition Width="300" MinWidth="200" MaxWidth="520"/>
+                    <ColumnDefinition x:Name="RightToolColDef" Width="300" MinWidth="200" MaxWidth="520"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Vertical splitter: left ↔ right -->
@@ -957,11 +957,34 @@
                 <!-- ╔═══════════════════════════╗
                      ║  RIGHT: Learning Tools    ║
                      ╚═══════════════════════════╝ -->
-                <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto"
-                              Margin="12,0,0,0">
-                    <StackPanel>
-                        <TextBlock Text="🛠 Lernwerkzeuge" Foreground="White"
-                                   FontSize="16" FontWeight="SemiBold" Margin="0,0,0,14"/>
+                <Grid Grid.Column="2" Margin="12,0,0,0">
+                    <!-- Collapsed strip: narrow pill, expand arrow (shown when sidebar hidden) -->
+                    <Border x:Name="ToolbarCollapsedStrip"
+                            Width="32" HorizontalAlignment="Left"
+                            Background="{DynamicResource BgSecondaryBrush}"
+                            CornerRadius="10" Visibility="Collapsed">
+                        <Button Content="›" FontSize="18" FontWeight="Bold"
+                                VerticalAlignment="Top" Margin="0,12,0,0"
+                                Style="{StaticResource GhostBtn}"
+                                ToolTip="Werkzeuge einblenden"
+                                Click="OnToggleToolSidebar"/>
+                    </Border>
+
+                    <!-- Expanded content -->
+                    <ScrollViewer x:Name="RightToolScrollViewer"
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- Header with collapse toggle -->
+                            <Grid Margin="0,0,0,14">
+                                <TextBlock Text="🛠 Lernwerkzeuge" Foreground="White"
+                                           FontSize="16" FontWeight="SemiBold"
+                                           VerticalAlignment="Center"/>
+                                <Button Content="‹" FontSize="16" FontWeight="Bold"
+                                        HorizontalAlignment="Right"
+                                        Style="{StaticResource GhostBtn}"
+                                        ToolTip="Werkzeuge ausblenden"
+                                        Click="OnToggleToolSidebar"/>
+                            </Grid>
 
                         <StackPanel x:Name="PanelToolButtons">
                             <Button Style="{StaticResource ToolBtn}" Margin="0,0,0,8"
@@ -1318,6 +1341,7 @@
 
                     </StackPanel>
                 </ScrollViewer>
+                </Grid><!-- /right tool grid -->
             </Grid>
         </Grid>
 

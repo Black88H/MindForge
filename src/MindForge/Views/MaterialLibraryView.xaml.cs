@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 using MindForge.ViewModels;
@@ -62,5 +63,54 @@ public partial class MaterialLibraryView : UserControl
             "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         if (result == MessageBoxResult.Yes)
             await _vm.DeleteMaterialCommand.ExecuteAsync(null);
+    }
+
+    // ── Drag & Drop ───────────────────────────────────────────────────────────
+
+    private void OnDragEnter(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            e.Effects = DragDropEffects.Copy;
+            if (sender is Border border)
+            {
+                border.BorderBrush = (Brush)Application.Current.Resources["AccentBrush"];
+                border.BorderThickness = new Thickness(2);
+            }
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+        e.Handled = true;
+    }
+
+    private void OnDragLeave(object sender, DragEventArgs e)
+    {
+        if (sender is Border border)
+        {
+            border.BorderBrush = Brushes.Transparent;
+            border.BorderThickness = new Thickness(0);
+        }
+        e.Handled = true;
+    }
+
+    private async void OnDrop(object sender, DragEventArgs e)
+    {
+        if (sender is Border border)
+        {
+            border.BorderBrush = Brushes.Transparent;
+            border.BorderThickness = new Thickness(0);
+        }
+
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+        var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+        if (files == null) return;
+
+        foreach (var file in files)
+            await _vm.IngestFileCommand.ExecuteAsync(file);
+
+        e.Handled = true;
     }
 }

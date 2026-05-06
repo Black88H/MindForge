@@ -39,7 +39,8 @@ public class MindForgeDbContext : DbContext
     public DbSet<Notebook>         Notebooks        => Set<Notebook>();
     public DbSet<MaterialChunk>    MaterialChunks   => Set<MaterialChunk>();
     public DbSet<FormulaEntry>     Formulas         => Set<FormulaEntry>();
-    public DbSet<NotebookSnapshot> NotebookSnapshots => Set<NotebookSnapshot>();
+    public DbSet<NotebookSnapshot>     NotebookSnapshots    => Set<NotebookSnapshot>();
+    public DbSet<BackgroundTaskRecord> BackgroundTaskRecords => Set<BackgroundTaskRecord>();
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

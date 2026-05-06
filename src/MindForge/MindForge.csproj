@@ -6,10 +6,19 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <Version>5.0.1</Version>
-    <AssemblyVersion>5.0.1.0</AssemblyVersion>
-    <FileVersion>5.0.1.0</FileVersion>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Version>7.0.0</Version>
+    <AssemblyVersion>7.0.0.0</AssemblyVersion>
+    <FileVersion>7.0.0.0</FileVersion>
   </PropertyGroup>
+
+  <!-- Remove the implicit global 'using System.Windows.Forms' that UseWindowsForms
+       injects — it causes CS0104 ambiguity with WPF types (UserControl, Button, etc.).
+       MainWindow.xaml.cs uses fully-qualified System.Windows.Forms.X names instead. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms"/>
+    <Using Remove="System.Drawing"/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />

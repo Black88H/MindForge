@@ -19,6 +19,9 @@ public class OllamaProvider : IAIProvider
     public string Name => "Ollama";
     public bool IsAvailable => _available;
 
+    /// <summary>Ollama model temperature (0 = deterministic, 2 = very creative). Default 0.7.</summary>
+    public double Temperature { get; set; } = 0.7;
+
     public void SetBaseUrl(string url) => _baseUrl = url.TrimEnd('/');
 
     public async Task<bool> CheckAvailabilityAsync(CancellationToken ct = default)
@@ -61,7 +64,8 @@ public class OllamaProvider : IAIProvider
 
     public async Task<string> GenerateAsync(string model, string prompt, CancellationToken ct = default)
     {
-        var body = JsonSerializer.Serialize(new { model, prompt, stream = false });
+        var options = new { temperature = Temperature };
+        var body = JsonSerializer.Serialize(new { model, prompt, stream = false, options });
         using var req = new StringContent(body, Encoding.UTF8, "application/json");
         using var response = await _http.PostAsync($"{_baseUrl}/api/generate", req, ct);
         response.EnsureSuccessStatusCode();
@@ -81,7 +85,8 @@ public class OllamaProvider : IAIProvider
     public async IAsyncEnumerable<string> StreamAsync(string model, string prompt,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
-        var body = JsonSerializer.Serialize(new { model, prompt, stream = true });
+        var options = new { temperature = Temperature };
+        var body = JsonSerializer.Serialize(new { model, prompt, stream = true, options });
         var req   = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/generate")
             { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 
@@ -201,7 +206,8 @@ public class OllamaProvider : IAIProvider
             messages.Add(new { role = "system", content = systemPrompt });
         messages.Add(new { role = "user", content = userMessage });
 
-        var body = JsonSerializer.Serialize(new { model, messages, stream = true });
+        var options = new { temperature = Temperature };
+        var body = JsonSerializer.Serialize(new { model, messages, stream = true, options });
         var req  = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/chat")
             { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 

@@ -1,18 +1,26 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using MindForge.Helpers;
+using MindForge.Services;
+using MindForge.Services.Interfaces;
 
 namespace MindForge.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly IServiceProvider _services;
-    private Button? _activeNavButton;
+    private readonly IServiceProvider        _services;
+    private readonly IBackgroundTaskService  _bgService;
+    private          Button?                 _activeNavButton;
+
+    // System-tray icon (Windows.Forms)
+    private System.Windows.Forms.NotifyIcon? _trayIcon;
+    private bool _minimizeToTray = true;
 
     // Persisted window-bounds file path
     private static string BoundsFilePath => Path.Combine(
@@ -22,23 +30,23 @@ public partial class MainWindow : Window
     public MainWindow(IServiceProvider services)
     {
         InitializeComponent();
-        _services = services;
+        _services  = services;
+        _bgService = services.GetRequiredService<IBackgroundTaskService>();
 
         // Restore saved bounds before the window shows
         RestoreWindowBounds();
 
-        // Update F11 key binding at window level
+        // F11 fullscreen
         KeyDown += OnWindowKeyDown;
 
-        // Save bounds on close
-        Closing += (_, _) => SaveWindowBounds();
+        // Chrome corners when maximised / restored
+        StateChanged += OnWindowStateChanged;
 
-        // Keep CornerRadius=0 when maximised (rounded corners on a maximised window
-        // extend off-screen which looks bad)
-        StateChanged += (_, _) => UpdateChromeForState();
+        // Persist bounds and handle running-task check on close
+        Closing += OnWindowClosing;
 
         // Bind user info from session
-        TxtUsername.Text = UserSession.Username;
+        TxtUsername.Text    = UserSession.Username;
         TxtUserInitial.Text = UserSession.Username.Length > 0
             ? UserSession.Username[0].ToString().ToUpper()
             : "U";
@@ -47,10 +55,96 @@ public partial class MainWindow : Window
         int maxXP     = UserSession.Level * 1000;
         int currentXP = UserSession.TotalXP % 1000;
         if (currentXP == 0 && UserSession.TotalXP > 0) currentXP = 1000;
-        TxtXP.Text    = $"XP Fortschritt ({currentXP} / 1000)";
-        PrgXP.Value   = currentXP;
+        TxtXP.Text  = $"XP Fortschritt ({currentXP} / 1000)";
+        PrgXP.Value = currentXP;
+
+        // System-tray icon setup
+        InitTrayIcon();
+
+        // Badge: update whenever the task list changes
+        _bgService.Tasks.CollectionChanged += (_, _) => UpdateBadge();
+        _bgService.TaskCompleted           += (_, _) => UpdateBadge();
+        _bgService.TaskFailed              += (_, _) => UpdateBadge();
 
         NavigateTo("Dashboard", BtnDashboard);
+    }
+
+    // ── Tray icon ─────────────────────────────────────────────────────────────
+
+    private void InitTrayIcon()
+    {
+        _trayIcon = new System.Windows.Forms.NotifyIcon
+        {
+            Text    = "MindForge",
+            Visible = false,
+            Icon    = LoadTrayIcon()
+        };
+
+        // Double-click tray icon → restore window
+        _trayIcon.DoubleClick += (_, _) => RestoreFromTray();
+
+        // Context menu: Öffnen / Schließen
+        var menu = new System.Windows.Forms.ContextMenuStrip();
+        menu.Items.Add("Öffnen",  null, (_, _) => RestoreFromTray());
+        menu.Items.Add("Beenden", null, (_, _) =>
+        {
+            _minimizeToTray = false; // suppress the cancel-check; user chose "quit from tray"
+            Dispatcher.Invoke(Close);
+        });
+        _trayIcon.ContextMenuStrip = menu;
+    }
+
+    private static System.Drawing.Icon LoadTrayIcon()
+    {
+        // Try the .ico files shipped next to the executable
+        string[] candidates =
+        [
+            Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico"),
+            Path.Combine(AppContext.BaseDirectory, "Mindforge-removebg-preview.ico")
+        ];
+        foreach (var path in candidates)
+        {
+            if (File.Exists(path))
+            {
+                try { return new System.Drawing.Icon(path); } catch { /* try next */ }
+            }
+        }
+        return System.Drawing.SystemIcons.Application;
+    }
+
+    private void RestoreFromTray()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
+            _trayIcon!.Visible = false;
+        });
+    }
+
+    // ── Badge (running task count on nav button) ───────────────────────────────
+
+    private void UpdateBadge()
+    {
+        var running = _bgService.Tasks.Count(t => t.IsRunning);
+        if (running > 0)
+        {
+            TaskBadgeCount.Text     = running.ToString();
+            TaskBadge.Visibility    = Visibility.Visible;
+        }
+        else
+        {
+            TaskBadge.Visibility    = Visibility.Collapsed;
+        }
+    }
+
+    // ── Tasks button ──────────────────────────────────────────────────────────
+
+    private void OnTasksClick(object sender, RoutedEventArgs e)
+    {
+        var win = new BackgroundTasksWindow(_bgService) { Owner = this };
+        win.ShowDialog();
     }
 
     // ── Window drag ───────────────────────────────────────────────────────────
@@ -59,7 +153,6 @@ public partial class MainWindow : Window
     {
         if (e.LeftButton == MouseButtonState.Pressed)
         {
-            // Double-click on title bar → maximise / restore
             if (e.ClickCount == 2)
             {
                 ToggleMaximize();
@@ -89,10 +182,64 @@ public partial class MainWindow : Window
             : WindowState.Maximized;
     }
 
+    // ── StateChanged: rounded corners + minimize-to-tray ─────────────────────
+
+    private void OnWindowStateChanged(object? sender, EventArgs e)
+    {
+        UpdateChromeForState();
+
+        if (WindowState == WindowState.Minimized && _minimizeToTray)
+        {
+            Hide();
+            if (_trayIcon != null)
+            {
+                _trayIcon.Visible = true;
+                _trayIcon.ShowBalloonTip(
+                    2000,
+                    "MindForge",
+                    "Läuft im Hintergrund. Doppelklick zum Öffnen.",
+                    System.Windows.Forms.ToolTipIcon.Info);
+            }
+        }
+    }
+
+    // ── Closing: save bounds + check for running tasks ────────────────────────
+
+    private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        var running = _bgService.Tasks.Count(t => t.IsRunning);
+        if (running > 0)
+        {
+            var result = MessageBox.Show(
+                $"Es laufen noch {running} Hintergrundaufgabe(n).\n\n" +
+                "Möchten Sie alle Aufgaben abbrechen und MindForge schließen?",
+                "MindForge – Aufgaben abbrechen?",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            if (result == MessageBoxResult.No)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            // User confirmed — cancel all running tasks before exit
+            foreach (var t in _bgService.Tasks.Where(t => t.IsRunning).ToList())
+                _bgService.CancelTask(t.TaskId);
+        }
+
+        SaveWindowBounds();
+
+        // Clean up tray icon
+        _trayIcon?.Dispose();
+        _trayIcon = null;
+    }
+
     // ── F11 fullscreen ────────────────────────────────────────────────────────
 
-    private bool _isFullscreen;
-    private WindowState _preFullscreenState;
+    private bool         _isFullscreen;
+    private WindowState  _preFullscreenState;
 
     private void OnWindowKeyDown(object sender, KeyEventArgs e)
     {
@@ -107,16 +254,15 @@ public partial class MainWindow : Window
     {
         if (_isFullscreen)
         {
-            // Restore
-            WindowStyle  = WindowStyle.None;   // keep frameless look
-            WindowState  = _preFullscreenState;
+            WindowStyle   = WindowStyle.None;
+            WindowState   = _preFullscreenState;
             _isFullscreen = false;
         }
         else
         {
             _preFullscreenState = WindowState;
-            WindowStyle  = WindowStyle.None;
-            WindowState  = WindowState.Maximized;
+            WindowStyle   = WindowStyle.None;
+            WindowState   = WindowState.Maximized;
             _isFullscreen = true;
         }
     }
@@ -127,9 +273,9 @@ public partial class MainWindow : Window
     {
         if (RootBorder is null) return;
         bool max = WindowState == WindowState.Maximized;
-        RootBorder.CornerRadius = max ? new CornerRadius(0) : new CornerRadius(10);
-        RootBorder.BorderThickness = max ? new Thickness(0) : new Thickness(1);
-        BtnMaximize.Content = max ? "🗗" : "🗖";
+        RootBorder.CornerRadius    = max ? new CornerRadius(0) : new CornerRadius(10);
+        RootBorder.BorderThickness = max ? new Thickness(0)    : new Thickness(1);
+        BtnMaximize.Content        = max ? "🗗" : "🗖";
     }
 
     // ── Persist window bounds ─────────────────────────────────────────────────
@@ -138,7 +284,6 @@ public partial class MainWindow : Window
     {
         try
         {
-            // Only save normal-state bounds so we restore to a sensible position
             if (WindowState == WindowState.Normal)
             {
                 var bounds = new WindowBoundsDto(Left, Top, Width, Height, false);
@@ -149,7 +294,6 @@ public partial class MainWindow : Window
             }
             else
             {
-                // Remember that it was maximised so we can restore that state
                 WindowBoundsDto? existing = null;
                 if (File.Exists(BoundsFilePath))
                     existing = JsonSerializer.Deserialize<WindowBoundsDto>(File.ReadAllText(BoundsFilePath));
@@ -175,7 +319,6 @@ public partial class MainWindow : Window
             var dto = JsonSerializer.Deserialize<WindowBoundsDto>(File.ReadAllText(BoundsFilePath));
             if (dto is null) return;
 
-            // Sanity-check: ensure the bounds are on a visible monitor
             if (dto.Width >= 1000 && dto.Height >= 700)
             {
                 Left   = dto.Left;

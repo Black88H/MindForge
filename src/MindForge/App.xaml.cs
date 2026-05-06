@@ -72,6 +72,9 @@ public partial class App : Application
         services.AddScoped<ISpacedRepetitionService, SpacedRepetitionService>();
         services.AddScoped<INotebookService, NotebookService>();
 
+        // Background task service — Singleton; uses IServiceScopeFactory for DB access
+        services.AddSingleton<IBackgroundTaskService, BackgroundTaskService>();
+
         // ViewModels
         services.AddTransient<LoginViewModel>();
         services.AddTransient<MainViewModel>();
@@ -118,6 +121,18 @@ public partial class App : Application
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Materials    ADD COLUMN NotebookId TEXT NULL;"); } catch { /* column already exists */ }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE ChatMessages ADD COLUMN NotebookId TEXT NULL;"); } catch { /* column already exists */ }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Notebooks    ADD COLUMN Language TEXT NOT NULL DEFAULT 'Deutsch';"); } catch { /* column already exists */ }
+
+            // ── v7.0.0 schema additions ───────────────────────────────────────────
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS BackgroundTaskRecords (
+                    Id          TEXT NOT NULL PRIMARY KEY,
+                    TaskName    TEXT NOT NULL DEFAULT '',
+                    Status      TEXT NOT NULL DEFAULT '',
+                    Result      TEXT NOT NULL DEFAULT '',
+                    Error       TEXT NOT NULL DEFAULT '',
+                    StartedAt   TEXT NOT NULL DEFAULT '',
+                    CompletedAt TEXT NULL
+                );");
 
             // ── v4.0.0 schema additions ───────────────────────────────────────────
             db.Database.ExecuteSqlRaw(@"
