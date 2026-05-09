@@ -94,7 +94,7 @@ public partial class SettingsView : UserControl
             if (json.RootElement.TryGetProperty("assets", out var assets) && assets.GetArrayLength() > 0)
                 _downloadAssetUrl = assets[0].GetProperty("browser_download_url").GetString();
 
-            if (_latestVersion != null && _latestVersion != CurrentVersion && !string.IsNullOrEmpty(_downloadAssetUrl))
+            if (_latestVersion != null && IsNewerVersion(_latestVersion, CurrentVersion) && !string.IsNullOrEmpty(_downloadAssetUrl))
             {
                 TxtUpdateStatus.Text = $"✅ {_latestVersion} verfügbar!";
                 TxtUpdateStatus.Foreground = System.Windows.Media.Brushes.Lime;
@@ -497,6 +497,27 @@ Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force -ErrorAction Silent
     {
         var col = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
         return new System.Windows.Media.SolidColorBrush(col);
+    }
+
+    // ── VERSION COMPARISON ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns true only when the GitHub release tag represents a version that is
+    /// strictly newer than the currently running assembly version.
+    /// Strips leading 'v'/'V' from both strings before comparing.
+    /// </summary>
+    private static bool IsNewerVersion(string latestTag, string currentVersionStr)
+    {
+        static Version? TryParse(string s)
+        {
+            s = s.TrimStart('v', 'V').Trim();
+            return Version.TryParse(s, out var v) ? v : null;
+        }
+
+        var latest  = TryParse(latestTag);
+        var current = TryParse(currentVersionStr);
+
+        return latest != null && current != null && latest > current;
     }
 
     // ── HELPERS ──────────────────────────────────────────────────────────────
