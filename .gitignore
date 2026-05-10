@@ -6,3 +6,11 @@ obj/
 *.db-shm
 *.db-wal
 logs/
+
+# Published/built binaries — too large for GitHub (use Releases for distribution)
+src/MindForge/MindForge_Release/
+src/MindForge/publish/
+*.exe
+*.dll
+*.pdb
+*.zip
