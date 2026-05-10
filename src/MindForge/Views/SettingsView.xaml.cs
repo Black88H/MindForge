@@ -237,8 +237,8 @@ try {
         } else {
             $dir = [System.IO.Path]::GetDirectoryName($dest)
             [System.IO.Directory]::CreateDirectory($dir) | Out-Null
-            # $true = overwrite existing file
-            $entry.ExtractToFile($dest, $true)
+            # ExtractToFile is an extension method — must be called statically on PS 5.1
+            [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $dest, $true)
         }
     }
     $zip.Dispose()
