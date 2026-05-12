@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
@@ -20,7 +22,10 @@ public partial class LoginView : Window
     {
         InitializeComponent();
         _authService = authService;
-        CheckSavedSession();
+        // Fire AFTER the window is fully shown so Close() is safe to call.
+        // Calling Close() from the constructor (via async void) corrupts WPF's
+        // internal Show() dispatch and causes InvalidOperationException.
+        Loaded += (_, _) => CheckSavedSession();
     }
 
     // ── AUTO-LOGIN (Remember Me) ─────────────────────────────────────────────
@@ -32,11 +37,28 @@ public partial class LoginView : Window
             if (!File.Exists(SessionFilePath)) return;
             var json = JsonDocument.Parse(await File.ReadAllTextAsync(SessionFilePath));
             if (!json.RootElement.TryGetProperty("email", out var emailEl)) return;
-            if (!json.RootElement.TryGetProperty("password", out var pwdEl)) return;
+            if (!json.RootElement.TryGetProperty("pwd",   out var pwdEl))   return;
 
-            var email = emailEl.GetString() ?? "";
-            var pwd = pwdEl.GetString() ?? "";
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(pwd)) return;
+            var email        = emailEl.GetString() ?? "";
+            var encryptedB64 = pwdEl.GetString()   ?? "";
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(encryptedB64)) return;
+
+            // Decrypt password using DPAPI (Windows current-user, machine-bound).
+            string pwd;
+            try
+            {
+                var encrypted = Convert.FromBase64String(encryptedB64);
+                var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
+                pwd = Encoding.UTF8.GetString(decrypted);
+            }
+            catch
+            {
+                // Session file is in old plain-text format or corrupt — delete it.
+                DeleteSession();
+                return;
+            }
+
+            if (string.IsNullOrEmpty(pwd)) return;
 
             var result = await _authService.LoginAsync(email, pwd);
             if (result.IsSuccess)
@@ -83,14 +105,13 @@ public partial class LoginView : Window
         BtnLogin.IsEnabled = false;
         BtnLogin.Content = "Anmelden...";
 
-        var email = TxtEmail.Text.Trim();
+        var email    = TxtEmail.Text.Trim();
         var password = PwdPassword.Password;
 
         var result = await _authService.LoginAsync(email, password);
 
         if (result.IsSuccess)
         {
-            // "Remember Me" speichern
             if (ChkRememberMe.IsChecked == true)
                 SaveSession(email, password);
             else
@@ -124,7 +145,8 @@ public partial class LoginView : Window
 
         if (result.IsSuccess)
         {
-            var loginResult = await _authService.LoginAsync(TxtRegEmail.Text.Trim(), PwdRegPassword.Password);
+            var loginResult = await _authService.LoginAsync(
+                TxtRegEmail.Text.Trim(), PwdRegPassword.Password);
             if (loginResult.IsSuccess)
             {
                 var mainWindow = new MainWindow(App.Services);
@@ -148,7 +170,16 @@ public partial class LoginView : Window
         {
             var dir = Path.GetDirectoryName(SessionFilePath)!;
             Directory.CreateDirectory(dir);
-            var json = $"{{\"email\":\"{email}\",\"password\":\"{password}\"}}";
+
+            // Encrypt password with DPAPI (current-user scope).
+            // This protects against plain-text exposure and avoids JSON injection
+            // issues from passwords that contain quotes or backslashes.
+            var encrypted    = ProtectedData.Protect(
+                Encoding.UTF8.GetBytes(password), null, DataProtectionScope.CurrentUser);
+            var encryptedB64 = Convert.ToBase64String(encrypted);
+
+            // JsonSerializer.Serialize handles all escaping correctly.
+            var json = JsonSerializer.Serialize(new { email, pwd = encryptedB64 });
             File.WriteAllText(SessionFilePath, json);
         }
         catch { }

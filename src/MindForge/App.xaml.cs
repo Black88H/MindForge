@@ -305,10 +305,21 @@ public partial class App : Application
         // Load saved Ollama URL into selector
         LoadOllamaSettings(Services.GetRequiredService<AISelector>());
 
-        // Show LoginView
+        // Show LoginView.
+        // Wrapped in try-catch: if auto-login inside LoginView.Loaded completes
+        // synchronously and closes the window before Show() returns, WPF can
+        // sometimes throw InvalidOperationException — the MainWindow is already
+        // open in that edge case, so there is nothing more to do.
         var authService = Services.GetRequiredService<IAuthService>();
         var loginView = new LoginView(authService);
-        loginView.Show();
+        try
+        {
+            loginView.Show();
+        }
+        catch (InvalidOperationException)
+        {
+            // Auto-login already opened MainWindow — nothing to do.
+        }
     }
 
     private static void LoadOllamaSettings(AISelector selector)
