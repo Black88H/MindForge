@@ -72,6 +72,15 @@ public partial class App : Application
         services.AddScoped<ISpacedRepetitionService, SpacedRepetitionService>();
         services.AddScoped<INotebookService, NotebookService>();
 
+        // ── v8.0.0 services ──────────────────────────────────────────────────
+        services.AddScoped<IGlobalSearchService, GlobalSearchService>();
+        services.AddScoped<IAdaptiveQuizService, AdaptiveQuizService>();
+        services.AddScoped<IAnalyticsService,    AnalyticsService>();
+        services.AddScoped<INotebookExportService, NotebookExportService>();
+        // Singletons — timer and voice hold device state
+        services.AddSingleton<IStudyTimerService, StudyTimerService>();
+        services.AddSingleton<IVoiceInputService, VoiceInputService>();
+
         // Background task service — Singleton; uses IServiceScopeFactory for DB access
         services.AddSingleton<IBackgroundTaskService, BackgroundTaskService>();
 
@@ -167,7 +176,75 @@ public partial class App : Application
                     MaterialCount INTEGER NOT NULL DEFAULT 0,
                     ChatCount     INTEGER NOT NULL DEFAULT 0
                 );");
-        }
+
+            // ── v8.0.0 schema additions ──────────────────────────────────────────
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS Tags (
+                    Id     TEXT NOT NULL PRIMARY KEY,
+                    UserId TEXT NOT NULL DEFAULT '',
+                    Name   TEXT NOT NULL DEFAULT '',
+                    Color  TEXT NOT NULL DEFAULT '#6366F1'
+                );");
+
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS NotebookTags (
+                    Id         TEXT NOT NULL PRIMARY KEY,
+                    NotebookId TEXT NOT NULL DEFAULT '',
+                    TagId      TEXT NOT NULL DEFAULT ''
+                );");
+
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS SearchIndexes (
+                    Id         TEXT NOT NULL PRIMARY KEY,
+                    EntityType TEXT NOT NULL DEFAULT '',
+                    EntityId   TEXT NOT NULL DEFAULT '',
+                    Title      TEXT NOT NULL DEFAULT '',
+                    Snippet    TEXT NOT NULL DEFAULT '',
+                    UserId     TEXT NOT NULL DEFAULT '',
+                    IndexedAt  TEXT NOT NULL DEFAULT ''
+                );");
+
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS StudyStatistics (
+                    Id                 TEXT NOT NULL PRIMARY KEY,
+                    UserId             TEXT NOT NULL DEFAULT '',
+                    Date               TEXT NOT NULL DEFAULT '',
+                    MinutesStudied     INTEGER NOT NULL DEFAULT 0,
+                    SessionCount       INTEGER NOT NULL DEFAULT 0,
+                    XPEarned           INTEGER NOT NULL DEFAULT 0,
+                    FlashcardsReviewed INTEGER NOT NULL DEFAULT 0,
+                    TestsTaken         INTEGER NOT NULL DEFAULT 0,
+                    AverageScore       REAL NOT NULL DEFAULT 0,
+                    QuizzesTaken       INTEGER NOT NULL DEFAULT 0,
+                    ChatMessages       INTEGER NOT NULL DEFAULT 0
+                );");
+
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS StudySessions (
+                    Id              TEXT NOT NULL PRIMARY KEY,
+                    UserId          TEXT NOT NULL DEFAULT '',
+                    NotebookId      TEXT NULL,
+                    SessionType     TEXT NOT NULL DEFAULT 'Pomodoro',
+                    StartedAt       TEXT NOT NULL DEFAULT '',
+                    EndedAt         TEXT NULL,
+                    DurationMinutes INTEGER NOT NULL DEFAULT 0,
+                    Completed       INTEGER NOT NULL DEFAULT 0,
+                    XPEarned        INTEGER NOT NULL DEFAULT 0
+                );");
+
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS TokenUsages (
+                    Id               TEXT NOT NULL PRIMARY KEY,
+                    UserId           TEXT NOT NULL DEFAULT '',
+                    NotebookId       TEXT NULL,
+                    Provider         TEXT NOT NULL DEFAULT '',
+                    Model            TEXT NOT NULL DEFAULT '',
+                    PromptTokens     INTEGER NOT NULL DEFAULT 0,
+                    CompletionTokens INTEGER NOT NULL DEFAULT 0,
+                    Feature          TEXT NOT NULL DEFAULT '',
+                    Timestamp        TEXT NOT NULL DEFAULT ''
+                );");
+        } // end using scope
 
         // Load saved Ollama URL into selector
         LoadOllamaSettings(Services.GetRequiredService<AISelector>());

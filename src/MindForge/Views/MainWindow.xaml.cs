@@ -358,6 +358,10 @@ public partial class MainWindow : Window
             "Materials" => "📂 Material-Bibliothek",
             "Chat"      => "🤖 KI-Tutor",
             "KITools"   => "🧠 KI-Werkzeuge",
+            "Analytics" => "📊 Lernanalyse",
+            "Search"    => "🔍 Globale Suche",
+            "Timer"     => "⏱ Lern-Timer",
+            "Quiz"      => "🧠 Adaptiver Quiz",
             "Settings"  => "⚙️ Einstellungen",
             _           => page
         };
@@ -369,6 +373,10 @@ public partial class MainWindow : Window
             "Materials" => new MaterialLibraryView(),
             "Chat"      => new ChatView(),
             "KITools"   => new KIToolsView(),
+            "Analytics" => new AnalyticsView(),
+            "Search"    => new GlobalSearchView(),
+            "Timer"     => new StudyTimerView(),
+            "Quiz"      => new AdaptiveQuizView(),
             "Settings"  => new SettingsView(),
             _           => new DashboardView()
         };

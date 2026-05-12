@@ -41,6 +41,14 @@ public class MindForgeDbContext : DbContext
     public DbSet<FormulaEntry>     Formulas         => Set<FormulaEntry>();
     public DbSet<NotebookSnapshot>     NotebookSnapshots    => Set<NotebookSnapshot>();
     public DbSet<BackgroundTaskRecord> BackgroundTaskRecords => Set<BackgroundTaskRecord>();
+
+    // ── v8.0.0 ──────────────────────────────────────────────────────────────────
+    public DbSet<Tag>            Tags            => Set<Tag>();
+    public DbSet<NotebookTag>    NotebookTags    => Set<NotebookTag>();
+    public DbSet<SearchIndex>    SearchIndexes   => Set<SearchIndex>();
+    public DbSet<StudyStatistic> StudyStatistics => Set<StudyStatistic>();
+    public DbSet<StudySession>   StudySessions   => Set<StudySession>();
+    public DbSet<TokenUsage>     TokenUsages     => Set<TokenUsage>();
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

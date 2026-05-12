@@ -78,6 +78,35 @@
                             </StackPanel>
                         </Button>
 
+                        <Button x:Name="BtnAnalytics" Tag="Analytics" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Statistiken" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnSearch" Tag="Search" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔍" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Suche" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnTimer" Tag="Timer" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⏱" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Lern-Timer" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnQuiz" Tag="Quiz" Click="OnNavClick"
+                                Style="{StaticResource NavButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🧠" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Quiz" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
                         <!-- Background Tasks button with running-task badge -->
                         <Button x:Name="BtnTasks" Click="OnTasksClick"
                                 Style="{StaticResource NavButtonStyle}">
