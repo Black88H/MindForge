@@ -40,6 +40,9 @@ public partial class AnnotationsView : UserControl
 
     private async void OnFilterChanged(object sender, SelectionChangedEventArgs e)
     {
+        // Guard: WPF fires SelectionChanged during InitializeComponent() (because
+        // ComboBoxItem has IsSelected="True") — before _annotationService is assigned.
+        if (_annotationService is null) return;
         if (CboFilter.SelectedItem is not ComboBoxItem item) return;
 
         AnnotationType? filter = item.Content?.ToString() switch

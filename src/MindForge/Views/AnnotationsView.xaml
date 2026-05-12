@@ -62,15 +62,15 @@
 
                                     <!-- Color stripe -->
                                     <Border Grid.Column="0" CornerRadius="3" Margin="0,0,12,0"
-                                            Background="{Binding Color}"/>
+                                            Background="{Binding Color, Converter={StaticResource StringToBrushConverter}}"/>
 
                                     <!-- Content -->
                                     <StackPanel Grid.Column="1">
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                            <Border Background="{Binding Color}" CornerRadius="4"
-                                                    Padding="6,2" Margin="0,0,8,0">
-                                                <TextBlock Text="{Binding Type}" FontSize="10"
-                                                           FontWeight="Bold" Foreground="White"/>
+                                            <Border Background="{Binding Color, Converter={StaticResource StringToBrushConverter}}"
+                                                    CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                <TextBlock Text="{Binding Type, Converter={StaticResource AnnotationTypeConverter}}"
+                                                           FontSize="10" FontWeight="Bold" Foreground="White"/>
                                             </Border>
                                             <TextBlock Text="{Binding CreatedAt, StringFormat=dd.MM.yyyy}"
                                                        Foreground="{DynamicResource TextMutedBrush}"

@@ -14,8 +14,10 @@
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Converters -->
-            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-            <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+            <converters:BoolToVisibilityConverter  x:Key="BoolToVisibilityConverter"/>
+            <converters:InverseBoolConverter       x:Key="InverseBoolConverter"/>
+            <converters:StringToBrushConverter     x:Key="StringToBrushConverter"/>
+            <converters:AnnotationTypeConverter    x:Key="AnnotationTypeConverter"/>
 
             <SolidColorBrush x:Key="NavActiveBackground" Color="#252D45"/>
 
