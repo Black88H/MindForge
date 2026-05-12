@@ -44,6 +44,10 @@ public class MindForgeDbContext : DbContext
 
     // ── v8.0.0 ──────────────────────────────────────────────────────────────────
     public DbSet<Tag>            Tags            => Set<Tag>();
+    // ── v9.0.0 ──────────────────────────────────────────────────────────────────
+    public DbSet<Annotation>    Annotations    => Set<Annotation>();
+    public DbSet<Citation>      Citations      => Set<Citation>();
+    public DbSet<ConceptGraph>  ConceptGraphs  => Set<ConceptGraph>();
     public DbSet<NotebookTag>    NotebookTags    => Set<NotebookTag>();
     public DbSet<SearchIndex>    SearchIndexes   => Set<SearchIndex>();
     public DbSet<StudyStatistic> StudyStatistics => Set<StudyStatistic>();

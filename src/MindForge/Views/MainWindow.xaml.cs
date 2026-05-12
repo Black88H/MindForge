@@ -353,32 +353,40 @@ public partial class MainWindow : Window
 
         TxtPageTitle.Text = page switch
         {
-            "Dashboard" => "📊 Dashboard",
-            "Subjects"  => "📚 Fächer",
-            "Materials" => "📂 Material-Bibliothek",
-            "Chat"      => "🤖 KI-Tutor",
-            "KITools"   => "🧠 KI-Werkzeuge",
-            "Analytics" => "📊 Lernanalyse",
-            "Search"    => "🔍 Globale Suche",
-            "Timer"     => "⏱ Lern-Timer",
-            "Quiz"      => "🧠 Adaptiver Quiz",
-            "Settings"  => "⚙️ Einstellungen",
-            _           => page
+            "Dashboard"  => "📊 Dashboard",
+            "Subjects"   => "📚 Fächer",
+            "Materials"  => "📂 Material-Bibliothek",
+            "Chat"       => "🤖 KI-Tutor",
+            "KITools"    => "🧠 KI-Werkzeuge",
+            "Analytics"  => "📊 Lernanalyse",
+            "Search"     => "🔍 Globale Suche",
+            "Timer"      => "⏱ Lern-Timer",
+            "Quiz"       => "🧠 Adaptiver Quiz",
+            "Flashcards" => "🃏 Karteikarten-Review",
+            "Coach"      => "🎓 KI-Lerncoach",
+            "ConceptMap" => "🕸 Konzept-Netzwerk",
+            "Annotations"=> "🖊 Markierungen & Notizen",
+            "Settings"   => "⚙️ Einstellungen",
+            _            => page
         };
 
         MainFrame.Content = page switch
         {
-            "Dashboard" => new DashboardView(),
-            "Subjects"  => new SubjectsView(),
-            "Materials" => new MaterialLibraryView(),
-            "Chat"      => new ChatView(),
-            "KITools"   => new KIToolsView(),
-            "Analytics" => new AnalyticsView(),
-            "Search"    => new GlobalSearchView(),
-            "Timer"     => new StudyTimerView(),
-            "Quiz"      => new AdaptiveQuizView(),
-            "Settings"  => new SettingsView(),
-            _           => new DashboardView()
+            "Dashboard"  => new DashboardView(),
+            "Subjects"   => new SubjectsView(),
+            "Materials"  => new MaterialLibraryView(),
+            "Chat"       => new ChatView(),
+            "KITools"    => new KIToolsView(),
+            "Analytics"  => new AnalyticsView(),
+            "Search"     => new GlobalSearchView(),
+            "Timer"      => new StudyTimerView(),
+            "Quiz"       => new AdaptiveQuizView(),
+            "Flashcards" => new FlashcardReviewView(),
+            "Coach"      => new StudyCoachView(),
+            "ConceptMap" => new ConceptMapView(),
+            "Annotations"=> new AnnotationsView(),
+            "Settings"   => new SettingsView(),
+            _            => new DashboardView()
         };
     }
 }

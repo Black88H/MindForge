@@ -107,7 +107,7 @@ public class NotebookService : INotebookService
         }
 
         var context = new StringBuilder();
-        var citations = new List<Citation>();
+        var citations = new List<SourceRef>();
 
         foreach (var m in materials)
         {
@@ -119,7 +119,7 @@ public class NotebookService : INotebookService
             var shortExcerpt = excerpt.Length > 200
                 ? excerpt[..200].TrimEnd() + "..."
                 : excerpt;
-            citations.Add(new Citation(m.Id, m.Title, shortExcerpt));
+            citations.Add(new SourceRef(m.Id, m.Title, shortExcerpt));
         }
 
         var prompt = $"""

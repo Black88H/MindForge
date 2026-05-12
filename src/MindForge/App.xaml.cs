@@ -81,6 +81,14 @@ public partial class App : Application
         services.AddSingleton<IStudyTimerService, StudyTimerService>();
         services.AddSingleton<IVoiceInputService, VoiceInputService>();
 
+        // ── v9.0.0 services ──────────────────────────────────────────────────
+        services.AddScoped<IAIStudyCoachService,       AIStudyCoachService>();
+        services.AddScoped<IPredictiveAnalyticsService, PredictiveAnalyticsService>();
+        services.AddScoped<IAIConceptGraphService,     AIConceptGraphService>();
+        services.AddScoped<IDocumentComparisonService, DocumentComparisonService>();
+        services.AddScoped<IAnnotationService,         AnnotationService>();
+        services.AddScoped<ICitationService,           CitationService>();
+
         // Background task service — Singleton; uses IServiceScopeFactory for DB access
         services.AddSingleton<IBackgroundTaskService, BackgroundTaskService>();
 
@@ -244,6 +252,54 @@ public partial class App : Application
                     Feature          TEXT NOT NULL DEFAULT '',
                     Timestamp        TEXT NOT NULL DEFAULT ''
                 );");
+            // ── v9.0.0 schema additions ──────────────────────────────────────────
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS Annotations (
+                    Id           TEXT NOT NULL PRIMARY KEY,
+                    MaterialId   TEXT NOT NULL DEFAULT '',
+                    UserId       TEXT NOT NULL DEFAULT '',
+                    SelectedText TEXT NOT NULL DEFAULT '',
+                    Type         INTEGER NOT NULL DEFAULT 0,
+                    Color        TEXT NOT NULL DEFAULT '#FBBF24',
+                    AINote       TEXT NOT NULL DEFAULT '',
+                    UserNote     TEXT NOT NULL DEFAULT '',
+                    CreatedAt    TEXT NOT NULL DEFAULT '',
+                    PageNumber   INTEGER NOT NULL DEFAULT 0
+                );");
+
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS Citations (
+                    Id            TEXT NOT NULL PRIMARY KEY,
+                    MaterialId    TEXT NOT NULL DEFAULT '',
+                    UserId        TEXT NOT NULL DEFAULT '',
+                    CitationKey   TEXT NOT NULL DEFAULT '',
+                    Title         TEXT NOT NULL DEFAULT '',
+                    Authors       TEXT NOT NULL DEFAULT '',
+                    Year          TEXT NOT NULL DEFAULT '',
+                    Publisher     TEXT NOT NULL DEFAULT '',
+                    DOI           TEXT NOT NULL DEFAULT '',
+                    URL           TEXT NOT NULL DEFAULT '',
+                    BibtexEntry   TEXT NOT NULL DEFAULT '',
+                    APAFormat     TEXT NOT NULL DEFAULT '',
+                    MLAFormat     TEXT NOT NULL DEFAULT '',
+                    ChicagoFormat TEXT NOT NULL DEFAULT '',
+                    CreatedAt     TEXT NOT NULL DEFAULT ''
+                );");
+
+            db.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS ConceptGraphs (
+                    Id          TEXT NOT NULL PRIMARY KEY,
+                    NotebookId  TEXT NOT NULL DEFAULT '',
+                    GraphJson   TEXT NOT NULL DEFAULT '{}',
+                    GeneratedAt TEXT NOT NULL DEFAULT '',
+                    NodeCount   INTEGER NOT NULL DEFAULT 0
+                );");
+
+            // SM-17 columns on existing SpacedRepetitionItems
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE SpacedRepetitionItems ADD COLUMN SM17Difficulty     REAL NOT NULL DEFAULT 0.3;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE SpacedRepetitionItems ADD COLUMN SM17Stability      REAL NOT NULL DEFAULT 1.0;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE SpacedRepetitionItems ADD COLUMN SM17Retrievability REAL NOT NULL DEFAULT 1.0;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE SpacedRepetitionItems ADD COLUMN SM17HistoryJson    TEXT NOT NULL DEFAULT '[]';"); } catch { }
         } // end using scope
 
         // Load saved Ollama URL into selector

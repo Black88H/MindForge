@@ -6,8 +6,8 @@ using MindForge.Models;
 
 namespace MindForge.Services.Interfaces;
 
-public record CitedAnswer(string Answer, List<Citation> Citations);
-public record Citation(Guid MaterialId, string MaterialTitle, string Excerpt);
+public record SourceRef(Guid MaterialId, string MaterialTitle, string Excerpt);
+public record CitedAnswer(string Answer, List<SourceRef> Citations);
 
 public interface INotebookService
 {
