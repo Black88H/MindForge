@@ -290,7 +290,7 @@ public partial class App : Application
                 CREATE TABLE IF NOT EXISTS ConceptGraphs (
                     Id          TEXT NOT NULL PRIMARY KEY,
                     NotebookId  TEXT NOT NULL DEFAULT '',
-                    GraphJson   TEXT NOT NULL DEFAULT '{}',
+                    GraphJson   TEXT NOT NULL DEFAULT '{{}}',
                     GeneratedAt TEXT NOT NULL DEFAULT '',
                     NodeCount   INTEGER NOT NULL DEFAULT 0
                 );");
